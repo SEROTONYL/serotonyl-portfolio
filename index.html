@@ -1,0 +1,508 @@
+<title>SEROTONYL — Community & Content</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-0: #110a0a;
+    --surface-1: #1a1212;
+    --surface-2: #241818;
+    --surface-3: #2e1f1f;
+    --text-primary: #f5f5f5;
+    --text-secondary: #d1d1d1;
+    --text-muted: #a2a2a2;
+    --accent: #D4A574;
+    --accent-hover: #E2B98E;
+    --accent-muted: #A67F54;
+    --accent-light: #EFD4B0;
+    --accent-on: #0a0606;
+    --border-subtle: rgba(245, 245, 245, 0.08);
+    --border-strong: rgba(245, 245, 245, 0.16);
+    --ok: #4ade80;
+    --font-display: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body { line-height: 1.6; isolation: isolate; }
+
+  /* ── flat surface, not a live field — a document meant to be read, not watched ── */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity: 0.6;
+  }
+  .tick {
+    position: fixed;
+    z-index: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1;
+    color: var(--text-muted);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .tick.tl { top: 14px; left: 14px; }
+  .tick.tr { top: 14px; right: 14px; }
+  .tick.bl { bottom: 14px; left: 14px; }
+  .tick.br { bottom: 14px; right: 14px; }
+  @media (max-width: 560px) { .tick { display: none; } }
+
+  /* ── grain, matches the seroconnect noise-overlay recipe ── */
+  .noise {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    z-index: 9998;
+  }
+
+  ::selection { background: var(--accent); color: var(--accent-on); }
+
+  a { color: var(--accent-hover); text-decoration: none; }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; position: relative; z-index: 2; }
+  @media (max-width: 560px) { .wrap { padding: 3rem 1.25rem 4rem; } }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 0.75rem;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.1rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.02; }
+  h2 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 1.2rem; }
+  h3 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.3rem; color: var(--text-primary); }
+
+  p { color: var(--text-secondary); max-width: 62ch; }
+  .muted { color: var(--text-muted); }
+
+  /* gold gradient text — the one signature flourish, used once */
+  .gradient-text {
+    background: linear-gradient(128deg, var(--accent) 0%, var(--accent-muted) 52%, var(--accent-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+  }
+
+  header { display: flex; flex-direction: column; gap: 1.15rem; }
+
+  /* ── one raw, stamped mark — the single brutalist accent, spent here and nowhere else ── */
+  .stamp {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    border: 1.5px solid var(--accent-muted);
+    border-radius: 0;
+    padding: 4px 10px;
+    transform: rotate(-1.3deg);
+  }
+
+  .contact-row {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.15rem;
+    font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted);
+  }
+  .contact-row a { color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); transition: color 0.18s ease, border-color 0.18s ease; }
+  .contact-row a:hover { color: var(--accent-light); border-color: var(--accent-muted); }
+
+  .lede { font-size: 1.06rem; }
+  .lede strong { color: var(--text-primary); font-weight: 600; }
+
+  /* ── section rhythm: fading hairline instead of margin-only spacing ── */
+  section { margin-top: 3.6rem; position: relative; }
+  section:first-of-type { margin-top: 0; }
+
+  .sep {
+    height: 44px;
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .sep::before {
+    content: '';
+    position: absolute; left: 4%; right: 4%; top: 50%; height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(245,245,245,0.05) 20%, rgba(245,245,245,0.12) 50%, rgba(245,245,245,0.05) 80%, transparent 100%);
+    transform: translateY(-50%);
+  }
+  .sep::after {
+    content: '';
+    position: absolute; top: 50%; left: 4%; width: 90px; height: 1px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, transparent, rgba(226,185,142,0.55), transparent);
+    animation: sep-travel 6s ease-in-out infinite;
+  }
+  @keyframes sep-travel {
+    0%   { left: 4%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { left: calc(96% - 90px); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .sep::after { animation: none; opacity: 0.4; } }
+
+  /* ── "what I do" — fading dividers, not a 3-card grid ── */
+  .stack-list { display: flex; flex-direction: column; }
+  .stack-item { padding: 1rem 0; }
+  .stack-item + .stack-item {
+    border-top: 1px solid transparent;
+    background:
+      linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent 100%) top / 100% 1px no-repeat;
+  }
+  .stack-item p { font-size: 0.94rem; margin: 0.15rem 0 0; }
+
+  /* ── featured case: textured "hero card" like dc-card-hero ── */
+  .case {
+    border-radius: 4px;
+    position: relative;
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface-1);
+    padding: 2rem;
+  }
+  @media (max-width: 560px) { .case { padding: 1.4rem; } }
+  .case-index {
+    position: absolute; top: -1.5px; right: 1.4rem;
+    transform: translateY(-50%);
+    background: var(--surface-0);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border-strong);
+    padding: 2px 8px;
+  }
+
+  .meta-strip { display: flex; flex-wrap: wrap; gap: 14px 0; margin-bottom: 1.6rem; }
+  .meta-item { display: flex; flex-direction: column; gap: 5px; padding-right: 20px; }
+  .meta-item + .meta-item { padding-left: 18px; border-left: 1px solid var(--border-subtle); }
+  .meta-label { font-family: var(--font-display); font-size: 9.5px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: var(--text-muted); }
+  .meta-value { font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); }
+
+  .case ul { margin: 0 0 1.6rem; padding-left: 1.1rem; }
+  .case li { margin-bottom: 0.55rem; font-size: 0.95rem; }
+  .case li:last-child { margin-bottom: 0; }
+
+  .quote-row { display: flex; flex-direction: column; gap: 0.85rem; margin: 1.7rem 0; }
+  .bubble {
+    align-self: flex-start; max-width: 36ch;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px 12px 12px 12px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+  .bubble .who {
+    display: block; font-family: var(--font-mono); font-size: 0.66rem;
+    letter-spacing: 0.03em; color: var(--accent-hover); margin-bottom: 0.25rem;
+  }
+
+  .pipeline { counter-reset: step; list-style: none; margin: 1.5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .pipeline li { counter-increment: step; display: grid; grid-template-columns: 1.8rem 1fr; gap: 0.8rem; align-items: baseline; font-size: 0.94rem; }
+  .pipeline li::before {
+    content: counter(step);
+    font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700;
+    color: var(--accent-on);
+    background: radial-gradient(circle at 36% 32%, var(--accent-hover) 0%, var(--accent-muted) 100%);
+    width: 1.45rem; height: 1.45rem; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 8px rgba(226,185,142,0.15);
+  }
+
+  .case-footnote { margin-top: 1.7rem; font-size: 0.84rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
+
+  /* ── video: one real, dominant + a queue of what's coming ── */
+  .video-feature {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+    box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+  }
+  .video-thumb-link { display: block; text-decoration: none; }
+  .video-thumb {
+    position: relative;
+    aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(ellipse 70% 90% at 25% 20%, rgba(226,185,142,0.16) 0%, transparent 60%),
+      linear-gradient(150deg, var(--surface-3) 0%, var(--surface-1) 100%);
+    transition: filter 0.2s ease;
+  }
+  .video-thumb-link:hover .video-thumb { filter: brightness(1.12); }
+  .play-btn {
+    width: 58px; height: 58px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 36% 32%, var(--accent-hover) 0%, var(--accent-muted) 100%);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(226,185,142,0.15);
+    transition: transform 0.2s ease;
+  }
+  .video-thumb-link:hover .play-btn { transform: scale(1.08); }
+  .play-btn svg { margin-left: 3px; }
+  .video-thumb-caption {
+    position: absolute; bottom: 10px; right: 12px;
+    font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted);
+    background: rgba(10,6,6,0.55); padding: 2px 7px; border-radius: 4px;
+  }
+  .video-feature-body { padding: 1rem 1.2rem 1.2rem; }
+
+  .dial { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 0.5rem; }
+  .dial-dot { width: 9px; height: 9px; border-radius: 50%; position: relative; flex-shrink: 0; }
+  .dial-dot.live { background: radial-gradient(circle at 36% 32%, rgba(74,222,128,0.9) 0%, rgba(34,197,94,0.4) 68%); box-shadow: 0 0 6px rgba(74,222,128,0.5); }
+  .dial-dot.pending { background: radial-gradient(circle at 36% 32%, rgba(162,166,170,0.7) 0%, rgba(120,124,128,0.3) 68%); }
+  .dial.live-label { color: var(--ok); }
+  .dial.pending-label { color: var(--text-muted); }
+
+  .queue { margin-top: 1.4rem; display: flex; flex-direction: column; }
+  .queue-row { display: grid; grid-template-columns: 1.4rem 1fr; gap: 0.7rem; padding: 0.75rem 0; align-items: baseline; }
+  .queue-row + .queue-row { background: linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent 100%) top / 100% 1px no-repeat; }
+  .queue-row .dial-dot { margin-top: 0.3rem; }
+  .queue-row h3 { font-size: 0.94rem; }
+  .queue-row p { font-size: 0.86rem; margin: 0.1rem 0 0; }
+
+  /* ── skills: seroconnect label-pill recipe ── */
+  .skill-group { margin-bottom: 1.3rem; }
+  .skill-group:last-child { margin-bottom: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.55rem; }
+  .tag {
+    display: inline-flex; align-items: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 4px 9px; border-radius: 2px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .built-item { padding: 1rem 0; }
+  .built-item + .built-item { background: linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent 100%) top / 100% 1px no-repeat; }
+
+  footer {
+    margin-top: 4.5rem; padding-top: 1.7rem; border-top: 1px solid var(--border-subtle);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+    font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);
+  }
+  footer a { color: var(--text-muted); transition: color 0.18s ease; }
+  footer a:hover { color: var(--accent-light); }
+
+  header, section { animation: rise 0.5s ease both; }
+  header { animation-delay: 0s; }
+  section:nth-of-type(1) { animation-delay: 0.05s; }
+  section:nth-of-type(2) { animation-delay: 0.1s; }
+  section:nth-of-type(3) { animation-delay: 0.15s; }
+  section:nth-of-type(4) { animation-delay: 0.2s; }
+  section:nth-of-type(5) { animation-delay: 0.25s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { header, section { animation: none; } }
+</style>
+
+<div class="grid-bg"></div>
+<span class="tick tl">+</span>
+<span class="tick tr">+</span>
+<span class="tick bl">+</span>
+<span class="tick br">+</span>
+<div class="noise"></div>
+<div class="wrap">
+
+  <header>
+    <span class="stamp">Open to work</span>
+    <p class="eyebrow">Community &amp; Content</p>
+    <h1><span class="gradient-text">SEROTONYL</span></h1>
+    <div class="contact-row">
+      <span>Moscow · GMT+3 · Remote</span>
+      <a href="mailto:serotonylwork@gmail.com">serotonylwork@gmail.com</a>
+      <span>Discord: <em>add handle</em></span>
+    </div>
+    <p class="lede">I spent the last year running player support for a <strong>4,800-member modded Minecraft community</strong> — untangling custom-mod bugs, talking people down from disputes, and building the onboarding pipeline that trained the team after me. I edit video, run OBS, and I'm currently studying game development. Looking for a community or content role at a small studio that wants someone who's already done this, not someone who needs to learn it from zero.</p>
+  </header>
+
+  <div class="sep"></div>
+
+  <section aria-label="What I do">
+    <p class="eyebrow">What I actually do</p>
+    <div class="stack-list">
+      <div class="stack-item">
+        <h3>Community &amp; support</h3>
+        <p>Discord/VK moderation, conflict de-escalation, onboarding &amp; training design for new support staff.</p>
+      </div>
+      <div class="stack-item">
+        <h3>Video &amp; content</h3>
+        <p>Premiere &amp; After Effects edits, OBS production, short-form cutting for social platforms.</p>
+      </div>
+      <div class="stack-item">
+        <h3>Technical range</h3>
+        <p>Linux, basic networking &amp; server admin, PC builds, comfortable directing AI tools for small technical projects.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Case study">
+    <p class="eyebrow">Featured case</p>
+    <h2>ShadowCraft — player support &amp; team lead</h2>
+    <div class="case">
+      <span class="case-index">Case 01</span>
+      <div class="meta-strip">
+        <div class="meta-item"><span class="meta-label">Community</span><span class="meta-value">4,800+ members</span></div>
+        <div class="meta-item"><span class="meta-label">Tenure</span><span class="meta-value">1+ year, → admin</span></div>
+        <div class="meta-item"><span class="meta-label">Led</span><span class="meta-value">Team of 2–5</span></div>
+      </div>
+
+      <ul>
+        <li>Handled 1–8 support requests daily — from two-minute fixes to disputes that stretched over weeks.</li>
+        <li>Explained non-standard custom mod mechanics clearly enough that players thanked me for the walkthrough, unprompted.</li>
+        <li>De-escalated sensitive situations with care, including disputes over in-game purchases made in questionable judgment.</li>
+        <li>Kept communication honest during long waits for information, rather than inventing timelines to make players feel better.</li>
+        <li>Wrote the role descriptions for two support positions and designed the onboarding pipeline that trained every agent after me.</li>
+      </ul>
+
+      <div class="quote-row">
+        <div class="bubble">
+          <span class="who">a player, after a mod mechanic walkthrough</span>
+          "thanks a lot… really nice guide"
+        </div>
+        <div class="bubble">
+          <span class="who">a player, mid-support</span>
+          "I'd like to clarify — I'm not quite the server administrator." <span class="muted">(corrected the assumption, then solved the actual request anyway)</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 1.9rem;">How new support agents got trained</h3>
+      <ol class="pipeline">
+        <li>Application reviewed, then a voice call to talk through hypothetical situations.</li>
+        <li>First day: shadow an experienced agent, no tickets yet.</li>
+        <li>First real ticket, solo — but tagging me to review before closing.</li>
+        <li>Independent work, with targeted help on whatever edge case came up.</li>
+      </ol>
+
+      <p class="muted case-footnote">The structure held for over a year and kept running well after I moved on — the server closed some time later, but not because the system broke.</p>
+    </div>
+  </section>
+
+  <section aria-label="Video reel">
+    <p class="eyebrow">Video reel</p>
+    <h2>Recent cuts</h2>
+
+    <div class="video-feature">
+      <a class="video-thumb-link" href="https://www.youtube.com/watch?v=y81WmZrhtvM" target="_blank" rel="noopener">
+        <div class="video-thumb">
+          <span class="play-btn" aria-hidden="true">
+            <svg width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M1 1L19 11L1 21V1Z" fill="#0a0606"/></svg>
+          </span>
+          <span class="video-thumb-caption">watch on YouTube</span>
+        </div>
+      </a>
+      <div class="video-feature-body">
+        <span class="dial live-label"><span class="dial-dot live"></span>Live</span>
+        <h3>Top 5 Free Horror Games</h3>
+        <p class="muted">A roundup of free horror titles from itch.io — same scene I'm now reaching out to for community roles.</p>
+      </div>
+    </div>
+
+    <div class="queue">
+      <div class="queue-row">
+        <span class="dial-dot pending"></span>
+        <div>
+          <h3>Gameplay highlight cut</h3>
+          <p class="muted">Fast-paced short-form edit, hook in the first three seconds. <span class="dial pending-label">In production</span></p>
+        </div>
+      </div>
+      <div class="queue-row">
+        <span class="dial-dot pending"></span>
+        <div>
+          <h3>Mock trailer</h3>
+          <p class="muted">Trailer-style cut for a small indie title — pacing, music, and build-up. <span class="dial pending-label">In production</span></p>
+        </div>
+      </div>
+      <div class="queue-row">
+        <span class="dial-dot pending"></span>
+        <div>
+          <h3>Mechanic explainer</h3>
+          <p class="muted">Short tutorial cut — the same "explain it clearly" instinct from ShadowCraft, on video. <span class="dial pending-label">In production</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Skills">
+    <p class="eyebrow">Skills</p>
+    <h2>Toolbox</h2>
+    <div class="skill-group">
+      <h3>Community &amp; support</h3>
+      <div class="tags">
+        <span class="tag">Discord moderation</span>
+        <span class="tag">Conflict resolution</span>
+        <span class="tag">Player support</span>
+        <span class="tag">Onboarding design</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Content &amp; creative</h3>
+      <div class="tags">
+        <span class="tag">Premiere Pro</span>
+        <span class="tag">After Effects</span>
+        <span class="tag">OBS / live production</span>
+        <span class="tag">Figma</span>
+        <span class="tag">Ableton</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Technical</h3>
+      <div class="tags">
+        <span class="tag">Linux / Debian</span>
+        <span class="tag">Basic networking</span>
+        <span class="tag">PC building</span>
+        <span class="tag">AI-assisted dev tooling</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Languages</h3>
+      <div class="tags">
+        <span class="tag">English — fluent</span>
+        <span class="tag">Russian — native</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Also built">
+    <p class="eyebrow">Also built</p>
+    <h2>Side projects</h2>
+    <div class="built-item">
+      <h3>Self-hosted VPN service</h3>
+      <p class="muted">Independent network protocol research and multi-node infrastructure, run and maintained solo for 5+ months.</p>
+    </div>
+    <div class="built-item">
+      <h3>Steam top-up price comparison bot</h3>
+      <p class="muted">Telegram bot comparing resale prices across platforms. Rust, PostgreSQL, Docker.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>SEROTONYL — Moscow, remote</span>
+    <a href="mailto:serotonylwork@gmail.com">serotonylwork@gmail.com</a>
+  </footer>
+
+</div>
+
