@@ -1,0 +1,484 @@
+/* font-family намеренно не задан: типографика (шрифт, масштаб) — отдельная
+   дизайн-сессия, см. TODO в CLAUDE.md; текущий браузерный serif — не баг. */
+:root {
+  /* градиент-фон: холодный свет сверху-слева, стальной сине-серый в тени */
+  --bg-light: #ffffff;
+  --bg-mid: #e7eaef;
+  --bg-deep: #aab6c4;
+  --bg-shadow: #7c8a9a;
+
+  /* сетка поверх градиента */
+  --grid-size: 22px;
+  --grid-line: rgba(48, 64, 88, 0.09);
+  --grid-thickness: 1px;
+  --grid-fade-end: 33%; /* до какой высоты сетка полностью прозрачна */
+
+  /* провода — цвет в тон сетки/градиента, затухают к верху */
+  --wire-fade-start: 30%; /* выше этой точки — полностью прозрачны */
+  --wire-fade-end: 55%;   /* ниже этой точки — полная непрозрачность */
+
+  /* тайлы навигации — тонкая рамка в тон сетки/проводов, без заливки */
+  --tile-line: rgba(48, 64, 88, 0.35);
+  --tile-line-hover: rgba(48, 64, 88, 0.6);
+  --tile-ink: rgb(48, 64, 88);
+  --tile-size: 126px;
+  --tile-gap: 10px;
+  --tile-row-height: var(--tile-size);
+  --ink-muted: rgba(48, 64, 88, 0.85);
+
+  /* Приглушение ветки/листвы под .opening__intro — не полный вырез (тот
+     "рвёт" ветку визуально), а низкая альфа: ветка остаётся связной, но
+     резко теряет контраст под текстом. Сама зона (--intro-mask-left/
+     -right/-top/-bottom) пишется в рантайме из intro-mask.js — см. design
+     spec "Почему не статичный процент, а измерение в JS". Здесь — только
+     две статичные величины (alpha и ширина растушёвки), см. таблицу
+     "Явные числа" в docs/superpowers/specs/2026-08-04-intro-text-legibility-design.md.
+     --intro-mask-alpha — целевая альфа под текстом (спека: 0.12). НЕ
+     используется напрямую в градиентах ниже — это исходное значение, из
+     которого выведена --intro-mask-layer-alpha (см. ниже); при изменении
+     целевой альфы пересчитать оба.
+     --intro-mask-layer-alpha — фактическое значение, которое подставляется
+     в rgba()-стопы обоих (to-right/to-bottom) слоёв mask-image ниже. Это
+     НЕ то же самое число: у элемента два full-coverage mask-image слоя
+     (по X и по Y), и они складываются через дефолтный mask-composite:add
+     (Porter-Duff source-over), а не через intersection. Для двух слоёв с
+     одинаковой альфой a результат наложения — 1-(1-a)², а не a. При a=0.12
+     это давало бы 1-(0.88)²=0.2256 — вдвое темнее спеки (подтверждено
+     сэмплингом пикселей: см. task-1-report.md). Поэтому здесь используется
+     a, обратное по формуле 1-(1-a)²=0.12 → a=1-√0.88 ≈ 0.061917 — тогда
+     именно композит двух слоёв даёт 0.12, как и задумано. Вне зоны текста
+     (по любой из осей) слой несёт alpha=1, и там формула вырождается в
+     1 + a·(1-1) = 1 независимо от a — поэтому форма маски (только истинное
+     пересечение X∩Y дименится, без крестообразной утечки) этим изменением
+     не затрагивается, меняется только глубина внутри самого бокса. */
+  --intro-mask-alpha: 0.12;
+  --intro-mask-layer-alpha: 0.061917;
+  --intro-mask-feather: 40px;
+
+  /* Общий градиентный список для .opening__branch/.opening__foliage —
+     оба применяют абсолютно одинаковую пару linear-gradient(to right)/
+     linear-gradient(to bottom) для приглушения-под-текстом (про X∩Y и
+     mask-composite:add — см. комментарий у --intro-mask-layer-alpha выше).
+     Вынесено сюда один раз вместо дублирования блока 4 раза
+     (prefixed+unprefixed × branch+foliage) — то же самое значение,
+     читается через var(--intro-mask-gradients) в обоих
+     mask-image/-webkit-mask-image ниже. */
+  --intro-mask-gradients:
+    linear-gradient(
+      to right,
+      black 0,
+      black calc(var(--intro-mask-left, -9999px) - var(--intro-mask-feather)),
+      rgba(0, 0, 0, var(--intro-mask-layer-alpha)) var(--intro-mask-left, -9999px),
+      rgba(0, 0, 0, var(--intro-mask-layer-alpha)) var(--intro-mask-right, -9999px),
+      black calc(var(--intro-mask-right, -9999px) + var(--intro-mask-feather)),
+      black 100%
+    ),
+    linear-gradient(
+      to bottom,
+      black 0,
+      black calc(var(--intro-mask-top, -9999px) - var(--intro-mask-feather)),
+      rgba(0, 0, 0, var(--intro-mask-layer-alpha)) var(--intro-mask-top, -9999px),
+      rgba(0, 0, 0, var(--intro-mask-layer-alpha)) var(--intro-mask-bottom, -9999px),
+      black calc(var(--intro-mask-bottom, -9999px) + var(--intro-mask-feather)),
+      black 100%
+    );
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.opening {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      120% 100% at 18% 8%,
+      var(--bg-light) 0%,
+      var(--bg-mid) 32%,
+      var(--bg-deep) 68%,
+      var(--bg-shadow) 100%
+    );
+}
+
+/* Провода: canvas, рисуется и анимируется в wires.js. Затухание сверху —
+   тот же приём mask-image, что и у сетки, только своя зона (провода гаснут
+   раньше, чем начинает проступать сетка — снизу они уходят за край экрана
+   без фейда, там их обрезает overflow:hidden на body). */
+.opening__wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent var(--wire-fade-start),
+    black var(--wire-fade-end)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent var(--wire-fade-start),
+    black var(--wire-fade-end)
+  );
+}
+
+/* Ветка сакуры — статичный SVG, тот же приём позиционирования (inset: 0),
+   что и у .opening__wires, и та же логика auto-слоя между проводами и
+   сеткой (см. CLAUDE.md/design spec: явный z-index не нужен, порядок в
+   DOM решает порядок покраски). */
+.opening__branch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  -webkit-mask-image: var(--intro-mask-gradients);
+  mask-image: var(--intro-mask-gradients);
+}
+
+/* Листва v3 — WebGL-канвас (three.js), три.js рисует поверх ветки. Тот же
+   позиционный/блендинг приём, что и у .opening__wires/.opening__branch —
+   один общий слоевой стек, порядок решает DOM, не z-index (см. CLAUDE.md/
+   design spec "Технология и интеграция в страницу"). */
+.opening__foliage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  -webkit-mask-image: var(--intro-mask-gradients);
+  mask-image: var(--intro-mask-gradients);
+}
+
+/* Сетка — два repeating-linear-gradient с жёсткими цветовыми стопами
+   (без плавного перехода 0%→100%), чтобы линия не размывалась и
+   оставалась ровно в 1px независимо от плотности пикселей экрана.
+   mix-blend-mode: multiply — та же логика, что и в референсе: на белом
+   сетка почти не видна, в тенях проявляется сильнее — потому что и там,
+   и там это "тираж" одного и того же тёмного слоя поверх разного фона. */
+.opening__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--grid-line) 0,
+      var(--grid-line) var(--grid-thickness),
+      transparent var(--grid-thickness),
+      transparent var(--grid-size)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--grid-line) 0,
+      var(--grid-line) var(--grid-thickness),
+      transparent var(--grid-thickness),
+      transparent var(--grid-size)
+    );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+
+  /* fade-in сетки: у самого верха фона она полностью прозрачна и
+     проявляется только ниже --grid-fade-end. Отдельная маска, а не
+     часть градиента фона — так плотность линий и форма fade
+     настраиваются независимо друг от друга. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black var(--grid-fade-end));
+  mask-image: linear-gradient(to bottom, transparent 0%, black var(--grid-fade-end));
+}
+
+/* Ряд тайлов: два подряд идущих flex-блока (exit, reveal) внутри одного
+   nav — на десктопе это визуально один ряд из пяти, на мобильном (см.
+   брейкпоинт в задаче 2) родитель переключается на column и блоки
+   становятся двумя строками 3+2 — та же граница, что и в поведении. */
+.opening__tiles {
+  position: absolute;
+  left: 6%;
+  /* пол в 130px (высота тайла 84px + запас) — на низких/landscape вьюпортах
+     чистый процент от высоты уводил бы ряд под reveal-панель (см. finding 2
+     финального ревью: max-height reveal-панели ниже). Пересчитано вместе
+     с --tile-size (см. ревизию иконок/размера тайлов). */
+  bottom: max(22%, 130px);
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  gap: var(--tile-gap);
+}
+
+.opening__tiles-group {
+  display: flex;
+  flex-direction: row;
+  gap: var(--tile-gap);
+}
+
+.tile {
+  position: relative;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--tile-line);
+  border-radius: 0;
+  color: var(--tile-ink);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.tile:hover,
+.tile:focus-visible {
+  border-color: var(--tile-line-hover);
+  outline: none;
+}
+
+.tile:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg-light), 0 0 0 3px var(--tile-ink);
+}
+
+.tile__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.tile__label {
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.tile__marker {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  display: inline-block;
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.tile--reveal[aria-expanded="true"] {
+  border-color: var(--tile-ink);
+}
+
+/* Маркер ▾ разворачивается (поворот на 180°), когда открыта его панель —
+   единственный визуальный признак состояния на самом тайле, кроме рамки. */
+.tile--reveal[aria-expanded="true"] .tile__marker {
+  transform: rotate(180deg);
+}
+
+/* Reveal-панель: fixed-слой у нижнего края, отдельный от потока
+   документа — открытие/закрытие не двигает и не меняет высоту
+   остального opening-экрана (см. spec "Reveal-панель"). */
+.reveal-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  background: var(--bg-light);
+  border-top: 1px solid var(--tile-line);
+  padding: 16px 6% calc(16px + env(safe-area-inset-bottom, 0px));
+  /* Потолок высоты независимо от объёма текста внутри (сейчас — короткий
+     пример-плейсхолдер, но реальный текст DNI может быть длиннее) — иначе
+     панель способна закрыть собой весь ряд тайлов на низких вьюпортах. */
+  max-height: 40dvh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.22s ease;
+}
+
+.reveal-panel--open {
+  transform: translateY(0);
+}
+
+.reveal-panel__note {
+  font-size: 10px;
+  color: var(--tile-line-hover);
+  margin: 0 0 8px;
+}
+
+.reveal-panel ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.reveal-panel li + li {
+  margin-top: 4px;
+}
+
+.reveal-panel p {
+  margin: 0;
+}
+
+/* Плавное переключение между DNI/местоимения, пока панель уже открыта —
+   без этого правила смена контента через hidden была бы мгновенным
+   скачком. Только opacity самого контента — открытие/закрытие панели
+   (transform на .reveal-panel) эта правка не трогает. */
+.reveal-panel__content {
+  opacity: 1;
+  transition: opacity 0.13s ease;
+}
+
+.reveal-panel__content--fade-out {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-panel__content {
+    transition: none;
+  }
+}
+
+/* Ниже брейкпоинта ряд из 5 тайлов не помещается с комфортным
+   тач-таргетом (~44px) — переключаем nav на column: exit-тройка сверху,
+   reveal-пара снизу. Та же смысловая граница, что и в поведении тайлов
+   (см. spec "Адаптив"), не отдельная мобильная логика. Порог пересчитан
+   под 84px-тайлы: 5 тайлов в ряд занимают 5×84 + 4×10 = 460px, плюс
+   left:6% — ниже ~700px это уже не помещается с запасом. */
+@media (max-width: 700px) {
+  .opening__tiles {
+    flex-direction: column;
+  }
+
+  :root {
+    --tile-row-height: calc(var(--tile-size) * 2 + var(--tile-gap));
+  }
+}
+
+/* Первый текстовый блок на opening-экране — верхне-правая область, вне
+   зоны проводов (левый край) и ряда тайлов (низ экрана). Моноширинный
+   стек — осознанная привязка к теме "старого интерфейса"/dial-up из
+   референса, не дефолтный Inter (см. design spec).
+
+   top/max-height — в dvh и через --tile-row-height, а не в процентах от
+   .opening: тайлы приколочены к низу (bottom: max(22%, 130px) + высота
+   ряда), поэтому на низких/узких вьюпортах длинный текст должен явно
+   останавливаться до начала ряда, а не "как-нибудь помещаться" — без
+   этого текст залезает на тайлы (найдено финальным ревью на 360×640,
+   320×568, 900×600, 880×620, 960×540). overflow: hidden — намеренная
+   обрезка на пределе, реальный текст заказчика может быть другой длины. */
+.opening__intro {
+  position: absolute;
+  top: 8dvh;
+  right: 6%;
+  z-index: 1;
+  max-width: 42%;
+  max-height: calc(92dvh - max(22%, 130px) - var(--tile-row-height) - 16px);
+  overflow: hidden;
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", "Courier New", monospace;
+}
+
+.opening__intro-note {
+  font-size: 10px;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+}
+
+.opening__intro-lead {
+  font-size: clamp(28px, 4.5vw, 64px);
+  line-height: 1.05;
+  color: var(--tile-ink);
+  font-weight: normal;
+  margin: 0;
+}
+
+.opening__intro-sub {
+  font-size: clamp(13px, 1.3vw, 17px);
+  color: var(--ink-muted);
+  margin: 14px 0 0;
+}
+
+/* На узких вьюпортах текст переносится на большее число строк — расширяем
+   max-width (меньше строк = меньше высота), чтобы после сжатия шрифта
+   через clamp() блок с большей вероятностью укладывался в max-height
+   выше без обрезки. */
+@media (max-width: 700px) {
+  .opening__intro {
+    max-width: 62%;
+  }
+}
+
+/* Страховка: если даже 2 строки тайлов не помещаются по высоте — не
+   обрезаем контент, разрешаем скролл вместо overflow:hidden. Одного
+   overflow-y:auto на body недостаточно: .opening__tiles абсолютно
+   спозиционирован и не участвует в scrollHeight документа (position:
+   absolute с bottom/top не создаёт прокручиваемого overflow). Поэтому
+   здесь дополнительно возвращаем ряд тайлов в обычный поток — тогда он
+   реально становится доступен скроллом, а не просто "теоретически" (был
+   бы viewport clip с отрицательным top). Блок намеренно в конце файла:
+   должен победить в каскаде над одиночными .opening__tiles (bottom:...)
+   и .opening__intro (max-height:...) выше (та же специфичность у каждой
+   пары правил, порядок в файле решает — держать этот блок последним при
+   любых будущих правках). */
+@media (max-height: 480px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .opening {
+    /* новый BFC: без него margin-top первого потокового ребёнка
+       схлопнулся бы с margin родителя и "вытек" наружу вместо того,
+       чтобы создать прокручиваемое пространство внутри .opening. */
+    display: flow-root;
+  }
+
+  .opening__tiles {
+    position: static;
+    /* первый экран (100dvh) остаётся полностью виден как раньше — ряд
+       тайлов уезжает потоком следом за ним и становится доступен именно
+       скроллом вниз, а не обрезается за пределами вьюпорта. Нижний отступ
+       больше не нужен: раньше он резервировал место под fixed-панель,
+       перекрывавшую тайлы при скролле (см. reveal-panel ниже — теперь
+       она тоже static и физически идёт следующим потоковым блоком сразу
+       под рядом тайлов, перекрытие невозможно по построению). */
+    margin: 100dvh 0 0 6%;
+  }
+
+  /* Тот самый фикс: на низких вьюпортах reveal-панель тоже возвращается в
+     обычный поток документа, сразу вслед за .opening__tiles (в разметке
+     она и так следующий sibling после </nav>). Раньше здесь оставался
+     position: fixed; bottom: 0 — при скролле ряда тайлов (см. выше) это
+     давало открытой панели физически наплывать на тайлы поверх них:
+     клик по тайлу под ней перехватывался контентом панели, а закрыть
+     панель нечем (без крестика/бэкдропа — так и задумано, см. spec).
+     Решение через layout, а не через добавление UI: сделать панель
+     static — тогда она может появиться только НИЖЕ ряда тайлов в порядке
+     скролла и никогда не перекрывает его. left/right/z-index ниже
+     остаются в правиле вне медиа-запроса и здесь не мешают — на
+     static-элементе они просто не участвуют в позиционировании. */
+  .reveal-panel {
+    position: static;
+  }
+
+  /* max-height базового правила .opening__intro считается от того, что
+     .opening__tiles абсолютно спозиционирован против .opening — в этом
+     режиме тайлы уже static (см. выше) и уезжают в поток ниже первого
+     экрана, поэтому геометрического риска наезда текста на тайлы здесь
+     нет по построению и ограничение просто не нужно. */
+  .opening__intro {
+    max-height: none;
+  }
+}
