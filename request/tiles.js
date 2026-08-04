@@ -2,6 +2,7 @@
   "use strict";
 
   const panel = document.getElementById("reveal-panel");
+  const backdrop = document.getElementById("reveal-backdrop");
   const revealTiles = document.querySelectorAll(".tile--reveal");
   const contents = document.querySelectorAll(".reveal-panel__content");
 
@@ -24,6 +25,7 @@
   function closePanel() {
     swapToken += 1;
     panel.classList.remove("reveal-panel--open");
+    backdrop.classList.remove("reveal-backdrop--visible");
     revealTiles.forEach((tile) => tile.setAttribute("aria-expanded", "false"));
     const onPanelTransitionEnd = (event) => {
       if (event.target !== panel) {
@@ -33,6 +35,7 @@
       panel.removeEventListener("transitionend", onPanelTransitionEnd);
       if (!panel.classList.contains("reveal-panel--open")) {
         panel.hidden = true;
+        backdrop.hidden = true;
       }
     };
     panel.addEventListener("transitionend", onPanelTransitionEnd);
@@ -77,10 +80,12 @@
   function openPanel(tile, key) {
     swapToken += 1;
     panel.hidden = false;
-    // force reflow so the transform transition runs even if the panel
-    // was just un-hidden in this same tick
+    backdrop.hidden = false;
+    // force reflow so the transform/opacity transitions run even if the
+    // panel/backdrop were just un-hidden in this same tick
     void panel.offsetHeight;
     panel.classList.add("reveal-panel--open");
+    backdrop.classList.add("reveal-backdrop--visible");
     showContentImmediate(key);
     revealTiles.forEach((t) => t.setAttribute("aria-expanded", String(t === tile)));
   }
@@ -99,4 +104,6 @@
       }
     });
   });
+
+  backdrop.addEventListener("click", closePanel);
 })();
