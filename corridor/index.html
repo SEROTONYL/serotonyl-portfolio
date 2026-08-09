@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>КОРИДОР 4 — углы 90°, клотоидная петля, компоновка кадра</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--void:#000403;--mass:#00e5a0;--blood:#ff1f4b;--text:#e6f2ee;--quiet:#4f6e64}
+  html,body{background:var(--void);height:100%}
+  body{font-family:ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace;overflow-x:hidden}
+  #scroll{height:2900vh}
+  canvas{position:fixed;inset:0;display:block;z-index:1}
+  #raster{position:fixed;inset:0;pointer-events:none;z-index:20;opacity:.13;
+    background-image:
+      radial-gradient(rgba(255,255,255,.24) .5px, transparent .6px),
+      repeating-linear-gradient(to bottom, rgba(0,0,0,.16) 0 1px, transparent 1px 4px);
+    background-size:3px 3px, 100% 4px}
+  #tag{position:fixed;z-index:30;left:20px;bottom:18px;line-height:1.5;pointer-events:none}
+  #tag b{display:block;color:var(--text);font-size:14px;letter-spacing:.06em}
+  #tag span{display:block;color:var(--quiet);font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  #bar{position:fixed;z-index:30;top:0;left:0;height:2px;background:var(--blood);width:0}
+  #meta{position:fixed;z-index:30;right:16px;bottom:18px;color:var(--quiet);font-size:10.5px;
+    letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+  #ui{position:fixed;z-index:30;top:14px;left:16px;color:var(--quiet);font-size:10.5px;
+    letter-spacing:.12em;text-transform:uppercase}
+  #ui b{color:var(--mass);font-weight:400}
+  #hint{position:fixed;z-index:30;left:50%;bottom:22px;transform:translateX(-50%);color:var(--quiet);
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;transition:opacity .5s}
+  #auditout{position:fixed;z-index:99;top:36px;left:14px;color:#7dffb0;background:rgba(0,0,0,.88);
+    font:11px/1.6 ui-monospace,monospace;padding:10px 12px;white-space:pre;max-width:96vw;max-height:80vh;overflow:auto}
+  #dest{position:fixed;inset:0;z-index:40;display:none;place-items:center;text-align:center;
+    background:var(--void);color:var(--mass);font-size:14px;letter-spacing:.16em;line-height:2.2;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="scroll"></div>
+<div id="raster"></div>
+<div id="bar"></div>
+<div id="tag"><b>Владислав Яворский</b><span>поддержка и комьюнити-менеджмент</span></div>
+<div id="meta"><span id="stopname">вход</span></div>
+<div id="hint">крути вниз</div>
+<div id="ui">цвет: <b id="pal">A</b> · Q W E &nbsp;·&nbsp; тон полотна: <b id="tone">1</b> · 1 2 3 &nbsp;·&nbsp; крен петли: <b id="rollv">14°</b> &nbsp;·&nbsp; на телефоне: ?tone=1..3 &amp;roll=14|45|90|162</div>
+<div id="dest"></div>
+
+<script type="module">
+import * as THREE from './vendor/three.module.min.js';
+
+const VOID=0x000403, MASS=0x00e5a0, BLOOD=0xff1f4b, BLOOD_SOFT=0xe0203f;
+const CSS={mass:'#00e5a0',blood:'#ff1f4b',text:'#e6f2ee',quiet:'#4f6e64'};
+const UPW=new THREE.Vector3(0,1,0);
+
+const STOPS=[
+ {name:'вход', hero:'Спасай,\nчто делать пж', hc:CSS.blood, big:true,
+  side:'— агент поддержки, 02:41\n\nВладислав Яворский. Поддержка и комьюнити.\nДва года администрировал Discord\nмайнкрафт-проекта: игроки, агенты,\nапелляции, мануалы. Сейчас держу свой\nсервис и его поддержку в одиночку.'},
+ {name:'откуда приходили', hero:'~150', hc:CSS.mass,
+  side:'игроков онлайн в день, несколько серверов\n\nСтажёр → помощник → модератор → агент\nподдержки → главный модератор →\nадминистратор Discord.\nШесть назначений, каждое — чужое решение.\n\nТри агента поддержки в подчинении.\nДвое нанятых стажёров.'},
+ {name:'как я отвечал', hero:'Привет!', hc:CSS.text,
+  side:'Наказание выдано по пунктам 3.1 и 3.5\nправил, отмечен 3.7. Если считаешь решение\nневерным — напиши здесь, разберём.\nЕсли вопрос решён, тоже скажи.\n\nЧерез восемь дней: «Так как ты не отвечаешь\nдлительное время и ответ на твой вопрос\nбыл дан, я вынужден закрыть тему.\nВсего хорошего!»'},
+ {name:'сейчас', hero:'98,5%', hc:CSS.mass,
+  side:'закрытых обращений из 65, 2026 год\n\nСвой сервис: сайт, платежи, поддержка.\nПоддержка — целый один я.\nОбращений в месяц: 22 → 23 → 7 → 3 → 6 → 4.\nПадение не от ухода людей.'},
+ {name:'работает без меня', hero:'22 889', hc:CSS.mass,
+  side:'просмотров у гайда по Productive Bees, 2024\n\nСервер закрылся в июле 2024. Около девяти\nтысяч из этих просмотров пришли уже после\nзакрытия. Второй гайд, в Steam,\nна английском — 800+ просмотров.\n\n«thanks, this achievement was hell to get»'},
+ {name:'входящее', hero:'Открыть тикет', hc:CSS.text,
+  side:'Дальше пишет уже тот, кто пришёл.\n\n@utomlenno в телеграме\nMyHeadHurts в Steam\nyaveii на твиче'},
+];
+const TICKETS=[
+ ['#1142','оплатил, но доступа нет','ЗАКРЫТ',0],
+ ['#1143','продлил, но не продлилось','ЗАКРЫТ',0],
+ ['#1144','донат больше баланса','В РАБОТЕ',1],
+ ['#1145','краш при заходе на спавн','ЗАКРЫТ',0],
+ ['#1146','почему меня забанили','РАЗОБРАНО',0],
+ ['#1147','модер забрал предмет','ЗАКРЫТ',0],
+ ['#1148','спасай, что делать пж','ОТКРЫТ',1],
+ ['#1149','где брать пчёл на 1.16.5','ЗАКРЫТ',0],
+ ['#1150','спасибо, всё заработало','ЗАКРЫТ',0],
+];
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.setClearColor(VOID,1);
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(VOID,0.0072);
+const FOV=52, CAM_H=11.0, BELT_W=12, HW=BELT_W/2, WALL=1.15, TILE=7;
+const camera=new THREE.PerspectiveCamera(FOV,innerWidth/innerHeight,0.1,6000);
+
+/* ═══════════ ПУТЬ: прямые, настоящие углы 90°, клотоидная петля ═══════════ */
+const DS=3.0;
+const pts=[], ups=[], rolls=[], marks=[], bankRoll=[], loopSh=[], tags=[];
+let pos=new THREE.Vector3(0,0,0), dir=new THREE.Vector3(0,0,-1);
+let TAG='старт', SEG=0;
+const push=(p,u,r=0,ls=0)=>{
+  if(pts.length && p.distanceTo(pts[pts.length-1])<1e-4){   // нулевой сегмент не создаём
+    ups[ups.length-1].copy(u); bankRoll[bankRoll.length-1]=r; loopSh[loopSh.length-1]=ls;
+    tags[tags.length-1]=TAG; return;
+  }
+  pts.push(p.clone());ups.push(u.clone());bankRoll.push(r);loopSh.push(ls);tags.push(TAG);
+};
+push(pos,UPW);
+const sm=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+/* квинтический сглаживатель: на концах ноль и первой, и второй производной */
+const sm5=x=>{ x=x<=0?0:x>=1?1:x; return x*x*x*(6*x*x-15*x+10); };
+
+function straight(L){
+  TAG='#'+(++SEG)+' прямая '+L;
+  const n=Math.max(1,Math.round(L/DS));
+  for(let i=0;i<n;i++){ pos.addScaledVector(dir,L/n); push(pos,UPW); }
+}
+// поворот с задаваемым углом, уклоном, плавным входом-выходом кривизны и креном камеры
+function corner(sign,R,angDeg=90,dh=0){
+  TAG='#'+(++SEG)+' поворот '+(sign<0?'влево':'вправо')+' R'+R+' '+angDeg+'°';
+  const ang=angDeg*Math.PI/180, arcL=R*ang;
+  const n=Math.max(Math.ceil(arcL/DS), Math.ceil(angDeg/6));   // не больше 6° на точку
+  const w=[]; let W=0;
+  for(let i=0;i<n;i++){ const k=(i+0.5)/n;
+    const e=Math.min(sm5(k/0.28),sm5((1-k)/0.28));  // на швах кривизна ровно 0, без ступеньки 25%
+    w.push(e); W+=w[i];
+  }
+  const bank=-sign*Math.min(7,170/R)*Math.PI/180;
+  const y0=pos.y;
+  for(let i=0;i<n;i++){
+    pos.addScaledVector(dir,arcL/n);
+    pos.y=y0+dh*sm5((i+1)/n);
+    dir.applyAxisAngle(UPW,sign*(-1)*ang*w[i]/W).normalize();
+    const ramp=Math.min(sm5((i+1)/n/0.3),sm5((1-(i+1)/n)/0.3));
+    push(pos,UPW,bank*ramp);
+  }
+}
+// клотоидная петля: капля, снос в сторону, крен камеры отстаёт от пути
+function clothoidLoop(Rb,Rt,drift){
+  TAG='#'+(++SEG)+' петля';
+  const F=dir.clone(), U=UPW.clone();
+  const S=new THREE.Vector3().crossVectors(F,U).normalize();
+  let phi=0, lastRoll=0;
+  while(phi<Math.PI*2){
+    const r=Rt+(Rb-Rt)*Math.pow(Math.cos(phi/2),2);
+    // вход и выход через sm5: на швах кривизна почти ноль, иначе на силуэте излом
+    const k=phi/(Math.PI*2);
+    const ease=0.08+0.92*Math.min(sm5(k/0.16),sm5((1-k)/0.16));
+    const dphi=DS/r*ease;
+    const d=F.clone().multiplyScalar(Math.cos(phi)).addScaledVector(U,Math.sin(phi)).normalize();
+    pos.addScaledVector(d,DS).addScaledVector(S,drift*dphi/(Math.PI*2));
+    const up=F.clone().multiplyScalar(-Math.sin(phi)).addScaledVector(U,Math.cos(phi)).normalize();
+    lastRoll=phi/(Math.PI*2);        // форма 0→1, амплитуду задаёт ROLL_LOOP_AMP
+    push(pos,up,0,lastRoll);
+    phi+=dphi;
+  }
+  return lastRoll;
+}
+function hill(dh,L){
+  TAG='#'+(++SEG)+' горка '+dh+'/'+L;
+  const n=Math.max(12,Math.ceil(L/DS)), y0=pos.y;
+  // sm5 вместо sm: у обычного smoothstep вторая производная на концах равна 6,
+  // из-за этого кривизна прыгает за один сэмпл — это и был «резкий вход на горку»
+  for(let i=1;i<=n;i++){ pos.addScaledVector(dir,L/n); pos.y=y0+dh*sm5(i/n); push(pos,UPW); }
+}
+// плавное гашение крена камеры после петли
+function rollOut(L){                 // гасит форму крена 1→0, поэтому масштабируется с амплитудой
+  TAG='#'+(++SEG)+' гашение крена';
+  const n=Math.max(8,Math.ceil(L/DS));
+  for(let i=1;i<=n;i++){ pos.addScaledVector(dir,L/n); push(pos,UPW,0, 1-sm5(i/n)); }
+}
+const mark=i=>marks[i]=pos.clone();
+
+straight(52); mark(0); straight(14);
+corner(-1,24,90);                     // налево, расширен с 16 до 24
+straight(6);
+hill(-14,47.5);
+straight(52); mark(1); straight(10);
+corner( 1,56,90,-7);                  // широкий направо с уклоном
+straight(52); mark(2); straight(12);
+corner(-1,24,90); corner( 1,24,90);   // змейка встык — разлом «чужая работа → своя»
+straight(6);
+hill(22,55);
+straight(52); mark(3); straight(10);
+clothoidLoop(66,40,40); rollOut(34);  // ПЕТЛЯ перед «22 889», крен гаснет на 34 м
+straight(46); mark(4); straight(12);
+corner( 1,18,60,0);                   // короткий толчок (опыт: уклон снят)
+straight(58); mark(5); straight(26);
+
+/* ─── амплитуда крена в петле: адрес ?roll=14|45|90|162, клавиши 4 5 6 7 ─── */
+const ROLL_CHOICES=[14,45,90,162];
+let ROLL_LOOP_AMP=14;                                     // градусы, по умолчанию
+{ const q=new URLSearchParams(location.search).get('roll');
+  if(q!==null){ const n=parseFloat(q); if(ROLL_CHOICES.includes(n)) ROLL_LOOP_AMP=n; } }
+function recomputeRolls(){
+  const a=ROLL_LOOP_AMP*Math.PI/180;
+  for(let i=0;i<bankRoll.length;i++) rolls[i]=bankRoll[i]-a*loopSh[i];
+  rolls.length=bankRoll.length;
+}
+recomputeRolls();
+
+const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',0.5);
+curve.arcLengthDivisions=6000; curve.updateArcLengths();
+const LEN=curve.getLength();
+
+/* длина дуги по дискретным точкам — для интерполяции «верха» */
+const arc=[0];
+for(let i=1;i<pts.length;i++) arc.push(arc[i-1]+pts[i].distanceTo(pts[i-1]));
+const ARC=arc[arc.length-1];
+function upAt(u){
+  const s=Math.min(ARC,Math.max(0,u*ARC));
+  let lo=0,hi=arc.length-1;
+  while(lo<hi){const m=(lo+hi)>>1; if(arc[m]<s) lo=m+1; else hi=m;}
+  const i=Math.max(1,lo), t=(s-arc[i-1])/Math.max(1e-6,arc[i]-arc[i-1]);
+  return ups[i-1].clone().lerp(ups[i],t).normalize();
+}
+function camRollAt(u){
+  const t=Math.min(ARC,Math.max(0,u*ARC));
+  let lo=0,hi=arc.length-1;
+  while(lo<hi){const m=(lo+hi)>>1; if(arc[m]<t) lo=m+1; else hi=m;}
+  const i=Math.max(1,lo), k=(t-arc[i-1])/Math.max(1e-6,arc[i]-arc[i-1]);
+  return rolls[i-1]+(rolls[i]-rolls[i-1])*k;
+}
+function frameAt(u){
+  u=Math.min(1,Math.max(0,u));
+  const p=curve.getPointAt(u), t=curve.getTangentAt(u).normalize();
+  let up=upAt(u);
+  const side=new THREE.Vector3().crossVectors(t,up).normalize();
+  up=new THREE.Vector3().crossVectors(side,t).normalize();   // ортогонализация
+  return {p,t,up,side};
+}
+const SAMP=3000, sam=[];
+for(let i=0;i<=SAMP;i++) sam.push(curve.getPointAt(i/SAMP));
+const uOfP=tp=>{let bi=0,bd=1e9;sam.forEach((p,i)=>{const d=p.distanceTo(tp);if(d<bd){bd=d;bi=i;}});return bi/SAMP;};
+STOPS.forEach((s,i)=>s.u=uOfP(marks[i]));
+const uLoop0=uOfP(pts[Math.max(0,pts.findIndex(p=>false))]||pts[0]);
+// границы петли по признаку невертикального «верха»
+let li0=0,li1=0;
+for(let i=0;i<ups.length;i++){ if(ups[i].y<0.985){ if(!li0) li0=i; li1=i; } }
+if(!li1) li1=li0=1;
+const U_LOOP0=arc[li0]/ARC, U_LOOP1=arc[li1]/ARC;
+const U_BELT_END=1.0;
+const READ=40;                                            // дистанция чтения
+const U_CAM_MAX=Math.max(0,1-21/LEN);
+
+/* ═══════════ проверка складок оболочки ═══════════
+   ход каждой вершины профиля вдоль тангенса, поделённый на шаг центра.
+   отрицательное значение = самопересечение полотна. */
+function foldCheck(){
+  const N=2600;
+  const prof=[[6,-3.2],[-6,-3.2],[6,1.15],[-6,1.15],[5.84,0.02],[-5.84,0.02]];
+  let f=frameAt(0), prevC=f.p.clone();
+  let prevP=prof.map(([s,h])=>f.p.clone().addScaledVector(f.side,s).addScaledVector(f.up,h));
+  let min=Infinity, minU=0, minV=0;
+  for(let i=1;i<=N;i++){
+    const u=i/N; f=frameAt(u);
+    const ds=Math.max(1e-9,f.p.distanceTo(prevC));
+    for(let k=0;k<prof.length;k++){
+      const P=f.p.clone().addScaledVector(f.side,prof[k][0]).addScaledVector(f.up,prof[k][1]);
+      const adv=P.clone().sub(prevP[k]).dot(f.t)/ds;
+      if(adv<min){min=adv;minU=u;minV=k;}
+      prevP[k]=P;
+    }
+    prevC.copy(f.p);
+  }
+  console.log('[fold] min = '+min.toFixed(4)+'  u = '+minU.toFixed(4)+
+              '  вершина ['+prof[minV][0]+','+prof[minV][1]+']'+
+              (min<0?'  !!! САМОПЕРЕСЕЧЕНИЕ':'  ok'));
+  let jm=0,ju=0;                                  // максимальный рывок крена, рад/м
+  for(let i=1;i<rolls.length;i++){
+    const d=Math.abs(rolls[i]-rolls[i-1])/Math.max(1e-6,arc[i]-arc[i-1]);
+    if(d>jm){jm=d;ju=arc[i]/ARC;}
+  }
+  console.log('[roll] макс. рывок = '+jm.toFixed(4)+' рад/м при u='+ju.toFixed(4)+
+              ';  точек пути: '+pts.length+', длина: '+LEN.toFixed(1));
+  return {min,u:minU,v:prof[minV],jerk:jm};
+}
+window.__fold=foldCheck();
+
+/* ═══════════ текст ═══════════ */
+function textTex(str,{size=64,color='#fff',lh=1.5,pad=30,align='left',weight='400'}={}){
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const font=`${weight} ${size}px "DejaVu Sans", system-ui, sans-serif`;
+  x.font=font;
+  const arr=str.split('\n'); let w=0; arr.forEach(l=>w=Math.max(w,x.measureText(l).width));
+  c.width=Math.ceil(w+pad*2); c.height=Math.ceil(arr.length*size*lh+pad*2);
+  const g=c.getContext('2d'); g.font=font; g.textBaseline='top'; g.fillStyle=color;
+  arr.forEach((l,i)=>g.fillText(l, align==='center'?(c.width-g.measureText(l).width)/2:pad, pad+i*size*lh));
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace;
+  t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  return {tex:t,w:c.width,h:c.height};
+}
+// абзац плюс выделенная закрывающая строка в ОДНОЙ текстуре: разъехаться не может
+function textMeshEmph(main,emph,{size=42,color='#fff',lh=1.55,pad=30}={}){
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const f1=`400 ${size}px "DejaVu Sans", system-ui, sans-serif`;
+  const f2=`700 ${Math.round(size*1.45)}px "DejaVu Sans", system-ui, sans-serif`;
+  const arr=main.split('\n');
+  x.font=f1; let w=0; arr.forEach(l=>w=Math.max(w,x.measureText(l).width));
+  x.font=f2; w=Math.max(w,x.measureText(emph).width);
+  const gap=size*0.9, h2=Math.round(size*1.45)*1.2;
+  c.width=Math.ceil(w+pad*2);
+  c.height=Math.ceil(arr.length*size*lh+gap+h2+pad*2);
+  const g=c.getContext('2d'); g.textBaseline='top';
+  g.font=f1; g.fillStyle=color;
+  arr.forEach((l,i)=>g.fillText(l,pad,pad+i*size*lh));
+  g.font=f2; g.fillStyle=color;
+  g.fillText(emph,pad,pad+arr.length*size*lh+gap);
+  const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace;
+  tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:THREE.FrontSide}));
+  m.userData.ratio=c.width/c.height;
+  return m;
+}
+function textMesh(str,opts){
+  const {tex,w,h}=textTex(str,opts);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+    new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:THREE.FrontSide}));
+  m.userData.ratio=w/h;
+  return m;
+}
+
+/* ═══════════ конвейер ═══════════ */
+const BELT_TONES=['#07281f','#05201a','#03140f'];     // 1 — одобренный, 2 — по умолчанию, 3 — тёмный
+function beltTexture(base='#05201a'){
+  const c=document.createElement('canvas'); c.width=c.height=256;
+  const g=c.getContext('2d');
+  g.fillStyle=base; g.fillRect(0,0,256,256);
+  g.strokeStyle='#000'; g.globalAlpha=.6; g.lineWidth=4;                 // тень стыка
+  g.beginPath(); g.moveTo(0,8); g.lineTo(256,8); g.stroke();
+  g.strokeStyle=CSS.mass; g.globalAlpha=.22; g.lineWidth=4;              // сам стык
+  g.beginPath(); g.moveTo(0,2.5); g.lineTo(256,2.5); g.stroke();
+  g.globalAlpha=.07; g.lineWidth=3;                                      // одна слабая риска
+  g.beginPath(); g.moveTo(0,128); g.lineTo(256,128); g.stroke();
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace;
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  t.anisotropy=renderer.capabilities.getMaxAnisotropy(); return t;
+}
+function ribbon(offset,y0,y1,mat,{flat=false,halfW=0,N=2600}={}){
+  const pos=[],uv=[],idx=[]; let a=0,prev=null;
+  for(let i=0;i<=N;i++){
+    const u=i/N, f=frameAt(u);
+    if(prev) a+=f.p.distanceTo(prev); prev=f.p.clone();
+    let A,B;
+    if(flat){
+      const c0=f.p.clone().addScaledVector(f.side,offset).addScaledVector(f.up,y0);
+      A=c0.clone().addScaledVector(f.side, halfW); B=c0.clone().addScaledVector(f.side,-halfW);
+      uv.push(0,a/TILE, 1,a/TILE);
+    }else{
+      const c0=f.p.clone().addScaledVector(f.side,offset);
+      A=c0.clone().addScaledVector(f.up,y0); B=c0.clone().addScaledVector(f.up,y1);
+      uv.push(a/TILE,0, a/TILE,1);
+    }
+    pos.push(A.x,A.y,A.z, B.x,B.y,B.z);
+    if(i<N){const k=i*2; idx.push(k,k+2,k+1, k+1,k+2,k+3);}
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return new THREE.Mesh(g,mat);
+}
+const beltTexs=BELT_TONES.map(c=>beltTexture(c));
+let toneIdx=0;                                        // тон 1 — выбран владельцем
+{ const q=new URLSearchParams(location.search).get('tone');
+  if(q!==null){ const n=parseInt(q,10); if(n>=1&&n<=3) toneIdx=n-1; } }
+const beltTex=beltTexs[toneIdx];
+const matBelt =new THREE.MeshBasicMaterial({map:beltTex,fog:true,side:THREE.FrontSide});
+const matWall =new THREE.MeshBasicMaterial({color:0x07281f,fog:true,side:THREE.DoubleSide});
+const matEdge =new THREE.MeshBasicMaterial({color:BLOOD_SOFT,fog:true,side:THREE.DoubleSide});
+const matUnder=new THREE.MeshBasicMaterial({color:0x03120e,fog:true,side:THREE.DoubleSide});
+scene.add(ribbon(0,0.02,0,matBelt,{flat:true,halfW:HW}));
+scene.add(ribbon( HW,-3.2,WALL,matWall));      // борт настоящей толщины
+scene.add(ribbon(-HW,-3.2,WALL,matWall));
+scene.add(ribbon( HW-0.16,WALL,0,matEdge,{flat:true,halfW:0.16}));
+scene.add(ribbon(-HW+0.16,WALL,0,matEdge,{flat:true,halfW:0.16}));
+scene.add(ribbon(0,-3.2,0,matUnder,{flat:true,halfW:HW}));
+
+/* поперечины и стойки удалены: свесы за борт и «случайные столбики».
+   Разделители остаются нарисованными на самом полотне (стык каждые TILE=7). */
+
+/* пыль вдоль пути — параллакс, который отличает «я поворачиваю» от «лента гнётся» */
+{
+  const N=3200, arr=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const f=frameAt(Math.random());
+    const p=f.p.clone()
+      .addScaledVector(f.side,(Math.random()*2-1)*60)
+      .addScaledVector(f.up,(Math.random()*2-1)*34+6);
+    arr[i*3]=p.x; arr[i*3+1]=p.y; arr[i*3+2]=p.z;
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({
+    color:0x0e4a3c,size:1.6,sizeAttenuation:false,fog:true,transparent:true,opacity:.5})));
+}
+
+/* карточки — одна текстура на карточку */
+const READ_U=()=>STOPS.map(x=>Math.max(0,x.u-READ/LEN));
+for(let i=0;i<40;i++){
+  const [n,s,st,hot]=TICKETS[i%TICKETS.length];
+  let u=0.012+i/40*0.965;
+  if(READ_U().some(r=>Math.abs(u-r)<0.013)) u+=0.017;      // не лезть в кадр чтения
+  const m=textMesh(`${n}   ${s}${' '.repeat(5)}${st}`,{size:40,color:hot?CSS.blood:'#7ba394'});
+  const wWorld=BELT_W*0.55;
+  m.scale.set(wWorld,wWorld/m.userData.ratio,1);
+  const f=frameAt(u);
+  m.position.copy(f.p).addScaledVector(f.up,0.07);
+  const M=new THREE.Matrix4().makeBasis(f.side,f.t,f.up);
+  m.quaternion.setFromRotationMatrix(M);
+  scene.add(m);
+}
+
+/* ═══════════ КОМПОНОВКА КАДРА: экранные координаты → мир ═══════════ */
+function camPose(u){
+  const f=frameAt(u), fa=frameAt(Math.min(1,u+30/LEN));   // взгляд на фиксированные 30 м
+  const up=f.up.clone().applyAxisAngle(f.t, camRollAt(u));
+  return {pos:f.p.clone().addScaledVector(f.up,CAM_H),
+          target:fa.p.clone().addScaledVector(fa.up,CAM_H*0.32),
+          up};
+}
+/* единственное место, где поза превращается в ориентацию камеры.
+   и рендер, и компоновка, и тест обязаны идти через него — иначе тест врёт. */
+function setCam(cam,u){
+  const pose=camPose(u);
+  cam.position.copy(pose.pos);
+  cam.up.copy(pose.up);
+  cam.lookAt(pose.target);
+  return pose;
+}
+const shot=new THREE.PerspectiveCamera(FOV,1,0.1,6000);
+function placeOnScreen(mesh,uRead,sx,sy,dist,frac){
+  const aspect=innerWidth/innerHeight;
+  shot.aspect=innerWidth/innerHeight; shot.updateProjectionMatrix();
+  setCam(shot,uRead);
+  shot.updateMatrixWorld(true);
+  const ray=new THREE.Vector3(sx,sy,0.5).unproject(shot).sub(shot.position).normalize();
+  mesh.position.copy(shot.position).addScaledVector(ray,dist);
+  mesh.quaternion.copy(shot.quaternion);                       // строго в кадр
+  let hWorld=2*dist*Math.tan(FOV*Math.PI/360)*frac;            // доля высоты кадра
+  const wMax=2*dist*Math.tan(FOV*Math.PI/360)*aspect*0.86;     // и зажим по ширине
+  if(hWorld*mesh.userData.ratio>wMax) hWorld=wMax/mesh.userData.ratio;
+  mesh.scale.set(hWorld*mesh.userData.ratio,hWorld,1);
+}
+const layout=[];
+STOPS.forEach((s,i)=>{
+  const uRead=Math.max(0,s.u-READ/LEN);
+  const hero=textMesh(s.hero,{size:200,color:s.hc,weight:'700',align:'center'});
+  const side = i===3
+    ? textMeshEmph(s.side,'Причины починены в продукте',{size:42,color:CSS.text,lh:1.55})
+    : textMesh(s.side,{size:42,color:CSS.text,lh:1.55});
+  const lines=s.side.split('\n').length + (i===3?2:0);
+  let sub=null;
+  scene.add(hero,side); if(sub) scene.add(sub);
+  layout.push({hero,side,sub,uRead,flip:i%2?-1:1,big:!!s.big,lines,idx:i});
+});
+function relayout(){
+  for(const L of layout){
+    const hx = L.idx===0 ? -0.30 : 0.00;                       // красный заголовок с оси сбега
+    placeOnScreen(L.hero,L.uRead, hx, L.idx===0?0.42:0.36, 26, L.big?0.19:0.22);
+    const frac=Math.min(0.34, 0.036*L.lines+0.033);            // постоянный кегль абзаца
+    placeOnScreen(L.side,L.uRead, L.flip*0.40, -0.12, 17, frac);
+    if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.50, 18, 0.052);
+  }
+}
+relayout();
+
+/* ═══════════ развилка (постановку решаем позже) ═══════════ */
+const exits=[];
+{
+  const f=frameAt(1.0);
+  const mk=(label,dir,col)=>{
+    const g=new THREE.Group();
+    const pl=new THREE.PlaneGeometry(9,3.2);
+    const box=new THREE.Mesh(pl,new THREE.MeshBasicMaterial({color:VOID,fog:true,transparent:true,opacity:.9}));
+    const e=new THREE.LineSegments(new THREE.EdgesGeometry(pl),new THREE.LineBasicMaterial({color:col,fog:true}));
+    const tl=textMesh(label,{size:96,color:col===MASS?CSS.mass:CSS.blood,weight:'700'});
+    tl.scale.set(1.3*tl.userData.ratio,1.3,1); tl.position.set(0,0,0.05);
+    g.add(box,e,tl);
+    g.position.copy(f.p).addScaledVector(f.side,dir*8.5).addScaledVector(f.up,1.6).addScaledVector(f.t,4);
+    g.up.copy(f.up);
+    g.lookAt(g.position.clone().addScaledVector(f.t,-30));
+    scene.add(g); exits.push({g,e,dir,label,hit:box,base:col});
+  };
+  mk('Личное',-1,MASS); mk('Резюме', 1,BLOOD);
+}
+
+/* ═══════════ скролл: медленнее в окнах чтения, быстро в петле ═══════════ */
+const NW=4000, cum=new Float32Array(NW+1);
+
+/* угловая скорость камеры по пути, град/м — из неё считается вес прокрутки:
+   где камера крутится быстро, там она обязана ехать медленнее */
+const OMEGA=new Float32Array(NW+1);
+(function(){
+  const probe=new THREE.PerspectiveCamera(FOV,innerWidth/innerHeight,0.1,6000);
+  const dsm=U_CAM_MAX*LEN/NW;
+  let prev=null;
+  for(let i=0;i<=NW;i++){
+    const pose=camPose(i/NW*U_CAM_MAX);
+    probe.position.copy(pose.pos); probe.up.copy(pose.up);
+    probe.lookAt(pose.target); probe.updateMatrixWorld(true);
+    const q=probe.quaternion.clone();
+    if(prev){
+      const dot=Math.min(1,Math.abs(prev.dot(q)));
+      OMEGA[i]=2*Math.acos(dot)*180/Math.PI/Math.max(1e-6,dsm);
+    }
+    prev=q;
+  }
+  OMEGA[0]=OMEGA[1];
+  const win=Math.max(1,Math.round(4/dsm));             // бегущий МАКСИМУМ по окну 4 м:
+  const tmp=new Float32Array(NW+1);                    // замедляться надо под пик, не под среднее
+  for(let i=0;i<=NW;i++){
+    let mx=0;
+    for(let j=Math.max(0,i-win);j<=Math.min(NW,i+win);j++) if(OMEGA[j]>mx) mx=OMEGA[j];
+    tmp[i]=mx;
+  }
+  OMEGA.set(tmp);
+})();
+/* Вес прокрутки сходится итерациями: скорость камеры в градусах на 100 пикселей
+   зависит от среднего веса, поэтому одного прохода не хватает. */
+const RATE_BUDGET=18;                                  // град/100px, из бюджета теста
+const scrollEl=document.getElementById('scroll');
+let PX_TOTAL=1, K_M_PER_100PX=1;                       // считаются в цикле сходимости ниже
+
+function buildCum(meanW){
+  const soft=(x,a,b)=>{const k=Math.min(1,Math.max(0,(x-a)/(b-a)));return k*k*(3-2*k);};
+  const RW=[1.55,1.45,1.60,1.45,1.95,1.75];
+  let acc=0;
+  for(let i=0;i<=NW;i++){
+    const u=i/NW*U_CAM_MAX; let w=0.55;
+    STOPS.forEach((s2,si)=>{ const uR=s2.u-READ/LEN, e=8/LEN;
+      const g=Math.min(soft(u,uR-0.012-e,uR-0.012+e), 1-soft(u,s2.u+0.004-e,s2.u+0.004+e));
+      w=Math.max(w, 0.55+(RW[si]-0.55)*g);
+    });
+    { const e=8/LEN;
+      const g=Math.min(soft(u,U_LOOP0-e,U_LOOP0+e), 1-soft(u,U_LOOP1-e,U_LOOP1+e));
+      w=w*(1-g)+1.15*g; }
+    // требуемый вес, чтобы угловая скорость уложилась в бюджет
+    w=Math.max(w, OMEGA[i]*K_M_PER_100PX*meanW/RATE_BUDGET);
+    acc+=w; cum[i]=acc;
+  }
+  const mean=acc/(NW+1);
+  for(let i=0;i<=NW;i++) cum[i]/=acc;
+  return mean;
+}
+let meanW=1.0, VH=2600;
+for(let k=0;k<7;k++){                                  // вес и длина страницы сходятся вместе
+  scrollEl.style.height=VH+'vh';
+  PX_TOTAL=Math.max(1,scrollEl.scrollHeight-innerHeight);
+  K_M_PER_100PX=U_CAM_MAX*LEN*100/PX_TOTAL;
+  meanW=buildCum(meanW);
+  VH=Math.min(14000,Math.round(2600*(LEN/1100)*meanW));   // длина страницы пропорциональна длине пути
+}
+
+const uFromT=t=>{let lo=0,hi=NW;while(lo<hi){const m=(lo+hi)>>1;if(cum[m]<t)lo=m+1;else hi=m;}return lo/NW*U_CAM_MAX;};
+
+/* ═══════════ ВСТРОЕННЫЙ ТЕСТ ПОЕЗДКИ (?audit=1) ═══════════
+   мера — градусы на 100 пикселей прокрутки: именно столько глаз получает за
+   один «щелчок» колеса, поэтому лимиты не зависят от длины пути. */
+function tagAt(u){
+  const s=Math.min(ARC,Math.max(0,u*ARC));
+  let lo=0,hi=arc.length-1;
+  while(lo<hi){const m=(lo+hi)>>1; if(arc[m]<s) lo=m+1; else hi=m;}
+  return tags[Math.max(0,lo)]||'?';
+}
+function auditRide(){
+  const N=12000, DEG=180/Math.PI;
+  const PX=Math.max(1,document.getElementById('scroll').scrollHeight-innerHeight);
+  const dpx=PX/(N-1), K=DEG*100/dpx;                 // рад/сэмпл → град/100px
+  const cam=new THREE.PerspectiveCamera(FOV,innerWidth/innerHeight,0.1,6000);
+  const us=new Float64Array(N), ts=new Float64Array(N), qs_=[];
+  for(let i=0;i<N;i++){
+    ts[i]=i/(N-1); us[i]=uFromT(ts[i]);
+    setCam(cam,us[i]); qs_.push(cam.quaternion.clone());
+  }
+  const qr=new THREE.Quaternion(), tmp=new THREE.Vector3();
+  const W=[];                                        // вектор поворота в локальных осях
+  for(let i=1;i<N;i++){
+    qr.copy(qs_[i-1]).invert().multiply(qs_[i]);
+    if(qr.w<0){qr.x=-qr.x;qr.y=-qr.y;qr.z=-qr.z;qr.w=-qr.w;}
+    const w=Math.min(1,Math.max(-1,qr.w)), ang=2*Math.acos(w);
+    const s=Math.sqrt(Math.max(1e-20,1-w*w)), k=s<1e-9?0:ang/s;
+    W.push(new THREE.Vector3(qr.x*k,qr.y*k,qr.z*k).multiplyScalar(K));
+  }
+  const V=[];                                        // список нарушений
+  const add=(m,val,lim,i)=>V.push({m,val,lim,u:us[i],t:ts[i],tag:tagAt(us[i])});
+  const inLoop=u=>u>U_LOOP0-2/LEN&&u<U_LOOP1+2/LEN;
+  for(let i=0;i<W.length;i++){
+    const w=W[i], n=w.length();
+    if(n>18) add('полная угл. скорость',n,18,i);
+    if(Math.abs(w.z)>6) add('крен вокруг взгляда',Math.abs(w.z),6,i);
+    if(Math.abs(w.y)>14) add('рыскание',Math.abs(w.y),14,i);
+    if(Math.abs(w.x)>14) add('тангаж',Math.abs(w.x),14,i);
+  }
+  { let j=0;                                         // рывок: разница через 3 метра пути
+    for(let i=0;i<W.length;i++){
+      while(j<W.length-1&&(us[j]-us[i])*LEN<3) j++;
+      if(j<=i) continue;
+      const d=tmp.copy(W[j]).sub(W[i]).length();
+      if(d>4) add('рывок (3 м)',d,4,i);
+    }
+  }
+  { let mn=Infinity,mi=0;                            // минимальный сегмент между точками
+    for(let i=1;i<pts.length;i++){const d=pts[i].distanceTo(pts[i-1]); if(d<mn){mn=d;mi=i;}}
+    if(mn<0.5) V.push({m:'мин. сегмент, м',val:mn,lim:0.5,u:arc[mi]/ARC,t:-1,tag:tags[mi]});
+    console.log('[audit] мин. сегмент = '+mn.toFixed(3)+' м ('+tags[mi]+')');
+  }
+  { const M=4000, d=[]; let prev=curve.getPointAt(0), sum=0;
+    for(let i=1;i<=M;i++){const p=curve.getPointAt(i/M); const l=p.distanceTo(prev); d.push(l); sum+=l; prev=p;}
+    const av=sum/M; let lo=Infinity,hi=0,li=0,hi_=0;
+    for(let i=0;i<M;i++){const r=d[i]/av; if(r<lo){lo=r;li=i;} if(r>hi){hi=r;hi_=i;}}
+    if(lo<0.6) V.push({m:'шаг getPointAt (мин. доля)',val:lo,lim:0.6,u:li/M,t:-1,tag:tagAt(li/M)});
+    if(hi>1.6) V.push({m:'шаг getPointAt (макс. доля)',val:hi,lim:1.6,u:hi_/M,t:-1,tag:tagAt(hi_/M)});
+    console.log('[audit] разброс шага getPointAt: '+lo.toFixed(3)+' … '+hi.toFixed(3)+' от среднего');
+  }
+  { const M=4000; let mn=Infinity,mi=0;              // |t × up| — близость к вырождению рамки
+    for(let i=0;i<=M;i++){const u=i/M;
+      const c=curve.getTangentAt(u).normalize().cross(upAt(u)).length();
+      if(c<mn){mn=c;mi=u;}}
+    if(mn<0.55) V.push({m:'|t × up|',val:mn,lim:0.55,u:mi,t:-1,tag:tagAt(mi)});
+    console.log('[audit] мин |t × up| = '+mn.toFixed(3)+' при u='+mi.toFixed(4));
+  }
+  { const M=4000; let mx=0,mxu=0,mxl=0,mxul=0;       // наклон ленты в кадре
+    const q=new THREE.Quaternion(), v=new THREE.Vector3();
+    for(let i=0;i<=M;i++){
+      const u=i/M*U_CAM_MAX; setCam(cam,u);
+      q.copy(cam.quaternion).invert();
+      v.copy(frameAt(u).side).applyQuaternion(q);
+      let a=Math.atan2(v.y,v.x)*DEG; if(a>90)a-=180; if(a<-90)a+=180; a=Math.abs(a);
+      if(inLoop(u)){ if(a>mxl){mxl=a;mxul=u;} } else { if(a>mx){mx=a;mxu=u;} }
+    }
+    if(mx>8)  V.push({m:'наклон ленты (вне петли)',val:mx,lim:8,u:mxu,t:-1,tag:tagAt(mxu)});
+    if(mxl>16)V.push({m:'наклон ленты (петля)',val:mxl,lim:16,u:mxul,t:-1,tag:tagAt(mxul)});
+    console.log('[audit] наклон ленты: вне петли '+mx.toFixed(1)+'°, в петле '+mxl.toFixed(1)+'°');
+  }
+  /* сводка по метрикам: сколько сэмплов пробило и где было хуже всего */
+  const by=new Map();
+  for(const v of V){ const g=by.get(v.m); if(!g||v.val>g.worst.val) by.set(v.m,{n:(g?g.n:0)+1,worst:v}); else g.n++; }
+  const rows=[...by.entries()].map(([m,g])=>({
+    метрика:m, нарушений:g.n, худшее:+g.worst.val.toFixed(2), предел:g.worst.lim,
+    u:+g.worst.u.toFixed(4), t:g.worst.t<0?'—':+g.worst.t.toFixed(4), участок:g.worst.tag}));
+  console.log('[audit] сэмплов: '+N+', пикселей прокрутки: '+PX+
+              ', град/100px на сэмпл: K='+K.toFixed(2)+', крен петли '+ROLL_LOOP_AMP+'°');
+  if(!rows.length) console.log('[audit] НАРУШЕНИЙ НЕТ');
+  else { console.log('[audit] НАРУШЕНИЯ:'); console.table(rows); }
+  const txt='AUDIT roll='+ROLL_LOOP_AMP+' N='+N+' PX='+PX+' LEN='+LEN.toFixed(1)+'\n'+
+    'meanW='+meanW.toFixed(3)+' maxOMEGA='+Math.max(...OMEGA).toFixed(2)+' K='+K_M_PER_100PX.toFixed(2)+' VH='+VH+' PX_TOTAL='+PX_TOTAL+'\n'+
+    (rows.length?rows.map(r=>`${r.метрика} | n=${r.нарушений} | худшее ${r.худшее} > ${r.предел} | u=${r.u} t=${r.t} | ${r.участок}`).join('\n')
+                :'НАРУШЕНИЙ НЕТ');
+  const pre=document.createElement('pre'); pre.id='auditout'; pre.textContent=txt;
+  document.body.appendChild(pre);
+  window.__audit={rows,count:V.length,text:txt};
+  return rows;
+}
+if(new URLSearchParams(location.search).get('audit')) auditRide();
+
+/* ═══════════ цвета ═══════════ */
+const pal={A:()=>{matEdge.color.setHex(BLOOD_SOFT);matUnder.color.setHex(0x03120e);},
+           B:()=>{matEdge.color.setHex(MASS);matUnder.color.setHex(0x03120e);},
+           C:()=>{matEdge.color.setHex(MASS);matUnder.color.setHex(0x3d0a15);}};
+pal.A(); const palEl=document.getElementById('pal');
+const toneEl=document.getElementById('tone');
+toneEl.textContent=String(toneIdx+1);
+function setTone(n){ toneIdx=n; matBelt.map=beltTexs[n]; matBelt.needsUpdate=true;
+  toneEl.textContent=String(n+1); }
+addEventListener('keydown',e=>{const k={q:'A',w:'B',e:'C',й:'A',ц:'B',у:'C'}[e.key.toLowerCase()];
+  if(k){pal[k]();palEl.textContent=k;}
+  if(e.key==='1'||e.key==='2'||e.key==='3') setTone(+e.key-1);
+  // 4 5 6 7 — амплитуда крена в петле; пересчитываем массив крена на живой сцене
+  const ri={'4':0,'5':1,'6':2,'7':3}[e.key];
+  if(ri!==undefined){
+    ROLL_LOOP_AMP=ROLL_CHOICES[ri];
+    recomputeRolls();
+    const el=document.getElementById('rollv'); if(el) el.textContent=ROLL_LOOP_AMP+'°';
+  }});
+
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(-9,-9);
+let flight=null;
+addEventListener('pointermove',e=>ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight*2-1)));
+addEventListener('click',()=>{
+  if(flight) return;
+  const h=ray.intersectObjects(exits.map(x=>x.hit),false)[0]; if(!h) return;
+  const ex=exits.find(x=>x.hit===h.object); flight={dir:ex.dir,t0:performance.now(),label:ex.label};
+  setTimeout(()=>{const d=document.getElementById('dest');d.style.display='grid';
+    d.innerHTML=`здесь открылась бы страница<br><b style="font-size:26px">${flight.label}</b><br>
+      <span style="color:${CSS.quiet}">клик — вернуться</span>`;
+    d.onclick=()=>{d.style.display='none';flight=null;};},720);
+});
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); relayout();
+});
+
+const bar=document.getElementById('bar'), hint=document.getElementById('hint'),
+      nameEl=document.getElementById('stopname');
+let last=-1;
+const qs=new URLSearchParams(location.search);
+let forced=qs.get('t');
+if(qs.get('stop')!==null){
+  const i=Math.max(0,Math.min(STOPS.length-1,+qs.get('stop')));
+  const target=Math.max(0,STOPS[i].u-READ/LEN);
+  let lo=0,hi=1;
+  for(let k=0;k<40;k++){const m=(lo+hi)/2; if(uFromT(m)<target) lo=m; else hi=m;}
+  forced=String((lo+hi)/2);
+}
+
+function loop(now){
+  const max=document.getElementById('scroll').scrollHeight-innerHeight;
+  const t=forced!==null?Math.min(1,Math.max(0,parseFloat(forced)))
+                       :Math.min(1,Math.max(0,scrollY/max));
+  const u=uFromT(t);
+  const pose=setCam(camera,u);
+  const look=pose.target.clone();
+  if(flight){
+    const e=Math.min(1,(now-flight.t0)/900);
+    camera.position.addScaledVector(frameAt(u).t,e*e*30).addScaledVector(pose.up,flight.dir*e*e*10);
+    look.addScaledVector(pose.up,flight.dir*e*12);
+  }
+  camera.lookAt(look);
+
+  for(const L of layout){
+    const d=Math.abs(u-L.uRead);
+    const a=1-Math.min(1,Math.max(0,(d-0.006)/0.014));
+    L.hero.material.opacity=a; L.side.material.opacity=a;
+    L.hero.visible=L.side.visible=a>0.01;
+    if(L.sub){ L.sub.material.opacity=a; L.sub.visible=a>0.01; }
+  }
+
+  ray.setFromCamera(ptr,camera);
+  const h=ray.intersectObjects(exits.map(x=>x.hit),false)[0];
+  renderer.domElement.style.cursor=h?'pointer':'default';
+  exits.forEach(x=>x.e.material.color.setHex(h&&x.hit===h.object?MASS:x.base));
+
+  let best=0,bd=1e9;
+  STOPS.forEach((s,i)=>{const d=Math.abs(s.u-u);if(d<bd){bd=d;best=i;}});
+  if(best!==last){last=best;nameEl.textContent=STOPS[best].name;}
+  bar.style.width=(t*100).toFixed(2)+'%';
+  hint.style.opacity=t>.01?0:1;
+
+  renderer.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
