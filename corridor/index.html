@@ -157,7 +157,7 @@ function corner(sign,R,angDeg=90,dh=0){
     const e=Math.min(sm5(k/0.28),sm5((1-k)/0.28));  // на швах кривизна ровно 0, без ступеньки 25%
     w.push(e); W+=w[i];
   }
-  const bank=-sign*Math.min(7,170/R)*Math.PI/180;
+  const bank=0;                       // наклон в поворотах убран: читался как дёрганье
   const y0=pos.y;
   for(let i=0;i<n;i++){
     pos.addScaledVector(dir,arcL/n);
@@ -182,7 +182,7 @@ function clothoidLoop(Rb,Rt,drift){
     const d=F.clone().multiplyScalar(Math.cos(phi)).addScaledVector(U,Math.sin(phi)).normalize();
     pos.addScaledVector(d,DS).addScaledVector(S,drift*dphi/(Math.PI*2));
     const up=F.clone().multiplyScalar(-Math.sin(phi)).addScaledVector(U,Math.cos(phi)).normalize();
-    lastRoll=phi/(Math.PI*2);        // форма 0→1, амплитуду задаёт ROLL_LOOP_AMP
+    lastRoll=Math.sin(phi/2);        // 0 на входе, 1 в верхней точке, 0 на выходе
     push(pos,up,0,lastRoll);
     phi+=dphi;
   }
@@ -214,7 +214,8 @@ corner(-1,24,90); corner( 1,24,90);   // змейка встык — разло�
 straight(6);
 hill(22,55);
 straight(52); mark(3); straight(10);
-clothoidLoop(66,40,40); rollOut(34);  // ПЕТЛЯ перед «22 889», крен гаснет на 34 м
+clothoidLoop(66,40,40);               // ПЕТЛЯ перед «22 889»; крен гаснет внутри неё
+straight(34);
 straight(46); mark(4); straight(12);
 corner( 1,18,60,0);                   // короткий толчок (опыт: уклон снят)
 straight(58); mark(5); straight(26);
@@ -489,16 +490,16 @@ function relayout(){
   for(const L of layout){
     if(portrait){
       // в портрете лента занимает низ кадра, поэтому весь текст живёт в верхней половине
-      placeOnScreen(L.hero,L.uRead, 0.00, 0.60, 26, L.big?0.13:0.15);
+      placeOnScreen(L.hero,L.uRead, 0.00, 0.60, 15, L.big?0.16:0.19);   // акцент ближе
       const frac=Math.min(0.30, 0.030*L.lines+0.028);
-      placeOnScreen(L.side,L.uRead, 0.00, 0.14, 16, frac);
-      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.16, 16, 0.040);
+      placeOnScreen(L.side,L.uRead, 0.00, 0.14, 24, frac);              // текст дальше
+      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.16, 24, 0.040);
     } else {
       const hx = L.idx===0 ? -0.30 : 0.00;                     // красный заголовок с оси сбега
-      placeOnScreen(L.hero,L.uRead, hx, L.idx===0?0.42:0.36, 26, L.big?0.19:0.22);
+      placeOnScreen(L.hero,L.uRead, hx, L.idx===0?0.42:0.36, 15, L.big?0.23:0.27);  // акцент ближе и крупнее
       const frac=Math.min(0.34, 0.036*L.lines+0.033);          // постоянный кегль абзаца
-      placeOnScreen(L.side,L.uRead, L.flip*0.40, -0.12, 17, frac);
-      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.50, 18, 0.052);
+      placeOnScreen(L.side,L.uRead, L.flip*0.40, -0.12, 24, frac);                 // текст дальше
+      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.50, 26, 0.052);
     }
   }
 }
