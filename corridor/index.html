@@ -8,7 +8,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{--void:#000403;--mass:#00e5a0;--blood:#ff1f4b;--text:#e6f2ee;--quiet:#4f6e64}
-  html,body{background:var(--void);height:100%}
+  html,body{background:var(--void);height:100%;overscroll-behavior:none}
   body{font-family:ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace;overflow-x:hidden}
   #scroll{height:2900vh}
   canvas{position:fixed;inset:0;display:block;z-index:1}
@@ -30,6 +30,12 @@
     font-size:11px;letter-spacing:.2em;text-transform:uppercase;transition:opacity .5s}
   #auditout{position:fixed;z-index:99;top:36px;left:14px;color:#7dffb0;background:rgba(0,0,0,.88);
     font:11px/1.6 ui-monospace,monospace;padding:10px 12px;white-space:pre;max-width:96vw;max-height:80vh;overflow:auto}
+  @media (max-width:600px){                            /* на телефоне подписи наезжали друг на друга */
+    #tag b{font-size:12px}
+    #tag span{font-size:9px;letter-spacing:.10em}
+    #meta{display:none}
+    #hint{bottom:66px;font-size:10px}
+  }
   #dest{position:fixed;inset:0;z-index:40;display:none;place-items:center;text-align:center;
     background:var(--void);color:var(--mass);font-size:14px;letter-spacing:.16em;line-height:2.2;cursor:pointer}
 </style>
@@ -84,29 +90,29 @@ const TICKETS=[
  ['#1156','поменял телефон, доступ потерял','ЗАКРЫТ',0],
  ['#1157','а вы логи храните','ОТВЕЧЕНО',0],
  ['#1158','сколько ждать после оплаты','ЗАКРЫТ',0],
- ['#1159','приложение не видит профиль','ЗАКРЫТ',0],
- ['#1160','верните пожалуйста, передумал','ВОЗВРАЩЕНО',0],
- ['#1161','кинул скрин, посмотрите','ЗАКРЫТ',0],
- ['#1162','пишет неверный логин','ЗАКРЫТ',0],
- ['#1163','а можно оплатить с чужой карты','ОТВЕЧЕНО',0],
- ['#1164','тариф закончился ночью','ЗАКРЫТ',0],
- ['#1165','на работе не пускает, дома норм','РАЗОБРАНО',0],
- ['#1166','ребёнок сменил пароль','ЗАКРЫТ',0],
- ['#1167','можно счёт на организацию','ОТВЕЧЕНО',0],
- ['#1168','обновил и всё пропало','ЗАКРЫТ',0],
- ['#1169','сервер лагает по вечерам','В РАБОТЕ',1],
- ['#1170','жалоба на модератора','РАЗОБРАНО',0],
- ['#1171','ивент кончился раньше времени','ЗАКРЫТ',0],
- ['#1172','как вернуть предметы после смерти','ОТВЕЧЕНО',0],
- ['#1173','меня кикнуло с воскресного ивента','ЗАКРЫТ',0],
- ['#1174','подскажите модпак весит сколько','ОТВЕЧЕНО',0],
- ['#1175','купил донат, роль не выдали','ЗАКРЫТ',0],
- ['#1176','стажёр не отвечает третий день','РАЗОБРАНО',0],
- ['#1177','можно я вернусь после разбана','ОТВЕЧЕНО',0],
- ['#1178','нашёл дюп, кому писать','ЗАКРЫТ',0],
- ['#1179','спасибо за терпение','ЗАКРЫТ',0],
- ['#1180','а вы вообще спите когда-нибудь','ЗАКРЫТ',0],
- ['#0001','Марина К. — дата не читается','НЕ ЗАКРЫТ',1],
+ ['#1159','а можно у вас работать','ОТВЕЧЕНО',0],
+ ['#1160','приложение не видит профиль','ЗАКРЫТ',0],
+ ['#1161','верните пожалуйста, передумал','ВОЗВРАЩЕНО',0],
+ ['#1162','кинул скрин, посмотрите','ЗАКРЫТ',0],
+ ['#1163','пишет неверный логин','ЗАКРЫТ',0],
+ ['#1164','а можно оплатить с чужой карты','ОТВЕЧЕНО',0],
+ ['#1165','тариф закончился ночью','ЗАКРЫТ',0],
+ ['#1166','на работе не пускает, дома норм','РАЗОБРАНО',0],
+ ['#1167','ребёнок сменил пароль','ЗАКРЫТ',0],
+ ['#1168','можно счёт на организацию','ОТВЕЧЕНО',0],
+ ['#1169','обновил и всё пропало','ЗАКРЫТ',0],
+ ['#1170','сервер лагает по вечерам','В РАБОТЕ',1],
+ ['#1171','жалоба на модератора','РАЗОБРАНО',0],
+ ['#1172','ивент кончился раньше времени','ЗАКРЫТ',0],
+ ['#1173','как вернуть предметы после смерти','ОТВЕЧЕНО',0],
+ ['#1174','меня кикнуло с воскресного ивента','ЗАКРЫТ',0],
+ ['#1175','подскажите модпак весит сколько','ОТВЕЧЕНО',0],
+ ['#1176','купил донат, роль не выдали','ЗАКРЫТ',0],
+ ['#1177','стажёр не отвечает третий день','РАЗОБРАНО',0],
+ ['#1178','можно я вернусь после разбана','ОТВЕЧЕНО',0],
+ ['#1179','нашёл дюп, кому писать','ЗАКРЫТ',0],
+ ['#1180','спасибо за терпение','ЗАКРЫТ',0],
+ ['#1181','а вы вообще спите когда-нибудь','ЗАКРЫТ',0],
 ];
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -712,17 +718,32 @@ addEventListener('click',()=>{
    реальной смене ориентации или ширины. */
 let VIEW_W=innerWidth, VIEW_H=innerHeight;
 let SCROLL_MAX=Math.max(1,scrollEl.scrollHeight-innerHeight);
+/* Канвас рендерится в фиксированный размер и НИКОГДА не уменьшается от того,
+   что адресная строка спряталась: иначе меняется соотношение сторон и кадр
+   перестраивается прыжком, а запечённая типографика съезжает. */
+let RW_=innerWidth, RH_=innerHeight;
+function applyRenderSize(){
+  camera.aspect=RW_/RH_; camera.updateProjectionMatrix();
+  renderer.setSize(RW_,RH_,false);
+  const c=renderer.domElement;
+  c.style.width=RW_+'px'; c.style.height=RH_+'px';
+}
+applyRenderSize();
 addEventListener('resize',()=>{
-  const dw=Math.abs(innerWidth-VIEW_W), dh=Math.abs(innerHeight-VIEW_H);
-  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
-  if(dw>2 || dh>160){                       // настоящая смена окна, а не адресная строка
+  const realTurn = Math.abs(innerWidth-VIEW_W)>2;          // смена ориентации или окна
+  if(realTurn){
     VIEW_W=innerWidth; VIEW_H=innerHeight;
+    RW_=innerWidth; RH_=innerHeight; applyRenderSize();
     SCROLL_MAX=Math.max(1,scrollEl.scrollHeight-innerHeight);
     relayout();
+  } else if(innerHeight>RH_){                              // адресная строка спряталась: только растём
+    RH_=innerHeight; applyRenderSize();
   }
 });
 
+const SMOOTH_TAU=(()=>{const q=new URLSearchParams(location.search).get('smooth');
+  const v=q===null?0.09:parseFloat(q); return isFinite(v)?v:0.09;})();
+let uSm=null, prevSmooth=performance.now();
 const bar=document.getElementById('bar'), hint=document.getElementById('hint'),
       nameEl=document.getElementById('stopname');
 let last=-1;
@@ -740,7 +761,15 @@ function loop(now){
   const max=SCROLL_MAX;
   const t=forced!==null?Math.min(1,Math.max(0,parseFloat(forced)))
                        :Math.min(1,Math.max(0,scrollY/max));
-  const u=uFromT(t);
+  /* Инерционная прокрутка на телефоне отдаёт накопленное расстояние одним
+     прыжком в последнем кадре. Камера догоняет цель плавно; сглаживается
+     ТОЛЬКО положение вдоль пути, ориентация — никогда. */
+  const uTarget=uFromT(t);
+  const dtS=Math.min(0.05,(now-prevSmooth)/1000); prevSmooth=now;
+  if(forced!==null||SMOOTH_TAU<=0||uSm===null) uSm=uTarget;
+  else if(Math.abs(uTarget-uSm)*LEN>220) uSm=uTarget;      // прыжок ползунком — телепорт
+  else uSm+=(uTarget-uSm)*(1-Math.exp(-dtS/SMOOTH_TAU));
+  const u=uSm;
   const pose=setCam(camera,u);
   const look=pose.target.clone();
   if(flight){
