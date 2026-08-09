@@ -41,7 +41,7 @@
 <div id="tag"><b>Владислав Яворский</b><span>поддержка и комьюнити-менеджмент</span></div>
 <div id="meta"><span id="stopname">вход</span></div>
 <div id="hint">крути вниз</div>
-<div id="ui">цвет: <b id="pal">A</b> · Q W E &nbsp;·&nbsp; тон полотна: <b id="tone">1</b> · 1 2 3 &nbsp;·&nbsp; крен петли: <b id="rollv">14°</b> &nbsp;·&nbsp; на телефоне: ?tone=1..3 &amp;roll=14|45|90|162</div>
+<div id="ui" hidden>цвет: <b id="pal">A</b> · Q W E &nbsp;·&nbsp; тон полотна: <b id="tone">1</b> · 1 2 3 &nbsp;·&nbsp; крен петли: <b id="rollv">14°</b> · 4 5 6 7</div>
 <div id="dest"></div>
 
 <script type="module">
@@ -65,6 +65,7 @@ const STOPS=[
  {name:'входящее', hero:'Открыть тикет', hc:CSS.text,
   side:'Дальше пишет уже тот, кто пришёл.\n\n@utomlenno в телеграме\nMyHeadHurts в Steam\nyaveii на твиче'},
 ];
+const TICKETES_NOTE=0; // (см. ниже) 40 разных обращений, повторов нет
 const TICKETS=[
  ['#1142','оплатил, но доступа нет','ЗАКРЫТ',0],
  ['#1143','продлил, но не продлилось','ЗАКРЫТ',0],
@@ -75,6 +76,37 @@ const TICKETS=[
  ['#1148','спасай, что делать пж','ОТКРЫТ',1],
  ['#1149','где брать пчёл на 1.16.5','ЗАКРЫТ',0],
  ['#1150','спасибо, всё заработало','ЗАКРЫТ',0],
+ ['#1151','ключ подошёл, но скорость 2 мбит','ЗАКРЫТ',0],
+ ['#1152','списалось дважды','ВОЗВРАЩЕНО',0],
+ ['#1153','не приходит письмо с ключом','ЗАКРЫТ',0],
+ ['#1154','можно на два устройства сразу','ЗАКРЫТ',0],
+ ['#1155','вылетает на длинных сессиях','В РАБОТЕ',1],
+ ['#1156','поменял телефон, доступ потерял','ЗАКРЫТ',0],
+ ['#1157','а вы логи храните','ОТВЕЧЕНО',0],
+ ['#1158','сколько ждать после оплаты','ЗАКРЫТ',0],
+ ['#1159','приложение не видит профиль','ЗАКРЫТ',0],
+ ['#1160','верните пожалуйста, передумал','ВОЗВРАЩЕНО',0],
+ ['#1161','кинул скрин, посмотрите','ЗАКРЫТ',0],
+ ['#1162','пишет неверный логин','ЗАКРЫТ',0],
+ ['#1163','а можно оплатить с чужой карты','ОТВЕЧЕНО',0],
+ ['#1164','тариф закончился ночью','ЗАКРЫТ',0],
+ ['#1165','на работе не пускает, дома норм','РАЗОБРАНО',0],
+ ['#1166','ребёнок сменил пароль','ЗАКРЫТ',0],
+ ['#1167','можно счёт на организацию','ОТВЕЧЕНО',0],
+ ['#1168','обновил и всё пропало','ЗАКРЫТ',0],
+ ['#1169','сервер лагает по вечерам','В РАБОТЕ',1],
+ ['#1170','жалоба на модератора','РАЗОБРАНО',0],
+ ['#1171','ивент кончился раньше времени','ЗАКРЫТ',0],
+ ['#1172','как вернуть предметы после смерти','ОТВЕЧЕНО',0],
+ ['#1173','меня кикнуло с воскресного ивента','ЗАКРЫТ',0],
+ ['#1174','подскажите модпак весит сколько','ОТВЕЧЕНО',0],
+ ['#1175','купил донат, роль не выдали','ЗАКРЫТ',0],
+ ['#1176','стажёр не отвечает третий день','РАЗОБРАНО',0],
+ ['#1177','можно я вернусь после разбана','ОТВЕЧЕНО',0],
+ ['#1178','нашёл дюп, кому писать','ЗАКРЫТ',0],
+ ['#1179','спасибо за терпение','ЗАКРЫТ',0],
+ ['#1180','а вы вообще спите когда-нибудь','ЗАКРЫТ',0],
+ ['#0001','Марина К. — дата не читается','НЕ ЗАКРЫТ',1],
 ];
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -183,9 +215,8 @@ straight(58); mark(5); straight(26);
 
 /* ─── амплитуда крена в петле: адрес ?roll=14|45|90|162, клавиши 4 5 6 7 ─── */
 const ROLL_CHOICES=[14,45,90,162];
-let ROLL_LOOP_AMP=14;                                     // градусы, по умолчанию
-{ const q=new URLSearchParams(location.search).get('roll');
-  if(q!==null){ const n=parseFloat(q); if(ROLL_CHOICES.includes(n)) ROLL_LOOP_AMP=n; } }
+const ROLL_LOOP_AMP=14;   // выбрано владельцем, не переключается                                     // градусы, по умолчанию
+
 function recomputeRolls(){
   const a=ROLL_LOOP_AMP*Math.PI/180;
   for(let i=0;i<bankRoll.length;i++) rolls[i]=bankRoll[i]-a*loopSh[i];
@@ -356,9 +387,7 @@ function ribbon(offset,y0,y1,mat,{flat=false,halfW=0,N=2600}={}){
   return new THREE.Mesh(g,mat);
 }
 const beltTexs=BELT_TONES.map(c=>beltTexture(c));
-let toneIdx=0;                                        // тон 1 — выбран владельцем
-{ const q=new URLSearchParams(location.search).get('tone');
-  if(q!==null){ const n=parseInt(q,10); if(n>=1&&n<=3) toneIdx=n-1; } }
+const toneIdx=0;                                      // тон 1 — выбран владельцем
 const beltTex=beltTexs[toneIdx];
 const matBelt =new THREE.MeshBasicMaterial({map:beltTex,fog:true,side:THREE.FrontSide});
 const matWall =new THREE.MeshBasicMaterial({color:0x07281f,fog:true,side:THREE.DoubleSide});
@@ -392,9 +421,9 @@ scene.add(ribbon(0,-3.2,0,matUnder,{flat:true,halfW:HW}));
 
 /* карточки — одна текстура на карточку */
 const READ_U=()=>STOPS.map(x=>Math.max(0,x.u-READ/LEN));
-for(let i=0;i<40;i++){
-  const [n,s,st,hot]=TICKETS[i%TICKETS.length];
-  let u=0.012+i/40*0.965;
+for(let i=0;i<TICKETS.length;i++){
+  const [n,s,st,hot]=TICKETS[i];
+  let u=0.012+i/TICKETS.length*0.965;
   if(READ_U().some(r=>Math.abs(u-r)<0.013)) u+=0.017;      // не лезть в кадр чтения
   const m=textMesh(`${n}   ${s}${' '.repeat(5)}${st}`,{size:40,color:hot?CSS.blood:'#7ba394'});
   const wWorld=BELT_W*0.55;
@@ -450,12 +479,21 @@ STOPS.forEach((s,i)=>{
   layout.push({hero,side,sub,uRead,flip:i%2?-1:1,big:!!s.big,lines,idx:i});
 });
 function relayout(){
+  const portrait = innerWidth/innerHeight < 1.15;              // на телефоне кадр высокий и узкий
   for(const L of layout){
-    const hx = L.idx===0 ? -0.30 : 0.00;                       // красный заголовок с оси сбега
-    placeOnScreen(L.hero,L.uRead, hx, L.idx===0?0.42:0.36, 26, L.big?0.19:0.22);
-    const frac=Math.min(0.34, 0.036*L.lines+0.033);            // постоянный кегль абзаца
-    placeOnScreen(L.side,L.uRead, L.flip*0.40, -0.12, 17, frac);
-    if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.50, 18, 0.052);
+    if(portrait){
+      // в портрете лента занимает низ кадра, поэтому весь текст живёт в верхней половине
+      placeOnScreen(L.hero,L.uRead, 0.00, 0.60, 26, L.big?0.13:0.15);
+      const frac=Math.min(0.30, 0.030*L.lines+0.028);
+      placeOnScreen(L.side,L.uRead, 0.00, 0.14, 16, frac);
+      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.16, 16, 0.040);
+    } else {
+      const hx = L.idx===0 ? -0.30 : 0.00;                     // красный заголовок с оси сбега
+      placeOnScreen(L.hero,L.uRead, hx, L.idx===0?0.42:0.36, 26, L.big?0.19:0.22);
+      const frac=Math.min(0.34, 0.036*L.lines+0.033);          // постоянный кегль абзаца
+      placeOnScreen(L.side,L.uRead, L.flip*0.40, -0.12, 17, frac);
+      if(L.sub) placeOnScreen(L.sub,L.uRead, 0.00, -0.50, 18, 0.052);
+    }
   }
 }
 relayout();
@@ -654,20 +692,7 @@ const pal={A:()=>{matEdge.color.setHex(BLOOD_SOFT);matUnder.color.setHex(0x03120
            B:()=>{matEdge.color.setHex(MASS);matUnder.color.setHex(0x03120e);},
            C:()=>{matEdge.color.setHex(MASS);matUnder.color.setHex(0x3d0a15);}};
 pal.A(); const palEl=document.getElementById('pal');
-const toneEl=document.getElementById('tone');
-toneEl.textContent=String(toneIdx+1);
-function setTone(n){ toneIdx=n; matBelt.map=beltTexs[n]; matBelt.needsUpdate=true;
-  toneEl.textContent=String(n+1); }
-addEventListener('keydown',e=>{const k={q:'A',w:'B',e:'C',й:'A',ц:'B',у:'C'}[e.key.toLowerCase()];
-  if(k){pal[k]();palEl.textContent=k;}
-  if(e.key==='1'||e.key==='2'||e.key==='3') setTone(+e.key-1);
-  // 4 5 6 7 — амплитуда крена в петле; пересчитываем массив крена на живой сцене
-  const ri={'4':0,'5':1,'6':2,'7':3}[e.key];
-  if(ri!==undefined){
-    ROLL_LOOP_AMP=ROLL_CHOICES[ri];
-    recomputeRolls();
-    const el=document.getElementById('rollv'); if(el) el.textContent=ROLL_LOOP_AMP+'°';
-  }});
+/* переключатели убраны: цвет A, тон 1, крен 14 зашиты */
 
 const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(-9,-9);
 let flight=null;
@@ -681,9 +706,21 @@ addEventListener('click',()=>{
       <span style="color:${CSS.quiet}">клик — вернуться</span>`;
     d.onclick=()=>{d.style.display='none';flight=null;};},720);
 });
+/* На мобильных адресная строка прячется и показывается, меняя высоту окна.
+   Если пересчитывать знаменатель прокрутки на каждое такое изменение, камера
+   прыгает при том же самом scrollY. Поэтому кэшируем и обновляем только при
+   реальной смене ориентации или ширины. */
+let VIEW_W=innerWidth, VIEW_H=innerHeight;
+let SCROLL_MAX=Math.max(1,scrollEl.scrollHeight-innerHeight);
 addEventListener('resize',()=>{
+  const dw=Math.abs(innerWidth-VIEW_W), dh=Math.abs(innerHeight-VIEW_H);
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight); relayout();
+  renderer.setSize(innerWidth,innerHeight);
+  if(dw>2 || dh>160){                       // настоящая смена окна, а не адресная строка
+    VIEW_W=innerWidth; VIEW_H=innerHeight;
+    SCROLL_MAX=Math.max(1,scrollEl.scrollHeight-innerHeight);
+    relayout();
+  }
 });
 
 const bar=document.getElementById('bar'), hint=document.getElementById('hint'),
@@ -700,7 +737,7 @@ if(qs.get('stop')!==null){
 }
 
 function loop(now){
-  const max=document.getElementById('scroll').scrollHeight-innerHeight;
+  const max=SCROLL_MAX;
   const t=forced!==null?Math.min(1,Math.max(0,parseFloat(forced)))
                        :Math.min(1,Math.max(0,scrollY/max));
   const u=uFromT(t);
