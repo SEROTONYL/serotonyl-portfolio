@@ -526,20 +526,30 @@ relayout();
 const exits=[];
 {
   const f=frameAt(1.0);
-  const mk=(label,dir,col)=>{
+  const mk=(label,dir,col,note,href)=>{
     const g=new THREE.Group();
     const pl=new THREE.PlaneGeometry(9,3.2);
     const box=new THREE.Mesh(pl,new THREE.MeshBasicMaterial({color:VOID,fog:true,transparent:true,opacity:.9}));
     const e=new THREE.LineSegments(new THREE.EdgesGeometry(pl),new THREE.LineBasicMaterial({color:col,fog:true}));
     const tl=textMesh(label,{size:96,color:col===MASS?CSS.mass:CSS.blood,weight:'700'});
-    tl.scale.set(1.3*tl.userData.ratio,1.3,1); tl.position.set(0,0,0.05);
+    tl.scale.set(1.3*tl.userData.ratio,1.3,1); tl.position.set(0,note?0.55:0,0.05);
     g.add(box,e,tl);
+    /* Подпись под названием: что за дверью, видно ДО клика. Дверь, которая
+       обещает страницу и не даёт её, хуже двери, честно помеченной как недострой.
+       Масштаб задаётся по высоте, поэтому длинная строка сама себя ужимает —
+       ставим столько, чтобы очко осталось больше половины от заголовка. */
+    if(note){
+      const nt=textMesh(note,{size:44,color:col===MASS?CSS.mass:CSS.blood});
+      nt.scale.set(1.0*nt.userData.ratio,1.0,1); nt.position.set(0,-0.72,0.05);
+      g.add(nt);
+    }
     g.position.copy(f.p).addScaledVector(f.side,dir*8.5).addScaledVector(f.up,1.6).addScaledVector(f.t,4);
     g.up.copy(f.up);
     g.lookAt(g.position.clone().addScaledVector(f.t,-30));
-    scene.add(g); exits.push({g,e,dir,label,hit:box,base:col});
+    scene.add(g); exits.push({g,e,dir,label,hit:box,base:col,href});
   };
-  mk('Личное',-1,MASS); mk('Резюме', 1,BLOOD);
+  mk('Личное',-1,MASS,'участок в работе',null);
+  mk('Резюме', 1,BLOOD,'две страницы и PDF','../resume/');
 }
 
 /* ═══════════ скролл: медленнее в окнах чтения, быстро в петле ═══════════ */
@@ -724,11 +734,19 @@ addEventListener('pointermove',e=>ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/i
 addEventListener('click',()=>{
   if(flight) return;
   const h=ray.intersectObjects(exits.map(x=>x.hit),false)[0]; if(!h) return;
-  const ex=exits.find(x=>x.hit===h.object); flight={dir:ex.dir,t0:performance.now(),label:ex.label};
-  setTimeout(()=>{const d=document.getElementById('dest');d.style.display='grid';
-    d.innerHTML=`здесь открылась бы страница<br><b style="font-size:26px">${flight.label}</b><br>
-      <span style="color:${CSS.quiet}">клик — вернуться</span>`;
-    d.onclick=()=>{d.style.display='none';flight=null;};},720);
+  const ex=exits.find(x=>x.hit===h.object);
+  flight={dir:ex.dir,t0:performance.now(),label:ex.label,href:ex.href};
+  setTimeout(()=>{
+    if(flight.href){ location.href=flight.href; return; }   // дверь ведёт наружу — уходим со страницы
+    /* Дверь без страницы. Не «здесь открылась бы», а маркировка недостроенного
+       участка — тем же языком, что подписи оборудования вокруг. */
+    const d=document.getElementById('dest'); d.style.display='grid';
+    d.innerHTML=`<div><span style="text-transform:uppercase">участок в работе</span><br>
+      <b style="font-size:24px;color:${CSS.text};letter-spacing:.04em">${flight.label}</b><br>
+      <span style="color:${CSS.quiet}">соберу отдельно</span><br><br>
+      <span style="color:${CSS.quiet};font-size:11px">клик — вернуться</span></div>`;
+    d.onclick=()=>{d.style.display='none';flight=null;};
+  },720);
 });
 /* На мобильных адресная строка прячется и показывается, меняя высоту окна.
    Если пересчитывать знаменатель прокрутки на каждое такое изменение, камера
