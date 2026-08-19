@@ -736,6 +736,11 @@ function placeTall(){
   const grpH  = grp.offsetHeight;
   const connH = conn.offsetHeight + parseFloat(getComputedStyle(conn).marginTop);
   const PAD   = 2 * P + BORDER;
+  /* Сколько высоты кадру нужно, чтобы список не обрезался вовсе. Число
+     считается здесь, где известны все слагаемые, и отдаётся наружу:
+     склейка спрашивает его и выдаёт секции столько, сколько экран
+     просит, но не меньше видимой высоты окна. */
+  needed = (top - 12) + PAD + grpH + list.scrollHeight + connH + VB;
   let LH = layoutList((H - top - VB) - PAD - grpH - connH);
   let h  = PAD + grpH + LH + connH;
 
@@ -936,6 +941,7 @@ const FONTS = (document.fonts && document.fonts.ready) || Promise.resolve();
 // а от неё зависит всё остальное.
 if (/(^|[#&])phone\b/.test(location.hash)) document.body.classList.add('phoneview');
 
+let needed = 0;                    // высота, при которой список цел
 let tl, connected = false;
 /* Дорожек подключения может быть больше одной: кнопка нажимается когда
    угодно, а при покадровой проверке перемотка в конец сама запускает
@@ -1311,6 +1317,9 @@ addEventListener('keydown', e => {
   if (k === 'o' || k === 'щ'){ overIx  = (overIx  + 1) % OVER.length;  play(); }
   if (k === 'm' || k === 'ь'){ seamIx  = (seamIx  + 1) % SEAM.length;  play(); }
 });
+/* Сколько высоты просит экран, чтобы показать список целиком. Ноль —
+   когда спрашивать нечего: широкая композиция вмещает его всегда. */
+window.__needed = () => (tall() ? Math.ceil(needed) : 0);
 window.__pick = () => PICK;                          // для замера
 window.__smear = v => { if (v !== undefined) smearIx = v; return SMEAR[smearIx]; };
 window.__over  = v => { if (v !== undefined) overIx  = v; return OVER[overIx]; };

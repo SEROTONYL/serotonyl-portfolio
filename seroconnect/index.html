@@ -71,6 +71,23 @@ for (const id of ['s1','s2']){
   hideHint(f);
 }
 
+/* ── Секция второго экрана растёт под содержимое ────────────────
+   Держать секцию ровно в один экран было допущением, а не законом. На
+   телефоне из-за него коробке доставалось столько, сколько оставалось
+   после заголовка и фразы, и список приходилось обрезать. Экран сам
+   знает, сколько ему нужно, чтобы показать список целиком, — склейка
+   спрашивает и выдаёт, но не меньше видимой высоты окна.
+   На широком кадре экран отвечает нулём: там список и так помещается. */
+function fitSecond(){
+  const f = document.getElementById('s2'), sec = f.parentElement;
+  let need = 0;
+  try { need = f.contentWindow.__needed ? f.contentWindow.__needed() : 0; } catch (err) {}
+  sec.style.height = need > innerHeight ? need + 'px' : '';
+}
+document.getElementById('s2').addEventListener('load', () => setTimeout(fitSecond, 60));
+addEventListener('resize', () => setTimeout(fitSecond, 60));
+setTimeout(fitSecond, 300);
+
 /* ── Сцена второго экрана ───────────────────────────────────────
    Заводится, когда экран попал в поле зрения, и заводится ЗАНОВО
    при каждом возвращении — здесь это не витрина, а смотровая: если
@@ -90,5 +107,5 @@ new IntersectionObserver(es => {
       clearTimeout(timer);
     }
   });
-}, {threshold:.55}).observe(f2);
+}, {threshold:.4}).observe(f2);
 </script>
