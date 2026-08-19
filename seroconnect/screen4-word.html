@@ -1,0 +1,275 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Экран 4 — слово</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- ══════════════════════════════════════════════════════════════════
+     ГЕРОЙ КАК СЛОВО. Кнопка — не прямоугольник с надписью, а сама
+     типографика.
+
+     Почему так. Самые сильные моменты сайта — типографические события:
+     огромное считающее число, дата, проявляющаяся растром, ссылка,
+     улетающая и становящаяся заголовком. Ни одного залитого цветом
+     блока на сайте нет вообще. Крупная медная плита была предметом из
+     чужого проекта.
+
+     Заливки нет — значит медь работает ВОЛОСКОМ под блоком. Она же
+     единственное медное пятно в кадре, она же доказательство, что на
+     это жмут. Под курсором волосок разгорается и проезжает, чернила
+     теплеют: у типографической кнопки состояние должно читаться, иначе
+     её принимают за заголовок.
+
+     НАЖАТИЕ. Бюджет жёсткий: за кнопкой переход, браузер уводит через
+     сотню-другую миллисекунд, и всё длиннее человек просто не увидит.
+     Поэтому 90 мс на просадку и 60 на медь — и перехода мы не задерживаем.
+
+     Срабатывает на pointerdown, а не на click: между нажатием и
+     отпусканием проходит 50–100 мс, и кнопка, отвечающая на отпускании,
+     ощущается тормозящей.
+
+     Медь быстрее просадки НАМЕРЕННО: материал отзывается раньше, чем
+     масса успела сдвинуться. Это не нарушение закона «одна вещь за раз» —
+     удар это одно событие, у частей которого разная инерция. Синхронно
+     они дали бы не удар, а переключение.
+
+     ОТСЧЁТ ЦЕНЫ — БАРАБАН, А НЕ СЧЁТЧИК. Простой отсчёт врал бы: по
+     дороге от 199 к 1690 он показывает 843 ₽, а такой цены нет. На первом
+     экране одометр считает НАСТОЯЩУЮ величину, там промежуточные значения
+     осмысленны; здесь они были бы выдуманными ценами.
+
+     У барабана промежуточные цифры — ЛЕНТА, а не значение: крутящуюся
+     ленту никто не читает как число. Механика родная — барабан уже стоит
+     в кнопке шапки первого экрана.
+
+     Разряды оседают СЛЕВА НАПРАВО, в порядке чтения. Направление вращения
+     следует за ценой: дороже — лента идёт вверх, дешевле — вниз.
+
+     1 2 3 — срок · H — показать наведение
+     ══════════════════════════════════════════════════════════════════ -->
+<style>
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-latin-wght-normal.Cjtb1TV-.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2212}
+@font-face{font-family:"Space Grotesk Variable";font-style:normal;font-weight:300 700;
+  font-display:swap;src:url(fonts/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2212}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#110a0a;color:#a2a2a2;
+  font-family:"Geist Mono Variable",ui-monospace,monospace;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased}
+.col{display:flex;flex-direction:column;align-items:center;gap:34px}
+
+/* ЗАГЛУШКА выбора срока — форма выборки отдельный разговор. */
+.terms{display:flex;gap:26px}
+.terms button{background:none;border:0;font-family:inherit;font-size:12px;
+  letter-spacing:.08em;color:#4f4741;cursor:pointer;padding:4px 0;
+  transition:color .15s cubic-bezier(.4,0,.2,1)}
+.terms button:hover{color:#a2a2a2}
+.terms button.on{color:#f5f5f5}
+
+/* ── ГЕРОЙ ──────────────────────────────────────────────────────────
+   Нажимается ВЕСЬ блок, а не строчка: у типографической кнопки цель
+   должна быть больше, чем кажется, иначе в неё не попадают. */
+.buy{position:relative;background:none;border:0;cursor:pointer;
+  padding:23px 40px 30px;font-family:inherit;color:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  /* Выход суше входа: 0,12 с на кривой мелочи. Вход — 0,16 на кнопочной. */
+  transition:transform .12s cubic-bezier(.4,0,.2,1)}
+.buy.hv{transform:translateY(-2px);
+  transition:transform .16s cubic-bezier(.23,1,.32,1)}
+/* Просадка. Ход 3 px от наведения, чтобы падение читалось. Кривая
+   продуктовой «мелочи», без пружины: отдача означала бы «отскочило»,
+   а мы прижали. */
+.buy.press{transform:translateY(1px);
+  transition:transform .09s cubic-bezier(.4,0,.2,1)}
+
+.sum{display:flex;align-items:baseline;
+  font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:132px;line-height:.92;letter-spacing:-.03em;
+  color:#f5f5f5;font-variant-numeric:tabular-nums;
+  transition:color .12s cubic-bezier(.4,0,.2,1)}
+.sum i{font-style:normal;font-size:52px;opacity:.56;margin-left:14px;
+  letter-spacing:0}
+
+/* ── БАРАБАНЫ РАЗРЯДОВ ──────────────────────────────────────────────
+   Разряд — окно высотой в строку, в нём лента цифр. Лента задвоена
+   (0…9 0…9), чтобы переход через девятку шёл в ту же сторону, а не
+   отматывался назад. */
+.reels{display:flex}
+.slot{overflow:hidden;line-height:inherit}
+/* Ведущий разряд закрывается, когда цена трёхзначная: ширина блока
+   закреплена по самой длинной цене, поэтому рамка стоит, а число
+   пересобирается внутри неё. */
+.slot.off{width:0!important}
+.reel{display:flex;flex-direction:column;will-change:transform}
+.buy.hv .sum{color:#efd4b0;transition:color .16s cubic-bezier(.23,1,.32,1)}
+/* Медь заливает число: движение, которое умеет только предмет из
+   типографики и меди. Не #efd4b0 — тот оттенок занят наведением. */
+.buy.press .sum{color:#d4a574;transition:color .06s linear}
+
+.act{font-size:15px;letter-spacing:.22em;text-transform:uppercase;
+  color:#d4a574;transition:color .25s cubic-bezier(.23,1,.32,1)}
+.buy.hv .act{color:#e2b98e}
+
+/* ── МЕТКИ РЕЗА ─────────────────────────────────────────────────────
+   Четыре уголка вокруг блока — типографские метки, по которым режут
+   печатный лист. Взяты вместо подчёркивания, потому что берут все три
+   его работы разом: в покое доказывают, что на это жмут; медные —
+   значит цвет секции на месте; сходятся к содержимому — значит есть
+   отклик. И при этом не запирают предмет в коробку: слово остаётся
+   словом, а не текстом внутри компонента. */
+.mark{position:absolute;width:15px;height:15px;pointer-events:none;
+  border-color:#d4a57459;border-style:solid;border-width:0;
+  transition:transform .12s cubic-bezier(.4,0,.2,1),
+             border-color .12s cubic-bezier(.4,0,.2,1)}
+.m-tl{top:0;left:0;border-top-width:1px;border-left-width:1px}
+.m-tr{top:0;right:0;border-top-width:1px;border-right-width:1px}
+.m-bl{bottom:0;left:0;border-bottom-width:1px;border-left-width:1px}
+.m-br{bottom:0;right:0;border-bottom-width:1px;border-right-width:1px}
+@media (max-width:760px){ .mark{border-color:#d4a574a6} }
+
+/* Прицел сжимается. 0,24 с, а не 0,42 как у прежнего проезда:
+   длительность следует за расстоянием, а не за привычкой — волосок шёл
+   всю ширину блока, уголки идут четыре пикселя. */
+.buy.hv .mark{border-color:#d4a574;
+  transition:transform .24s cubic-bezier(.23,1,.32,1),
+             border-color .16s cubic-bezier(.23,1,.32,1)}
+.buy.hv .m-tl{transform:translate(5px,5px)}
+.buy.hv .m-tr{transform:translate(-5px,5px)}
+.buy.hv .m-bl{transform:translate(5px,-5px)}
+.buy.hv .m-br{transform:translate(-5px,-5px)}
+
+/* ── УЗКИЙ КАДР ─────────────────────────────────────────────────────
+   Кегль 132 даёт блок в 441 px — на телефоне в 390 он вылезает за кромку.
+   Ширина блока считается замером, поэтому достаточно сменить кегль:
+   `мерить()` пересчитает и ширину, и высоту ячейки барабана. */
+@media (max-width:760px){
+  .sum{font-size:74px}
+  .sum i{font-size:30px;margin-left:9px}
+  .act{font-size:12px;letter-spacing:.18em}
+  .buy{padding:16px 24px 20px;gap:10px}
+  .mark{width:11px;height:11px}
+  .col{gap:24px}
+}
+
+.after{font-size:11px;letter-spacing:.06em;color:#4f4741}
+.hint{position:fixed;left:20px;bottom:14px;font-size:10px;letter-spacing:.08em;
+  color:#4f4741}
+</style>
+
+<div class="col">
+  <div class="terms" id="terms"></div>
+  <button class="buy" id="buy">
+    <span class="sum"><span class="reels" id="reels"></span><i>₽</i></span>
+    <span class="act">оформить</span>
+    <span class="mark m-tl"></span><span class="mark m-tr"></span>
+    <span class="mark m-bl"></span><span class="mark m-br"></span>
+  </button>
+  <p class="after">дальше — подтверждение и оплата</p>
+</div>
+<p class="hint">1 2 3 — срок · H — показать наведение</p>
+
+<script src="vendor/gsap.min.js"></script>
+<script>
+const TERMS = [{t:'1 месяц', sum:199}, {t:'6 месяцев', sum:950}, {t:'год', sum:1690}];
+const terms = document.getElementById('terms');
+const кнопки = TERMS.map((x, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = x.t;
+  b.addEventListener('click', () => ставить(i));
+  terms.append(b); return b;
+});
+const buy = document.getElementById('buy'), reels = document.getElementById('reels');
+
+/* Четыре разряда — по самой длинной цене. Лишний закрывается, а не
+   исчезает: так ширина блока и положение уголков не зависят от цены. */
+const РАЗРЯДОВ = 4;
+const слоты = [];
+for (let i = 0; i < РАЗРЯДОВ; i++){
+  const s = document.createElement('span'); s.className = 'slot';
+  const r = document.createElement('span'); r.className = 'reel';
+  for (let n = 0; n < 20; n++){
+    const d = document.createElement('span'); d.textContent = n % 10; r.append(d);
+  }
+  s.append(r); reels.append(s); слоты.push({s, r, цифра: 0});
+}
+let ЯЧЕЙКА = 0;
+function мерить(){
+  ЯЧЕЙКА = слоты[0].r.firstChild.getBoundingClientRect().height;
+  слоты.forEach(x => { x.s.style.height = ЯЧЕЙКА + 'px'; });
+  слоты.forEach(x => { x.s.style.width = x.s.dataset.w ||
+    (x.s.dataset.w = Math.ceil(x.r.firstChild.getBoundingClientRect().width) + 'px'); });
+  /* Ширина блока закрепляется по самой длинной цене — измеряется, а не
+     подбирается. */
+  buy.style.minWidth = Math.ceil(buy.getBoundingClientRect().width) + 'px';
+}
+
+let текущая = null;
+function ставить(i){
+  кнопки.forEach((b, j) => b.classList.toggle('on', j === i));
+  const цель = String(TERMS[i].sum).padStart(РАЗРЯДОВ, ' ');
+  const вверх = текущая === null || TERMS[i].sum > текущая;
+  текущая = TERMS[i].sum;
+
+  слоты.forEach((x, k) => {
+    const c = цель[k];
+    x.s.classList.toggle('off', c === ' ');
+    if (c === ' ') return;
+    const было = x.цифра, стало = +c;
+    /* Направление вращения следует за ценой: дороже — лента вверх,
+       дешевле — вниз. Лента задвоена (0…9 0…9), чтобы переход через
+       девятку шёл в ту же сторону, а не отматывался назад.
+
+       ВАЖНО: при движении ВНИЗ нельзя просто вычесть десятку — с 1 на 9
+       выходит индекс −1, то есть выше начала ленты, где нет ничего.
+       Разряд честно показывал пустоту и в конце вставал скачком.
+       Поэтому вниз стартуем с ТОГО ЖЕ символа во втором обороте
+       (индекс +10): картинка не меняется, цифра та же, а движение
+       остаётся в пределах ленты. */
+    let старт = было, к = стало;
+    if (вверх && стало < было) к = стало + 10;
+    if (!вверх && стало > было) старт = было + 10;
+    gsap.fromTo(x.r, {y: -старт * ЯЧЕЙКА},
+      {y: -к * ЯЧЕЙКА, duration:.46, ease:'power3.out', delay: k * .045,
+       onComplete(){ gsap.set(x.r, {y: -стало * ЯЧЕЙКА}); }});
+    x.цифра = стало;
+  });
+}
+/* ── СОСТОЯНИЯ ПРЕДМЕТА ─────────────────────────────────────────────
+   Наведение и нажатие висят на самом блоке, а не на псевдоклассах: тогда
+   клавиша даёт ровно тот же отклик, что мышь, а на телефоне — где
+   наведения не существует вовсе — нажатие работает само по себе. */
+const жать   = () => buy.classList.add('press');
+const отжать = () => buy.classList.remove('press');
+
+buy.addEventListener('pointerenter', () => buy.classList.add('hv'));
+buy.addEventListener('pointerleave', () => { buy.classList.remove('hv'); отжать(); });
+buy.addEventListener('pointerdown', жать);
+buy.addEventListener('pointerup', отжать);
+/* Палец увели за пределы блока не отпуская — человек передумал, и кнопка
+   не должна делать вид, что нажата. */
+buy.addEventListener('pointercancel', отжать);
+buy.addEventListener('focus', () => buy.classList.add('hv'));
+buy.addEventListener('blur', () => { buy.classList.remove('hv'); отжать(); });
+buy.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') жать(); });
+buy.addEventListener('keyup',   e => { if (e.key === 'Enter' || e.key === ' ') отжать(); });
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === '1') ставить(0);
+  if (k === '2') ставить(1);
+  if (k === '3') ставить(2);
+  if (k === 'h' || k === 'р') buy.classList.toggle('hv');
+});
+
+document.fonts.ready.then(() => { мерить(); ставить(2); });
+addEventListener('resize', () => { buy.style.minWidth = ''; мерить(); });
+
+window.__set = ставить;
+window.__hv = on => buy.classList.toggle('hv', on);
+window.__press = on => buy.classList.toggle('press', on);
+</script>

@@ -1,11 +1,11 @@
 <meta charset="utf-8">
-<title>SEROCONNECT — три экрана подряд</title>
 <meta name="robots" content="noindex,nofollow">
+<title>SEROCONNECT — четыре экрана подряд</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 /* ══════════════════════════════════════════════════════════════
-   СКЛЕЙКА. Три секции по высоте окна: два готовых экрана и третий,
-   пустой, — место под то, что будет дальше. Листать сверху вниз.
+   СКЛЕЙКА. Четыре секции по высоте окна: два готовых экрана, заглушка на
+   месте третьего и кнопка покупки — герой четвёртого. Листать сверху вниз.
 
    Кадры, а не слияние кода: у обеих сборок есть свои `.frame`,
    `.say`, `.box` и свои самозапускающиеся сценарии. Слить их в один
@@ -35,21 +35,24 @@ body{scroll-snap-type:y proximity}
   background:rgba(255,255,255,.05);z-index:2}
 
 /* ── ТРЕТИЙ ЭКРАН ───────────────────────────────────────────────
-   Пуст намеренно. Фон тот же, что у кадров обоих экранов (#110a0a,
-   он же `--color-surface-0` живого продукта), иначе пустая секция
-   читалась бы не как продолжение сайта, а как его конец.
-   Метка в углу — служебная, набрана языком подсказок обоих экранов
-   и снимается одной строкой, когда экран начнут собирать. */
-.empty{background:#110a0a}
-.empty b{position:absolute;left:12.5%;bottom:36px;font-weight:400;
-  font-family:"Geist Mono Variable",ui-monospace,monospace;
-  font-size:11px;letter-spacing:.08em;color:#4f4741}
-@media (max-width:760px){ .empty b{left:20px;bottom:24px} }
+   Место под секцию, которую ещё не придумали. Фон тот же, что у кадров
+   (#110a0a, он же `--color-surface-0` живого продукта), иначе пустая
+   секция читалась бы не как продолжение сайта, а как его конец.
+   Надпись — честная заглушка, а не содержание: она говорит, что здесь
+   думают, а не что здесь пусто. Снимается одной строкой. */
+@font-face{font-family:"Space Grotesk Variable";font-style:normal;font-weight:300 700;
+  font-display:swap;src:url(fonts/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2212}
+.empty{background:#110a0a;display:flex;align-items:center;justify-content:center}
+.empty b{font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:clamp(44px,9vw,116px);letter-spacing:-.03em;
+  color:#2e1f1f;user-select:none}
 </style>
 
 <div class="sec"><iframe id="s1" src="hero-mockups.html?v=preview" title="первый экран"></iframe></div>
 <div class="sec"><iframe id="s2" src="screen2-motion.html?v=preview&wait=1" title="второй экран"></iframe></div>
-<div class="sec empty"><b>третий экран — пусто</b></div>
+<div class="sec empty"><b>Думаю…</b></div>
+<div class="sec"><iframe id="s4" src="screen4-word.html?v=preview" title="четвёртый экран"></iframe></div>
 
 <script>
 /* ── Служебные подсказки о клавишах прячутся ────────────────────
@@ -65,7 +68,7 @@ function hideHint(f){
     d.head ? d.head.append(st) : d.documentElement.append(st);
   } catch (err) {}
 }
-for (const id of ['s1','s2']){
+for (const id of ['s1','s2','s4']){
   const f = document.getElementById(id);
   f.addEventListener('load', () => hideHint(f));
   hideHint(f);
@@ -108,7 +111,7 @@ function следитьЗаРукой(doc){
     doc.addEventListener(ev, () => { рукой = true; }, {passive:true}));
 }
 следитьЗаРукой(document);
-for (const id of ['s1','s2']){
+for (const id of ['s1','s2','s4']){
   const f = document.getElementById(id);
   const внутрь = () => { try { следитьЗаРукой(f.contentDocument); } catch (err) {} };
   f.addEventListener('load', внутрь);
