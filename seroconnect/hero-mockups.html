@@ -1,0 +1,1659 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEROCONNECT — «34», итерация 2</title>
+<style>
+  /* ── ШРИФТЫ ──────────────────────────────────────────────
+     Взяты с живого сайта дословно, вместе с диапазонами
+     `unicode-range`; изменены только пути на локальные.
+     ДО 17 августа в мокапе не было НИ ОДНОГО `@font-face`:
+     гарнитуры были только названы в `font-family`, но никогда
+     не грузились, и весь макет рисовался системной подстановкой.
+     Кириллицы у Space Grotesk нет ни в одном подмножестве —
+     русский текст и на живом сайте уходит в системную, потому
+     что Onest объявлен у него без файла. Фирменными выходят
+     ЦИФРЫ (Space Grotesk) и весь моноширинный набор
+     (Geist Mono, у него кириллица есть). */
+  @font-face{
+    font-family:Space Grotesk Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:300 700;
+    src:url(fonts/space-grotesk-vietnamese-wght-normal.D0rl6rjA.woff2)format("woff2-variations");
+    unicode-range:U+102-103,U+110-111,U+128-129,U+168-169,U+1A0-1A1,U+1AF-1B0,U+300-301,U+303-304,U+308-309,U+323,U+329,U+1EA0-1EF9,U+20AB;
+  }
+  @font-face{
+    font-family:Space Grotesk Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:300 700;
+    src:url(fonts/space-grotesk-latin-ext-wght-normal.D9tNdqV9.woff2)format("woff2-variations");
+    unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+  }
+  @font-face{
+    font-family:Space Grotesk Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:300 700;
+    src:url(fonts/space-grotesk-latin-wght-normal.BhU9QXUp.woff2)format("woff2-variations");
+    unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:Geist Mono Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:100 900;
+    src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2)format("woff2-variations");
+    unicode-range:U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116;
+  }
+  @font-face{
+    font-family:Geist Mono Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:100 900;
+    src:url(fonts/geist-mono-latin-ext-wght-normal.b6lpi8_2.woff2)format("woff2-variations");
+    unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+  }
+  @font-face{
+    font-family:Geist Mono Variable;
+    font-style:normal;
+    font-display:swap;
+    font-weight:100 900;
+    src:url(fonts/geist-mono-latin-wght-normal.Cjtb1TV-.woff2)format("woff2-variations");
+    unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+
+  :root{
+    /* Без этого Chrome на Android считает страницу светлой и в «тёмной теме»
+       выворачивает уже тёмную вёрстку — фон уезжает в грязно-серый. */
+    color-scheme:dark;
+    --bg:#110a0a;
+    --ink:#f3eee4;
+    --soft:#a59a89;
+    --faint:#6f655a;
+    /* Акцент сведён с брендом 18 августа. Было `#c79a6b` — подобранный
+       в мокапе; стало `#d4a574` — `--color-accent-primary` из боевого CSS
+       продукта. Раньше знак в шапке и цена в прейскуранте были РАЗНОГО
+       медного, хотя оба обязаны быть одним. */
+    --gold:#d4a574;
+    --sans:"Space Grotesk Variable","Space Grotesk","Onest","Inter",system-ui,sans-serif;
+    --mono:"Geist Mono Variable","Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:#0a0606; color:var(--soft);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+
+  /* Два разных класса, которые раньше были одним.
+     .phone — ИМИТАЦИЯ устройства: рамка 390 px посреди широкого окна.
+     .narrow — сама КОМПОЗИЦИЯ для узкого кадра.
+     Пока это было одно `.phone`, телефонная раскладка существовала только
+     за клавишей и на настоящем телефоне не применялась вовсе. Теперь
+     `.narrow` ставится по фактической ширине кадра — и рамка-имитация, и
+     живой телефон, и просто узкое окно попадают в него одинаково. */
+  .stage{position:absolute; inset:0; display:flex; justify-content:center}
+  .stage.phone{padding:14px 0}
+  .frame{
+    position:relative; width:100%; height:100%; overflow:hidden;
+    background:var(--bg); container-type:inline-size; cursor:default;
+  }
+  .stage.phone .frame{
+    width:390px; max-width:100%;
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+  }
+
+  /* ══ ШАПКА ═══════════════════════════════════════════════
+     Сделана по личному кабинету. Разобрана не на глаз: цвета и
+     геометрия сняты пикселями со скриншота владельца, а приём —
+     из живого `BaseLayout.css` сайта.
+
+     ВЫПУКЛОСТЬ у него держится тремя вещами, и порознь ни одна из
+     них не работает:
+     1. градиент по лестнице поверхностей — падение от светлого верха
+        к тёмному низу (в карточках он ставит его диагональю 140–158°,
+        но у САМОЙ шапки замер показывает чистую вертикаль: по всей
+        ширине яркость одна и та же);
+     2. `inset 0 1px #ffffff0a` — белый волосок по ВЕРХНЕЙ кромке
+        изнутри. Это и есть свет: на замере кнопки «На сайт» он виден
+        как `#3b312a` в одну строку над телом `#291f17`;
+     3. мягкая тень наружу вниз (`0 8px 40px #0006`).
+
+     Замер шапки кабинета: высота 68 px, сверху `#241b13`, снизу
+     `#150f09` — спад яркости 28,3 → 15,8, и под ним складка в один
+     пиксель `#060403`. То есть свет сверху, спад вниз, тёмная кромка
+     на стыке. Это ровно тот верхний свет, который мы весь день искали
+     на числе, — и у тебя он уже есть, просто на предметах, а не в поле.
+
+     Поверхности взяты из его переменных: surface-0 `#110a0a` (это наш
+     фон, они совпадают), 1 `#1a1212`, 2 `#241818`, 3 `#2e1f1f`.
+     Акцент бренда — `#d4a574`. */
+  .sitehead{
+    position:absolute; z-index:6; top:0; left:0; right:0; height:68px;
+    display:flex; align-items:center; justify-content:space-between;
+    /* Поля шапки равны полям композиции: 12,5% слева и 6% справа.
+       Тогда знак встаёт на левую кромку числа, а кнопка — на правую
+       кромку прейскуранта, и шапка перестаёт быть отдельной полосой,
+       приклеенной сверху. У него в кабинете так же: знак стоит по
+       контейнеру содержимого (20,8% от ширины), а не у края окна. */
+    padding-left:12.5%; padding-right:6%;
+    /* Падение строго вниз, а НЕ его диагональю 148–158°. Диагональ
+       рассчитана на высокие карточки: на полосе 1440×68 линия
+       градиента слишком длинная, и по вертикали яркость почти не
+       меняется — 158° дали спад 1,05, 172° дали 1,19 вместо 1,79,
+       то есть выпуклость пропадала. Замер самой шапки кабинета и
+       показывает чистое вертикальное падение.
+       Косой увод берётся вторым его приёмом — радиальным бликом
+       из `.dc-card-hero` (`#ffffff07` эллипсом от верхнего угла).
+       Крайние значения сняты с кабинета буквально: 28,3 → 15,8. */
+    background:
+      radial-gradient(ellipse 58% 150% at 21% -10%, #ffffff07 0%, transparent 68%),
+      linear-gradient(#241b13 0%, #1c150e 54%, #150f09 100%);
+    box-shadow:
+      inset 0 1px 0 #ffffff10,          /* верхний волосок — сам свет */
+      0 1px 0 #0a0605,                  /* складка на стыке с кадром */
+      0 12px 34px -14px #000000a6;      /* тень наружу */
+  }
+  .brand{ display:flex; align-items:center; gap:11px; text-decoration:none }
+  .brand svg{ display:block; height:26px; width:auto }
+  .brand .wm{
+    font-size:19px; font-weight:600; letter-spacing:-.012em;
+    color:#f5f5f5; white-space:nowrap;
+  }
+  /* «Sero» цветом текста, «Connect» акцентом — так на живом знаке */
+  .brand .wm em{ font-style:normal; color:#d4a574 }
+
+  /* Кнопка переделана по референсу во второй заход. Первый был капсулой
+     с медной стрелкой и плотным сансом — мимо по трём пунктам сразу,
+     причём радиус я выдумал, имея на руках его настоящий CSS.
+
+     Замер кнопки «На сайт» в кабинете:
+     · 103 × 38 px, спад тела 34,5 → 18,6 (отношение 1,85);
+     · РАДИУС 8 px, а не капсула. Прослежена левая кромка по строкам:
+       дуга занимает ровно 7 px по обеим осям. Это же значение стоит у
+       него в `.btn-renew` и `.dc-hero-cta-link` — системный радиус;
+     · набор МОНОШИРИННЫЙ: у «На сайт» все буквы идут равным шагом, и
+       у нас это же ложится на правило «моно — это показывает система»;
+     · стрелка — тонкая обводка белым, а не цветной глиф. Медь на ней
+       была самым громким пятном в шапке и тянула взгляд на себя;
+     · под кнопкой тёмная полоса в 3 px — тень, а не кромка. */
+  .headcta{
+    /* relative обязателен: без него два отрезка грани позиционируются
+       от `.sitehead` и уезжают на всю шапку — проверено, грань просто
+       не появлялась. */
+    position:relative;
+    display:inline-flex; align-items:center;
+    height:38px; padding:0 17px; border-radius:8px;
+    font-family:var(--mono); font-size:11.5px; font-weight:500;
+    color:#ffffff; text-decoration:none; white-space:nowrap;
+    /* СВОЕЙ ЗАЛИВКИ У НЕЁ НЕТ — и это была главная ошибка обоих
+       прошлых заходов. Кнопка это полупрозрачный белый налив поверх
+       шапки, поэтому выпуклость у неё ОБЩАЯ с шапкой, а не своя.
+       Разностный замер: шапка на y=102 даёт `#201810`, кнопка
+       `#291f17` — белый примерно на 3,3%; к низу (y=138) разница
+       сходит в ноль (`#18110b` против `#191209`). Отсюда налив
+       сверху вниз, гаснущий в прозрачность.
+       Непрозрачный градиент, который я красил раньше, спорил со
+       шапкой и потому читался наклейкой. */
+    background:linear-gradient(#ffffff0a 0%, #ffffff00 100%);
+    /* ОКАНТОВКИ ПО ЧЕТЫРЁМ СТОРОНАМ У НЕГО НЕТ — и это была третья
+       ошибка подряд. Замер периметра:
+       · сверху волосок 1 px `#3b312a` при теле `#291f17` — белый на 8%;
+       · слева и справа кромки НЕТ вовсе: на y=120 переход идёт
+         20,2 → 26,1 без единого светлого пикселя, тело просто светлее
+         шапки;
+       · снизу жёсткая тёмная полоса в 3 px `#0a0705` при шапке
+         `#18110b` — чёрный на 57% и БЕЗ РАЗМЫТИЯ (значения ровные
+         7,5 / 7,5 / 7,5, а не спад), под ней короткий мягкий хвост.
+       Это не рамка, а брусок: освещённая верхняя грань, тело и тёмное
+       основание. Ровная рамка со всех сторон, которая стояла раньше,
+       убивала объём — она сообщает «плоский контур», а не «предмет». */
+    border:0;
+    box-shadow:
+      0 3px 0 #00000080,            /* основание: жёсткое, без размытия */
+      0 8px 14px -6px #00000099;    /* хвост вынесен ниже, чтобы не
+                                       складываться с основанием: вместе
+                                       они давали 0,18 против его 0,41 */
+    transition:color .14s;
+  }
+  /* ── ХОВЕР · НАДПИСЬ ПРОВОРАЧИВАЕТСЯ ───────────────────────
+     Вариант 3. Набор в кнопке моноширинный, шаг букв постоянный —
+     значит каждая буква может ехать в собственном окне, и ширина
+     кнопки при этом не дрогнет ни на пиксель.
+
+     Направление ВНИЗ — то же, что у героя: в колонке настоящая буква
+     стоит ПЕРВОЙ, лента приезжает снизу вверх по индексу, то есть
+     содержимое едет вниз и настоящая буква приходит последней.
+
+     `steps(3)` вместо плавного хода: на кегле 11,5 px половинки глифов
+     превратились бы в кашу, а у нас и по доктрине не должно быть
+     промежуточных значений. Барабан щёлкает, а не течёт.
+
+     Буквы стартуют по очереди с задержкой 18 мс — «по одной букве».
+     Пробел не крутится: у него нечего показывать. */
+  .headcta .lbl{ display:inline-flex }
+  .headcta .rl{
+    display:inline-block; overflow:hidden;
+    height:1em; line-height:1; vertical-align:bottom;
+  }
+  /* `i` — это ЛЕНТА, а не ячейка: высота у неё по содержимому, а
+     ячейки лежат внутри друг под другом. Первый заход клал глифы в
+     одну строку — надпись пропадала целиком, потому что уезжала вбок
+     под `overflow:hidden`. */
+  .headcta .rl i{ display:block; font-style:normal }
+  .headcta .rl i b{ display:block; height:1em; line-height:1; font-weight:inherit }
+  @keyframes rollcell{ from{ transform:translateY(-3em) } to{ transform:none } }
+  .headcta.roll .rl i{ animation:rollcell 165ms steps(3) var(--d) both }
+  @media (prefers-reduced-motion:reduce){ .headcta.roll .rl i{ animation:none } }
+
+  /* Наведение — только цвет набора. Ни света на грани, ни движения
+     основания: решено 20:26, «просто заливка цветом букв и всё».
+     Стрелка идёт за текстом сама — она нарисована `currentColor`.
+     Плата названа честно: объём кнопке давали ТРИ вещи — освещённая
+     верхняя грань, тело и жёсткое основание. Грань снята, значит
+     объём теперь держится только на основании. */
+  .headcta:hover{ color:#d4a574 }
+
+  .stage.narrow .sitehead{ height:56px; padding-left:16px; padding-right:16px }
+  .stage.narrow .brand svg{ height:22px }
+  .stage.narrow .brand .wm{ font-size:16.5px }
+  .stage.narrow .headcta{ height:33px; padding:0 14px; font-size:12.5px }
+
+  /* ══ ШИРОКИЙ ═════════════════════════════════════════════ */
+
+  /* Жёлоб под плашку зарезервирован: контент про неё знает.
+     Раньше не знал — отсюда все перекрытия на узких окнах. */
+  .hero{ position:absolute; inset:0; }
+
+  /* Связь героя с подписью: это не число и подпись, а ОДИН абзац.
+     Число — первое слово, просто в 22 раза крупнее. Хвост фразы
+     переносится под него сам. Оторваться уже не может. */
+  /* Фраза стоит ЦЕЛИКОМ справа от числа и не переносится под него:
+     раньше половина была сбоку, половина снизу — «ни там ни тут».
+     Нижняя строка садится на базовую линию числа, поэтому связь
+     держится контактом, а блок при этом поднимается вдоль числа. */
+  /* Число входит в кадр, а не липнет к краю: левое поле 12,5% против
+     правого 6% — отношение 2:1 ломает симметрию, из-за которой кадр
+     читался центрированным. По вертикали блок уведён явно вверх, а не
+     «чуть-чуть мимо центра». */
+  .stat{
+    position:absolute; top:15%; left:12.5%; right:calc(6% + 400px); margin:0;
+    display:flex; align-items:flex-end; gap:32px;
+  }
+  .say{
+    max-width:19ch; font-size:17px; line-height:1.45;
+    /* Бокс числа включает окно одометра и паддинг под размытие — около
+       0.183 кегля ниже реальной базы глифов. Величина ставится из JS,
+       потому что кегль плавает: прибитые 55 px были верны ровно на
+       одной ширине экрана, а на телефоне промахивались на 31 px. */
+    color:#bdb3a4;
+  }
+  .numlink{
+    text-decoration:none; color:inherit;
+    display:inline-block; position:relative;
+  }
+  .num{
+    font-family:var(--sans); font-weight:600;
+    font-size:clamp(120px, 21cqw, 300px);
+    line-height:.74; letter-spacing:-.045em; color:var(--ink);
+    font-variant-numeric:tabular-nums;   /* иначе «1» уже «7» и вся привязка плывёт */
+    display:inline-flex; line-height:1;
+    /* бокс окна выше глифа — без этого хвост фразы уезжает под число
+       и связь «одним предложением» рвётся */
+    vertical-align:-.20em;
+  }
+
+  /* Одометр: окно ровно в одну цифру, внутри едет лента.
+     Маска по кромкам — то, из-за чего это читается как физическое
+     колесо за щелью, а не как перерисовка текста. */
+  /* Обрезки через overflow здесь нет намеренно: overflow режет и
+     результат размытия, поэтому глоу выглядел ампутированным.
+     Клип целиком на маске, а вокруг цифры оставлен паддинг — там
+     размытию есть куда расплыться и где раствориться.
+     Отрицательные поля возвращают слоту прежний след в раскладке. */
+  .slot{
+    position:relative; display:block;
+    /* 1ch — ширина нуля; у числа отрицательный трекинг, поэтому окно
+       надо на него же и сузить, иначе цифры стоят просторнее набора */
+    /* box-sizing:border-box — поэтому в размер надо добавить паддинг,
+       иначе он съест ячейку изнутри и цифры наедут друг на друга */
+    width:calc(1ch - .045em + .44em); height:calc(1.12em + .36em);
+    padding:.18em .22em; margin:-.18em -.22em;
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0, transparent 12%, #000 20%, #000 80%, transparent 88%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 14%, #000 86%, transparent 100%);
+            mask-image:
+      linear-gradient(to bottom, transparent 0, transparent 12%, #000 20%, #000 80%, transparent 88%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 14%, #000 86%, transparent 100%);
+    -webkit-mask-composite:source-in;  mask-composite:intersect;
+    -webkit-mask-repeat:no-repeat;     mask-repeat:no-repeat;
+  }
+  /* will-change ставится на время прохода и снимается после:
+     постоянный просит отдельный слой под ленту в тысячи пикселей */
+  .lane{ position:absolute; top:0; left:0; width:100%; }
+  .lane.moving{ will-change:transform, filter; }
+
+  /* Появление нового разряда (99 → 100): слот раскрывается от нулевой
+     ширины и проявляется. Без этого число прыгает шириной, а соседний
+     текст дёргается. 450 мс ease-out — канонический opacityTiming. */
+  /* Транзишен только на входе разряда. Раньше он висел на слоте всегда,
+     и при ресайзе геометрия окна догоняла кегль с отставанием 450 мс —
+     число выглядело резиновым. */
+  .slot.enter, .slot.entering{
+    transition:width .45s ease-out, padding .45s ease-out, opacity .45s ease-out;
+  }
+  .slot.enter{ width:0; padding-left:0; padding-right:0; opacity:0; }
+  .lane i{
+    display:block; height:1em; line-height:1;
+    font-style:normal; text-align:center;
+  }
+
+  /* Фраза не показывается, пока счётчик идёт: сначала число садится,
+     потом проявляется объяснение. */
+  .say{ opacity:0; transition:opacity .62s ease-out; }
+  .say.in{ opacity:1; }
+  /* Подчёркивание снято: дёшево и неоригинально. Живость числа
+     показывает счётчик, а не линейка под ним. */
+
+  /* Иерархия мелких строк. Все четыре остаются в полосе 11–15 px, то есть
+     контраст с числом сохраняется (20:1…27:1). Различают их не размером, а
+     светлотой, трекингом и ролью гарнитуры: санс — говорим мы, моно —
+     показывает система. Бронзовая строка ровно одна: чужая речь. */
+  /* Растровое проявление даты. Холст ложится поверх строки, сама
+     строка на это время красится в прозрачное — но остаётся в DOM,
+     поэтому скринридер и выделение текста не страдают.
+     `image-rendering:pixelated` обязателен: без него апскейл мылит и
+     от приёма остаётся мутное пятно вместо блоков. */
+  .asof{ position:absolute }
+  .asof-line{ display:inline-block; position:relative }
+  /* Кнопка вопроса — тем же набором, что строка; отличается только
+     подсказкой о нажимаемости. Разводит её от даты просвет в 16 px,
+     а не разделительный глиф. */
+  .howq{
+    font:inherit; letter-spacing:inherit; color:inherit;
+    background:none; border:0; padding:0;
+    cursor:help; text-decoration:none;
+    border-bottom:1px solid rgba(163,150,135,.32);
+    /* Перехода НЕТ намеренно. Цвет здесь НАСЛЕДУЕТСЯ от строки, и при
+       снятии укрытия он менялся не мгновенно, а плавно за 140 мс: дата
+       появлялась разом, а вопрос следом ещё раз дотягивался — это и
+       читалось как лишнее моргание. Наведение красит мгновенно, что и
+       правильнее: промежуточных значений у нас нет нигде. */
+  }
+  /* НЕВИДИМЫЙ ОБЪЁМ. Сама надпись 11 px и высотой в четырнадцать
+     пикселей — попасть в неё курсором трудно, а на телефоне это втрое
+     меньше нормы касания. Зона расширяется псевдоэлементом: раскладка
+     не меняется, а цель становится 42 px в высоту.
+     Вверх расширено меньше, чем вниз, и это не вкус: на широкой
+     раскладке бокс числа опускается до 471 px и накрывает место даты,
+     а `.asof` в разметке идёт ПОЗЖЕ — то есть невидимая зона легла бы
+     поверх ссылки числа и воровала бы у неё нажатия. Вниз мешать
+     некому, туда и отдан запас. */
+  /* Пока строка ещё не проявилась, вопроса как бы нет: наводить не на
+     что, и раскрывать нечего. */
+  .asof-line.waiting .howq, .asof-line.rasting .howq{ pointer-events:none }
+  .howq{ position:relative }
+  .howq::after{
+    content:""; position:absolute; inset:-10px -16px -18px -16px;
+  }
+  .howq:hover, .howq:focus-visible{ color:#c3b8a8; border-bottom-color:rgba(195,184,168,.6) }
+  .howq:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
+  /* Ответ стоит под строкой и НЕ участвует в раскладке: место даты
+     чем-то занято по цепочке (реплика привязана к её низу), и всплытие
+     ответа не должно её двигать. */
+  .howa{
+    position:absolute; left:0; top:calc(100% + 12px);
+    display:block; width:max-content; max-width:min(38ch, 78vw);
+    font-family:var(--mono); font-size:11px; line-height:1.65;
+    letter-spacing:.04em; color:#a59a89; pointer-events:none;
+  }
+  .howa[hidden]{ display:none }
+  /* Ответ раскрывается ЖЁСТКОЙ КРОМКОЙ, а не растром: растр у нас
+     однострочный (рисуется одним `fillText`), а ответ переносится на
+     три строки — он нарисовал бы всё в одну. Щель к числу строк
+     безразлична. `steps(3)` — три положения кромки, без промежуточных,
+     как и везде. */
+  @keyframes howwipe{ from{ clip-path:inset(0 100% 0 0) } to{ clip-path:inset(0 0 0 0) } }
+  .howa.in{ animation:howwipe 210ms steps(3) both }
+  @media (prefers-reduced-motion:reduce){ .howa.in{ animation:none } }
+  .asof-line .rast{
+    position:absolute; left:0; top:0; pointer-events:none;
+    image-rendering:pixelated;
+  }
+  /* `waiting` — укрытие на время ДО начала проявления. Без него дата
+     видна с самого начала, и вместо появления из пустоты выходит
+     «была резкой, стала блоками, снова резкой». */
+  /* Прозрачным красится не только текст: рамка снизу у вопроса — своё
+     свойство, и `color:transparent` её не трогает. Без этой строки
+     подчёркивание висело в пустоте ещё до появления надписи.
+     Появляется оно вместе с последней ступенью, когда холст уступает
+     место тексту, — то есть в тот же момент, что и сама резкость. */
+  .asof-line.rasting, .asof-line.waiting{ color:transparent }
+  .asof-line.rasting .howq, .asof-line.waiting .howq{ border-bottom-color:transparent }
+
+  .asof{                                   /* сноска */
+    position:absolute; margin:0;
+    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837a70;
+  }
+  .lead{                                   /* что это */
+    position:absolute; margin:0;
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.06em; color:var(--soft);
+  }
+  .probe{                                  /* чужая речь — единственная бронзовая */
+    position:absolute; white-space:nowrap;
+    font-family:var(--mono); font-size:13px; letter-spacing:.06em;
+    color:rgba(212,165,116,.75); min-height:20px;  /* было .42 — контраст 2,2:1; медь сведена с брендом */
+  }
+  .probe .noise{color:rgba(111,101,90,.45); font-style:normal}
+
+  /* Строка-действие, выведенная из живого числа: завтра «сорок первым» */
+  .join{                                   /* призыв — ярчайшая из мелких,
+                                              но на ступень тусклее числа */
+    position:absolute; margin:0; font-size:15px; font-weight:500; color:#e8e2d6;
+  }
+  /* Золото отдано прейскуранту: там оно метит рекомендуемый срок.
+     Один акцент не может делать две работы. */
+  .join a{
+    color:var(--ink); text-decoration:none;
+    border-bottom:1px solid rgba(243,238,228,.35); padding-bottom:3px;
+  }
+  .join a:hover{ border-bottom-color:var(--ink) }
+
+  /* ── прейскурант ─────────────────────────────────────────
+     Опознаётся жанром, а не аффордансом: столбец цен, выключенный
+     ПО РАЗРЯДУ, — это меню, которому пятьсот лет. Названия сроков
+     слева дают рваный левый край сами по себе.
+     -------------------------------------------------------- */
+  /* Верх сдвинут так, чтобы база первой цены совпала с базой числа:
+     две самые крупные вещи кадра встают на одну горизонталь. */
+  .plist{ position:absolute; right:6%; top:36.7%; z-index:3; }
+  /* Две жёсткие колонки: сроки выключены влево по своей оси, цифры —
+     вправо по своей. Знак рубля вынесен в отдельную ячейку, иначе он
+     таскает разряды за собой и выключка по разряду перестаёт работать. */
+  .prow{
+    position:relative; display:flex; align-items:baseline;
+    gap:36px; padding:10px 0; text-decoration:none; cursor:pointer;
+  }
+  .prow + .prow{ margin-top:12px; }
+  .prow .term{
+    flex:0 0 auto; width:150px;
+    font-family:var(--mono); font-size:15px; letter-spacing:.04em;
+    color:var(--soft); white-space:nowrap;
+  }
+  .prow .amt{
+    flex:0 0 auto; display:flex; align-items:baseline; gap:12px;
+    font-family:var(--sans); font-weight:600; font-size:64px;
+    letter-spacing:-.02em; color:#e8e2d6;
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .prow .amt b{ flex:0 0 auto; width:150px; text-align:right; font-weight:inherit }
+  .prow .amt i{ flex:0 0 auto; width:.5em;
+    font-style:normal; font-size:.34em; color:#837a70; letter-spacing:.04em }
+  .prow:hover .term{ color:var(--ink) }
+  .prow:hover .amt { color:var(--ink) }
+  /* Рекомендуемый срок держится только на цвете. Ни сдвига, ни штриха,
+     ни бейджа: колонки остаются нетронутыми, а цвет и так справляется. */
+  .prow.pick .amt{ color:var(--gold) }
+  .plist.small .amt{ font-size:44px }
+  .plist.small .amt b{ width:104px }
+
+  /* Подпись к сделке висит НАД списком, но вне потока — иначе она
+     сдвигала цены вниз, а прейскурант должен стоять на своём месте
+     независимо от того, есть подпись или нет. */
+  .plist-cap{
+    position:absolute; left:0; right:0; bottom:100%; margin:0 0 30px;
+    font-family:var(--sans); font-size:15px; font-weight:500;
+    color:#e8e2d6; white-space:nowrap;
+  }
+  .stage.narrow .plist-cap{ margin-bottom:20px; font-size:14px }
+
+  .plist-note{
+    margin:22px 0 0; text-align:right;
+    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837a70;
+  }
+
+  /* На телефоне прейскурант САМ является кнопкой — отдельная не нужна:
+     срок влево, цена вправо, выключка по разряду сохраняется. */
+  .stage.narrow .plist{ position:absolute; left:20px; right:20px; top:auto; bottom:96px; }
+  .stage.narrow .prow{ justify-content:space-between; padding:14px 0; gap:16px }
+  .stage.narrow .prow .term{ width:auto }
+  .stage.narrow .prow .amt{ font-size:40px }
+  .stage.narrow .prow .amt b{ width:94px }
+  .stage.narrow .prow.pick .term{ color:var(--gold) }
+  .stage.narrow .plist-note{ text-align:left; margin-top:16px }
+
+  /* ══ МЕТКА «НИЖЕ» ═════════════════════════════════════════
+     Условие владельца от 18 августа: в этой секции больше ничего не
+     добавлять и не менять — только метка, говорящая, что кадр не
+     последний. И метка должна быть живой БЕЗ реакции на человека:
+     она движется сама, по своему таймеру, и движением ПОКАЗЫВАЕТ,
+     что сделать.
+
+     Принят вариант А: метка прокручивает саму себя. Знак стоит в окне
+     с обрезкой, раз в семь секунд уходит вниз за нижнюю кромку — и
+     сверху приходит точно такой же. То есть метка не изображает жест
+     стрелкой, а выполняет ровно то действие, о котором просит.
+
+     Механика ОДНА И ТА ЖЕ с одометром, вплоть до устройства: окно,
+     лента из одинаковых ячеек, ход вниз ступенями. Ячейки одинаковые,
+     поэтому возврат ленты в начало не виден — как и в счётчике. */
+  .smark{
+    position:absolute; left:12.5%; bottom:11%; z-index:4;
+    /* Ячейка ВЫШЕ знака вдвое, и это не украшение раскладки, а условие
+       читаемости хода. Замечание владельца 18 августа — «происходит так
+       быстро, что почти не замечаешь» — оказалось не про скорость: при
+       ячейке 16 px знак высотой 12 px не успевал уйти из окна до того,
+       как приходил следующий, в окне всё время что-то стояло, и это
+       читалось как дрожь. Просвет между уходящим и приходящим и есть то,
+       по чему видно, что знак УЕХАЛ, а не дёрнулся.
+       Поэтому высота ячейки не константа: она приходит из JS и равна
+       удвоенному росту знака. Одна стрелка — 32 px, две впритык — 48 px.
+       Ступень при этом всегда 4 px, меняется только их число. */
+    /* Левая направляющая 12,5% — та же, на которой стоят знак в шапке,
+       число и дата. Метка встаёт в их колонку, а не висит в никуда:
+       центра у этой композиции нет, центрировать не по чему. */
+  }
+  .mwin{
+    display:block; width:max-content; overflow:hidden;
+    height:var(--cell);               /* ровно одна ячейка */
+    text-decoration:none; color:#8a8073;   /* 5,05:1 к фону */
+  }
+  .mwin:hover{ color:var(--ink) }
+  .mwin:focus-visible{ outline:2px solid var(--gold); outline-offset:6px }
+  .mlane{
+    display:block;
+    /* Лента из двух одинаковых ячеек. В покое поднята на одну ячейку:
+       в окне стоит вторая, а первая ждёт над кромкой. */
+    transform:translateY(-50%);
+  }
+  .mcell{
+    display:flex; align-items:center; gap:12px; height:var(--cell);
+  }
+  .mtxt{ font-family:var(--mono); font-size:11px; letter-spacing:.14em }
+
+  /* Ход — ОДИНОЧНЫЙ, запускается таймером раз в 7 с, а не бесконечной
+     петлёй с паузой внутри ключевых кадров. Так продолжительность самого
+     прохода вынесена в переменную и меняется на живой странице; в петле
+     она была заперта в проценты кадров и подбиралась вслепую.
+
+     Ступень 4 px — тот блок, из которого сложена сама стрелка и до
+     которого огрубляется растр даты. При ячейке 32 px ступеней восемь.
+     `jump-start`, а не `end`: с `end` последнее положение ленты не
+     показывается вовсе — проход доходил до двух третей и щёлкал обратно.
+     Поймано покадровым замером transform, не глазом.
+
+     Редкость прохода — раз в 7 с — остаётся: постоянная петля на пустом
+     экране стала бы вторым центром внимания и заспорила бы с числом. */
+  @keyframes mroll{
+    from{ transform:translateY(-50%) }
+    to  { transform:translateY(0) }
+  }
+  /* Продолжительность и число ступеней стоят прямо на ленте, из JS:
+     ступеней столько, сколько в ячейке блоков по 4 px, а длительность —
+     это число ступеней, умноженное на выбранный шаг. Так шаг остаётся
+     тем, что выбрано глазом (105 мс), при любой высоте знака. */
+  .mlane.roll{ animation-name:mroll; animation-fill-mode:both }
+
+  /* Тела знака. Прокручиваются одинаково — отличается только сам знак,
+     чтобы выбирать форму, а не движение. Клавиша S.
+     s0 · кладка из блоков 4×4 — той крупности, до которой доходит растр
+          даты; стрелка сделана из того же материала, что всё на экране.
+     s1 · сплошной треугольник — прямая жёсткая геометрия.
+     s2 · только слово, без знака вовсе. */
+  /* Стрелка из блоков 4×4 — той крупности, до которой огрубляется растр
+     даты. Вынесена в свой класс: ею пользуются и одиночное тело, и парное. */
+  .pxarr{ position:relative; display:block; width:20px; height:12px }
+  .pxarr i{ position:absolute; width:4px; height:4px; background:currentColor }
+  .pxarr i.r0{ left:0;   top:0; box-shadow:16px 0 0 currentColor }
+  .pxarr i.r1{ left:4px; top:4px; box-shadow:8px 0 0 currentColor }
+  .pxarr i.r2{ left:8px; top:8px }
+  /* Две стрелки ВПРИТЫК, без просвета: вторая начинается ровно там, где
+     кончилась первая. Пара читается направлением уже в покое — одиночная
+     стрелка сообщает «вниз», пара сообщает «туда, дальше». */
+  .pxarr2{ display:flex; flex-direction:column; gap:0 }
+  .triarr{
+    display:block; width:13px; height:8px; background:currentColor;
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  /* При «меньше движения» метка не исчезает и не теряет смысла: лента
+     просто стоит на месте, в окне остаётся знак. Терять содержание из-за
+     этой настройки нельзя — на этом уже обжигались с расшифровкой. */
+  @media (prefers-reduced-motion:reduce){
+    .mlane.roll{ animation:none }
+  }
+
+  /* Телефон. Место найдено замером, а не на глаз: прейскурант прибит к
+     нижней кромке, и под ним остаётся полоса в 97 px. Метка встаёт в неё
+     на ту же левую кромку 20 px, на которой стоит на узком кадре всё
+     остальное. Просветы сверху и снизу почти равны (25 и 24 px) — метка
+     читается отдельной строкой, а не хвостом прейскуранта. */
+  .stage.narrow .smark{ left:20px; bottom:24px }
+
+  /* ── плашка ──────────────────────────────────────────────
+     Отклеена от кромки на 56 px — лежит НА поверхности, а не
+     является её краем. Верх на 40%, низ уходит за кадр:
+     идеальная центровка 20…80% убита, объект не помещается.
+     Вертикальной надписи нет — ярлык вынесен наружу. */
+  .strip{
+    position:absolute; right:56px; top:40%; bottom:-80px; width:96px;
+    background:var(--gold); z-index:3; display:block;
+    clip-path:polygon(0 40px, 100% 0, 100% 100%, 0 100%);  /* скошенный торец */
+  }
+  .striplabel{
+    position:absolute; right:176px; top:40%; z-index:3;
+    transform:translateY(-26px);
+    font-family:var(--mono); font-size:13.5px; letter-spacing:.04em;
+    color:var(--gold); text-decoration:none; white-space:nowrap;
+  }
+  .striplabel:hover{ color:var(--ink); }
+
+  /* ══ ТЕЛЕФОН — отдельная композиция, не уменьшение ════════
+     Число прибито к нижней кромке. Разницу высот при смене
+     разрядности съедает пустота, а не текст: иначе каждое
+     изменение базы двигало бы всю страницу. Плашки нет. */
+  .stage.narrow .hero{ padding:0 20px; }
+  .stage.narrow .strip, .stage.narrow .striplabel{ display:none; }
+
+  /* Число прибито к ВЕРХНЕЙ кромке: низ отдан прейскуранту, а сам
+     низ как место для героя владелец отверг. Разницу высот при смене
+     разрядности съедает зазор до прейскуранта, а не текст. */
+  .stage.narrow .stat{
+    top:11%; bottom:auto; left:20px; right:20px;
+    font-size:15px; line-height:1.5; display:block;
+  }
+  .stage.narrow .num{ font-size:clamp(96px, 34cqw, 150px); }
+
+  /* ФРАЗА ЦЕЛИКОМ ПОД ЧИСЛОМ. На узком она обтекала число: первая
+     строка отжата вправо, вторая у левого поля — тот самый дефект
+     «ни там ни тут», который на широком починили, а сюда починка не
+     доехала. Замер показывал перекрытие с числом в 19 px.
+     `max-width:none` обязателен: у `.say` стоит 19ch, и на inline это
+     не действовало, а на блоке зажало бы строку до 160 px.
+     Паддинг под базовую линию снимается в JS — он нужен только
+     широкой раскладке, где фраза садится на базу числа. */
+  .stage.narrow .say{
+    display:block; max-width:none;   /* margin-top ставится раскладкой */
+  }
+
+  /* Все левые поля сведены к 20 px — тем же, что у числа, прейскуранта
+     и шапки. Разнобой 92 / 60 / 92 достался от широкой лесенки, где он
+     имел смысл; на узком он просто ломал колонку. */
+  .stage.narrow .asof { left:20px; top:auto; bottom:auto; }
+  .stage.narrow .lead { left:20px; }
+  .stage.narrow .probe{ left:20px; right:20px; }
+  .stage.narrow .join { left:20px; }
+  .stage.narrow .btn{ display:block; }
+
+  /* Горизонтальная кнопка в дуге большого пальца. Ширина не
+     произвольная — равна отступу от кластера до кромки. */
+  .btn{
+    display:none; position:absolute; z-index:3;
+    left:92px; right:20px; height:48px;
+    background:var(--gold); color:#1a1110;
+    font-family:var(--mono); font-size:14px; letter-spacing:.04em;
+    text-decoration:none; align-items:center; justify-content:center;
+    border-radius:2px;
+  }
+  .stage.narrow .btn{ display:flex; }
+  /* в вариантах с прейскурантом кнопки нет вовсе — он ею и является */
+  .stage.narrow .hero:has(.plist) .btn{ display:none }
+
+</style>
+</head>
+<body>
+
+
+<!-- Смаз только по вертикали: CSS blur() изотропен и мылит барабан вбок.
+     Область фильтра расширена по вертикали, иначе он сам себя обрежет. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <filter id="vblur-0" x="-10%" y="-60%" width="120%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter>
+  <filter id="vblur-1" x="-10%" y="-60%" width="120%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter>
+  <filter id="vblur-2" x="-10%" y="-60%" width="120%" height="220%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter>
+</svg>
+
+<div class="stage" id="stage">
+  <div class="frame" id="frame">
+    <!-- Знак взят настоящий: /logo-new.svg с живого сайта, три грани
+         с медными градиентами. Идентификаторы градиентов переименованы
+         в lg1–lg3, иначе они столкнутся с фильтрами размытия ленты. -->
+    <header class="sitehead">
+      <a class="brand" href="#" onclick="return false" aria-label="SeroConnect — на главную">
+        <svg viewBox="0 0 330.89 414.59" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg1" x1="254.43" y1="206.97" x2="32.61" y2="51.65" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#f2d5a8"/><stop offset="1" stop-color="#d4a574"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="135.09" y1="356.68" x2="15.57" y2="300.94" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#c48f5c"/><stop offset="1" stop-color="#8c6340"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="331.68" y1="322.92" x2="169.01" y2="279.34" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#6e4f33"/><stop offset="1" stop-color="#5a3f2a"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,191.56l164.22,95.33v-93.33l-82.11-48.44,83.56-48.67,83.66,48.44,81.56-47.11L165.44,0,0,98.22v93.33Z" fill="url(#lg1)"/>
+          <polygon points="0 240.37 144.96 325.7 144.96 414.59 0 329.93 0 240.37" fill="url(#lg2)"/>
+          <polygon points="186.52 327.48 186.52 414.59 330.89 329.26 330.89 192.15 253.41 237.7 252.96 288.59 186.52 327.48" fill="url(#lg3)"/>
+        </svg>
+        <span class="wm">Sero<em>Connect</em></span>
+      </a>
+      <a class="headcta" href="#" onclick="return false"><span class="lbl">Личный кабинет</span></a>
+    </header>
+    <div class="hero" id="hero"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+// ── живой источник ────────────────────────────────────────────
+const LIVE = { paying: 34, asOf: '14 августа 2026' };
+
+function plural(n, one, few, many){
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
+// Порядковое в творительном: «стать тридцать пятым».
+// Нужно, потому что призыв выводится из живого числа и меняется сам.
+const ORD_1 = ['','первым','вторым','третьим','четвёртым','пятым','шестым','седьмым','восьмым','девятым'];
+const ORD_T = ['','десятым','двадцатым','тридцатым','сороковым','пятидесятым','шестидесятым','семидесятым','восьмидесятым','девяностым'];
+const ORD_TEEN = ['десятым','одиннадцатым','двенадцатым','тринадцатым','четырнадцатым','пятнадцатым','шестнадцатым','семнадцатым','восемнадцатым','девятнадцатым'];
+const CARD_T = ['','десять','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'];
+const ORD_H = ['','сотым','двухсотым','трёхсотым','четырёхсотым','пятисотым','шестисотым','семисотым','восьмисотым','девятисотым'];
+const CARD_H = ['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+
+function ordinal(n){
+  if (n <= 0 || n > 999) return n + '-м';
+  const h = Math.floor(n / 100), rest = n % 100;
+  const t = Math.floor(rest / 10), u = rest % 10;
+  const parts = [];
+  if (h) parts.push(rest === 0 ? ORD_H[h] : CARD_H[h]);
+  if (rest === 0) return parts.join(' ');
+  if (t === 1) { parts.push(ORD_TEEN[u]); return parts.join(' '); }
+  if (t) parts.push(u === 0 ? ORD_T[t] : CARD_T[t]);
+  if (u) parts.push(ORD_1[u]);
+  return parts.join(' ');
+}
+
+
+const PHRASES = [
+  "всё что было закрыто — открылось",
+  "бабушке поставил, она в ютубе счастлива",
+  "стрим без буферизации впервые за год",
+  "маме настроил за пять минут",
+  "жене поставил, всё понравилось",
+  "работаю из Тбилиси, всё летает",
+  "гитхаб не тормозит",
+  "капчи пропали",
+  "вернулся любимый сервис",
+  "подключился и забыл",
+  "раньше приходилось бубен доставать",
+  "разобрался пока чай наливал",
+  "в поддержке отвечает человек, не бот",
+  "ни одного разрыва за месяц",
+  "работает даже на даче",
+  "в метро не отваливается",
+  "теперь в семье я техподдержка",
+  "брат больше не просит помочь настроить",
+];
+
+const CAPTIONS = [
+  '1 · прейскурант — две жёсткие колонки, рекомендуемый срок помечен только цветом',
+  '',
+  '2 · плашка (как было) — точка отсчёта',
+];
+
+// Цены НЕ из текущего каталога: сегодня там 99/249/399 за три тарифа,
+// которые по разбору являются одним продуктом. Здесь структура из плана —
+// один продукт, три срока. В мокапе помечено подписью.
+const PLANS = [
+  { term: 'месяц',      amt: '199',  unit: '₽' },
+  { term: '6 месяцев',  amt: '990',  unit: '₽', pick: true },
+  { term: 'год',        amt: '1690', unit: '₽' },
+];
+
+// Раскладка широкого кадра: числа — проценты кадра.
+// Лесенка левых краёв взята из «клина», где она реально читалась.
+const POS = {
+  // Порядок чтения исправлен: раньше первой шла сноска, то есть наименее
+  // важная строка. Промежутки убывают (77 / 56 / 39 px) — чем ниже по
+  // важности, тем теснее строка прижата к той, что поясняет. Отрыв до
+  // расшифровки 146 px — это граница между нашим голосом и чужим.
+  // Дата ушла под число и выровнена по его левому краю — она поясняет
+  // именно число, а не блок вообще.
+  // Лесенка ведёт вправо-вниз, в сторону прейскуранта, а не в никуда.
+  // Промежутки убывают: 60 → 44 px.
+  // Левый край даты назначается вычислением: она центрируется по числу,
+  // а его ширина гуляет от 190 до 560 px. Здесь только вертикаль.
+  asof : {top:'52%'},
+  join : {left:'27%', top:'62%'},
+  probe: {left:'34%', top:'78%'},
+};
+const POS_PHONE = {
+  // Вертикаль пересобрана 17 августа. Было: дата 40%, призыв 47%,
+  // реплика 54% — реплика налезала на прейскурант (на 360 больше чем
+  // на полсотни пикселей), а между фразой и датой висело 130 px пустоты.
+  // Стало плотнее и по порядку: дата сразу под фразой, реплика между
+  // ней и деньгами, всё выше верхней кромки прейскуранта.
+  asof : {top:'37%'},
+  probe: {top:'43%'},
+  join : {top:'50%'},
+  btn  : {top:'62%'},
+};
+
+// Формулировки призыва. Развилка внутри списка — сохраняется ли связь
+// с живым числом: у первых двух она есть, у остальных нет.
+// Развилка не в тексте, а в МЕСТЕ. Под фразой героя строка конкурирует
+// за позицию «где посетитель» и проигрывает — она про сервис. Над
+// прейскурантом та же строка становится подписью к сделке: объясняет,
+// что делают твои деньги.
+const SUSTAIN = 'сервис держится на этих деньгах';
+// ЧЕРНОВИК. Формулировку должен дать владелец: это утверждение о том,
+// как считается его собственная выручка, и выдумывать его нельзя.
+const HOWTO = 'оплаченные подписки, активные на дату среза. без пробных и без возвратов';
+const COPY_NOTE = [
+  'строки нет вовсе — запасной исход, названный обоими агентами',
+  'над прейскурантом — подпись к сделке, а не призыв; левое место пусто',
+  'под фразой героя — как было; конкурирует за место «где посетитель»',
+];
+let copyIx = 1;
+
+const stage   = document.getElementById('stage');
+const frame   = document.getElementById('frame');
+const hero    = document.getElementById('hero');
+// Панель с подписями клавиш снята с экрана 18 августа: она мешала смотреть
+// на кадр, а на узком кадре ещё и наезжала на прейскурант. Клавиши работают
+// все до одной, их список — в hero-notes.md. Сборка строки оставлена целой:
+// вернуть панель — значит вернуть один <div class="caption"> в разметку.
+const caption = document.getElementById('caption');
+const reduce  = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Пока одометр идёт, он имеет монополию на движение: остальное ждёт.
+let counterBusy = false;
+
+let tapeUp = false, moveIx = 0;
+const MOVE_NOTE = [
+  'набор ↑ 47 (как на загрузке)',
+  'падение ↓ 47',
+  'шаг +1 (живое обновление)',
+  'шаг −1 (кто-то не продлил)',
+];
+
+// Тела метки «ниже». Движение у всех одно и то же (вариант А —
+// метка прокручивает саму себя), выбирается только форма знака.
+// Слово взято рабочим: формулировка за владельцем.
+// Поля `glyph` и `cell` — рост знака и высота ячейки, в которой он ходит.
+// Ячейка всегда кратна 4 (иначе ступень перестанет быть блоком), а просвет
+// `cell − glyph` держится не меньше самого знака: этот просвет и есть то,
+// по чему видно, что знак уехал, а не дёрнулся. У одной стрелки ячейка 32 —
+// то самое значение, что принято 18 августа на живой странице.
+const MARKS = [
+  {note:'две стрелки впритык + слово', glyph:24, cell:48,
+   body:'<span class="pxarr2" aria-hidden="true">' + '<span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span>' + '<span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span>' + '</span>'
+        + '<span class="mtxt">ниже</span>'},
+  {note:'одна стрелка + слово', glyph:12, cell:32,
+   body:'<span aria-hidden="true">' + '<span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span>' + '</span><span class="mtxt">ниже</span>'},
+  {note:'треугольник + слово', glyph:8, cell:28,
+   body:'<span class="triarr" aria-hidden="true"></span><span class="mtxt">ниже</span>'},
+  {note:'только слово', glyph:11, cell:32,
+   body:'<span class="mtxt">ниже</span>'},
+  {note:'метки нет (точка отсчёта)', glyph:0, cell:0, body:null},
+];
+let markIx = 0;
+
+// Продолжительность одного прохода. Вынесена на клавишу A, потому что
+// «быстро/медленно» — это то, что решается глазом на живой странице, а не
+// подбором числа в файле. Ступеней восемь, поэтому цифры делятся на восемь
+// нацело: ход остаётся ступенчатым, дробных положений не появляется.
+// Шаг, а не полная длительность: полная зависит от роста знака, а глазом
+// владелец выбирал именно шаг — 105 мс. Так выбор переживает смену знака.
+const ROLL = [
+  {ms:105, note:'105 мс на ступень (выбрано)'},
+  {ms:150, note:'150 мс — тот же шаг, что у растра даты'},
+  {ms:210, note:'210 мс на ступень'},
+];
+let rollIx = 0;
+
+// Проход раз в семь секунд. Первый — сразу при включении: включение уже
+// отложено до конца главного события кадра, и ждать после него ещё семь
+// секунд значит потерять единственный показ, который человек застанет.
+const MARK_PERIOD = 7000;
+function startMark(){
+  const lane = hero.querySelector('.mlane');
+  if (!lane || reduce) return;
+  const roll = () => {
+    lane.classList.remove('roll');
+    void lane.offsetWidth;               // перезапуск анимации с начала
+    lane.classList.add('roll');
+  };
+  roll();
+  timers.add(setInterval(roll, MARK_PERIOD));
+}
+
+let variant = 0, phone = false, touched = false;
+let rafId = 0, counterGen = 0, lastDigits = 0;
+let relayout = () => {};          // ставится в build, зовётся по ресайзу
+const timers = new Set();
+
+function setVBlur(p, b){
+  const f = document.getElementById('vblur-' + p);
+  if (f) f.firstElementChild.setAttribute('stdDeviation', '0 ' + b.toFixed(2));
+}
+function later(fn,ms){const t=setTimeout(()=>{timers.delete(t);fn();},ms);timers.add(t);return t;}
+function every(fn,ms){const t=setInterval(fn,ms);timers.add(t);return t;}
+function clearAll(){timers.forEach(t=>{clearTimeout(t);clearInterval(t);});timers.clear();}
+
+let bag = [];
+function pick(){ if(!bag.length) bag = PHRASES.slice().sort(()=>Math.random()-.5); return bag.pop(); }
+
+function runProbe(box){
+  const NOISE = '0123456789abcdef#$%&*<>/\\|+=~';
+  const rnd = () => NOISE[Math.random()*NOISE.length|0];
+  function render(text, rev){
+    let out='';
+    for(let i=0;i<text.length;i++)
+      out += i<rev ? text[i] : `<i class="noise">${text[i]===' '?' ':rnd()}</i>`;
+    box.innerHTML = out;
+  }
+  function cycle(){
+    const text = pick(); let rev = 0;
+    const churn = every(()=>render(text,rev), 55);
+    const step = every(()=>{
+      rev++;
+      if (rev > text.length){
+        clearInterval(step); clearInterval(churn);
+        box.textContent = text;
+        later(()=>{
+          let back = text.length;
+          const down = every(()=>{ back--; render(text,back);
+            if(back<=0){ clearInterval(down); box.textContent=''; later(cycle,900);} }, 34);
+        }, 2800);
+      }
+    }, 62);
+  }
+  cycle();
+}
+
+function place(el, p){ if(!el || !p) return; for (const k in p) el.style[k] = p[k]; }
+
+/* ── счётчик ───────────────────────────────────────────────────
+   Идёт от 1 до настоящего значения и на нём останавливается —
+   это не выдуманная крутилка, а показ того, как набиралась база.
+   Замедление к концу читается как правда: приток 3 человека
+   в месяц, последние подписки даются тяжело.
+   Фраза спрягается на ходу — склонение уже считается функцией. */
+/* ── одометр ───────────────────────────────────────────────────
+   Ленты строятся из ФАКТИЧЕСКОЙ последовательности значений 0…n,
+   по одной колонке на разряд. Тогда обе ленты двигает одно и то же
+   смещение, а старший разряд сам собой едет вдесятеро реже — без
+   отдельной логики. Скорость берём из производной, из неё же блюр. */
+function runCounter(target){
+  const el  = hero.querySelector('.num');
+  const say = hero.querySelector('.say');
+  if (!el) return;
+
+  const gen = ++counterGen;                 // старый цикл умрёт сам
+  cancelAnimationFrame(rafId);
+
+  const digits = String(target).length;
+  // Счёт начинается не с нуля: тогда все разряды существуют с первого
+  // кадра и ведущая цифра не выскакивает из пустоты (при 112 она
+  // раньше отсутствовала 1,7 с из 3,2). Плюс потолок длины ленты —
+  // иначе при 999 это 3000 узлов и слой в 300 000 px.
+  // Разрядность держим постоянной в обе стороны — отсюда зажим в lo…hi.
+  const lo = Math.pow(10, digits - 1), hi = Math.pow(10, digits) - 1;
+  const from = [
+    Math.max(lo, target - 47),      // набор: как на загрузке страницы
+    Math.min(hi, target + 47),      // падение тем же размахом — чтобы видеть ход
+    Math.max(lo, target - 1),       // настоящий живой случай: пришёл один
+    Math.min(hi, target + 1),       // настоящий живой случай: ушёл один
+  ][moveIx];
+  const down = from > target;                 // число падает
+  const sgn  = down ? -1 : 1;                 // куда идёт ЗНАЧЕНИЕ
+  const tdir = tapeUp ? -1 : 1;               // куда едет ЛЕНТА
+  const strips = [];
+
+  el.innerHTML = '';
+  for (let pos = 0; pos < digits; pos++){
+    const slot = document.createElement('span');
+    slot.className = 'slot';
+    const strip = document.createElement('span');
+    strip.className = 'lane';
+    // Порядок ячеек И ЕСТЬ направление. Финальное значение сверху ленты —
+    // лента едет ВНИЗ, новая цифра приходит сверху. Финальное снизу —
+    // лента едет ВВЕРХ, цифра выезжает снизу.
+    let html = '';
+    const a = tapeUp ? from : target, b = tapeUp ? target : from;
+    const st = Math.sign(b - a) || 1;
+    for (let v = a; ; v += st){
+      html += `<i>${String(v).padStart(digits, '0')[pos]}</i>`;
+      if (v === b) break;
+    }
+    strip.innerHTML = html;
+    slot.appendChild(strip);
+    el.appendChild(slot);
+    strips.push(strip);
+  }
+  el.setAttribute('aria-hidden', 'true');   // иначе имя ссылки — стена цифр
+
+  // Разрядов стало больше — новые слоты раскрываются, а не возникают
+  if (lastDigits && digits > lastDigits && !reduce){
+    const fresh = [...el.children].slice(0, digits - lastDigits);
+    fresh.forEach(s => s.classList.add('enter', 'entering'));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== counterGen) return;
+      fresh.forEach(s => s.classList.remove('enter'));
+      later(() => fresh.forEach(s => s.classList.remove('entering')), 500);
+    }));
+  }
+  lastDigits = digits;
+
+  // Замеры делаются ОДИН раз: раньше два getBoundingClientRect на кадр
+  // сразу после записи стилей давали два принудительных пересчёта
+  // раскладки шестьдесят раз в секунду.
+  let c = 1, p0 = 0;
+  const measure = () => {
+    c  = strips[0].children[0].getBoundingClientRect().height || 1;
+    // лента абсолютна относительно паддинг-бокса — сдвигаем на паддинг,
+    // иначе цифра встанет выше своего окна
+    p0 = parseFloat(getComputedStyle(el.querySelector('.slot')).paddingTop) || 0;
+  };
+  measure();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+    if (gen === counterGen) measure();
+  });
+
+  // Для каждой ленты — значение, на котором ЕЁ цифра меняется в последний
+  // раз. Дальше лента стоит: незачем крутить разряд, который уже приехал.
+  const stop = [];
+  for (let p = 0; p < digits; p++){
+    const m = Math.pow(10, digits - 1 - p);
+    // При росте это нижняя граница блока, при падении — верхняя: значение,
+    // после которого цифра этого разряда уже никогда не изменится.
+    stop.push(down
+      ? Math.min(from, Math.floor(target / m) * m + (m - 1))
+      : Math.max(from, Math.floor(target / m) * m));
+  }
+
+  // Состояние лент: момент остановки, размытие в этот момент, и кэш
+  // записанного — чтобы не переписывать стиль и атрибут фильтра
+  // по шестьдесят раз в секунду вхолостую.
+  const tStop = strips.map(() => null), bAtStop = strips.map(() => 0);
+  const lastQ = strips.map(() => -1),  lastF   = strips.map(() => '');
+
+  const put = (v, dv, now, dip, settled) => {
+    strips.forEach((s, p) => {
+      const m  = Math.pow(10, digits - 1 - p);
+      // лента замирает на своём финале — зажим с той стороны, откуда пришли
+      const vp = down ? Math.max(v, stop[p]) : Math.min(v, stop[p]);
+      // индекс ячейки отсчитывается от того конца ленты, который лежит сверху
+      const idx = tapeUp ? Math.abs(vp - from) : Math.abs(target - vp);
+      let y = p0 - idx * c;
+      // доводка в упор — только у лент, которые приезжают последними:
+      // десятки остановились секунду назад, их подёргивание читалось бы сбоем.
+      // Перелёт идёт ПО ХОДУ ленты, поэтому знак берётся у неё.
+      if (dip) y += tdir * dip * Math.pow(.6, digits - 1 - p);
+      if (settled) y = Math.round(y);               // в покое — целые пиксели
+      s.style.transform = `translate3d(0, ${y}px, 0)`;
+
+      // Смаз считается от пути за КАДР, а не от скорости в мс: физически
+      // это и есть выдержка. Тогда при просадке до 30 fps размытие само
+      // вырастет вдвое и прикроет удвоенный скачок.
+      let b;
+      if (down ? v > stop[p] : v < stop[p]){
+        b = Math.min(c * .06, dv * c * .5 / m);
+        bAtStop[p] = b;
+      } else {
+        if (tStop[p] === null) tStop[p] = now;      // хвост затухания:
+        const u = (now - tStop[p]) / 140;           // раньше размытие
+        b = u >= 1 ? 0 : bAtStop[p] * (1 - u) * (1 - u);   // обрывалось за кадр
+      }
+      if (settled) b = 0;
+
+      const q = Math.round(b * 2) / 2;              // квантование до 0,5 px
+      if (q !== lastQ[p]){ if (q > .3) setVBlur(p, q); lastQ[p] = q; }
+      const f = q > .3 ? `url(#vblur-${p})` : 'none';
+      if (f !== lastF[p]){ s.style.filter = f; lastF[p] = f; }
+    });
+  };
+  // Фоны 2 и 3 проявляются в том же окне причинной связи, что и фраза:
+  // через 60 мс после посадки они читаются как ОТКЛИК на щелчок, а не
+  // как следующий пункт расписания.
+  const reveal = () => {
+    if (say) say.classList.add('in');
+    relayout();          // фраза к этому моменту окончательно свёрстана
+    // Дата — третье событие, а не хвост второго: фраза проявляется
+    // 620 мс, и пока она идёт, дате трогаться нельзя, иначе два
+    // появления сливаются в одно длинное.
+    later(() => rasterIn(hero.querySelector('.asof-line')), 700);
+    later(() => { counterBusy = false; }, 400);
+    // Метка вступает последней и по своему поводу. Пока идёт главное
+    // событие кадра, её ход читался бы как часть этого события, а он
+    // про другое — про то, что кадр не последний.
+    later(startMark, 700 + RAST.length * RAST_STEP + 400);
+  };
+
+  if (reduce || target <= 1){ put(target, 0, 0, 0, true); reveal(); return; }
+
+  // Длительность зависит от числа шагов, а не константа: при 112 шагов
+  // всего двенадцать, и постоянные 3,2 с размазывали их вдвое.
+  const span = Math.abs(target - from);
+  // Степени десяти дают from === target: крутить нечего, а цикл честно
+  // молотил две секунды с невидимой фразой — выглядело как зависание.
+  if (span === 0){ put(target, 0, 0, 0, true); reveal(); return; }
+  /* ── траектория остановки ───────────────────────────────────────
+     Механический одометр не замедляется: там щелчок — выстой — щелчок.
+     Ощущение торможения даёт удлинение ПАУЗ, а не растягивание щелчков.
+     У нас было наоборот: последняя цифра вползала полсекунды, а
+     экспонента в последнем кадре всё ещё шла 434 px/с и обрывалась
+     стеной — глаз читал это как «выключили», а не «приехало».
+
+     Теперь четыре фазы:
+       ход   — кубический выход, скорость приходит РОВНО в ноль
+       выстой— тишина на предпоследнем значении
+       щелчок— ускорение в паз: скорость к моменту упора растёт
+       отдача— перелёт по позиции и возврат
+     Перелёт только позиционный: в окне всё это время стоит финальное
+     число, между чернилами соседних ячеек около 87 px запаса. */
+  const TOT   = Math.min(3000, Math.max(2000, 1600 + 42 * span));
+  const HOLD = 70, CLICK = 130, SETTLE = 90;
+  const OVER = c * .045;                 // 13,5 px при ячейке 300 — рабочий
+  // При шаге на единицу хода нет вовсе: остаётся один щелчок с отдачей —
+  // ровно то, что должно происходить на живом сайте при 34 → 35.
+  const MAIN = span > 1 ? Math.max(300, TOT - HOLD - CLICK) : 0;
+
+  let start = null, prevTs = 0, prev = from;
+  let sm = 0;
+  strips.forEach(s => s.classList.add('moving'));
+  put(from, 0, 0, 0, false);
+
+  function finish(){
+    put(target, 0, 0, 0, true);
+    strips.forEach(s => s.classList.remove('moving'));
+    later(reveal, 60);                   // отклик, а не следующий пункт плана
+    const live = hero.querySelector('.live');
+    if (live) live.textContent = `${target} ${plural(target,'человек','человека','человек')}`;
+  }
+
+  function frame(ts){
+    if (gen !== counterGen) return;                 // пересобрали — выходим
+    if (start === null){ start = ts; prevTs = ts; }
+    const e = ts - start;
+    let v, dip = 0, done = false;
+
+    if (e < MAIN){                                  // ход
+      const tau = e / MAIN;
+      v = from + sgn * (span - 1) * (1 - Math.pow(1 - tau, 3));
+    } else if (e < MAIN + HOLD){                    // выстой
+      v = target - sgn;
+    } else if (e < MAIN + HOLD + CLICK){            // щелчок в паз
+      const u = (e - MAIN - HOLD) / CLICK;
+      const s = (c + OVER) * Math.pow(u, 1.6);
+      v   = target - sgn + sgn * Math.min(1, s / c);
+      dip = Math.max(0, s - c);
+    } else {                                        // отдача
+      const u = (e - MAIN - HOLD - CLICK) / SETTLE;
+      v = target;
+      if (u < 1) dip = OVER * (1 - u) * (1 - u); else done = true;
+    }
+
+    const dt = Math.min(64, Math.max(1, ts - prevTs));
+    sm += (Math.abs(v - prev) - sm) * (1 - Math.exp(-dt / 90));
+    prev = v; prevTs = ts;
+
+    if (done){ finish(); return; }
+    put(v, sm, ts, dip, false);
+    rafId = requestAnimationFrame(frame);
+  }
+  rafId = requestAnimationFrame(frame);
+}
+
+
+function setCaption(){
+  if (!caption) return;
+  caption.textContent = CAPTIONS[variant] + '   ·   J: ' + COPY_NOTE[copyIx]
+    + '   ·   D: лента ' + (tapeUp ? 'ВВЕРХ' : 'ВНИЗ')
+    + '   ·   F: ' + MOVE_NOTE[moveIx]
+    + '   ·   N: ' + LIVE.paying
+    + '   ·   S: метка — ' + MARKS[markIx].note
+    + '   ·   A: шаг — ' + ROLL[rollIx].note
+    + '   ·   R: повтор';
+}
+
+/* Фон закрыт 17 августа: его нет. Двенадцать полей собрано, двенадцать
+   отвергнуто владельцем. Решение опирается не на вкус: во всей выборке
+   референсов чёрный означает «здесь ничего нет», а этот экран — одно
+   число и больше ничего, поэтому чёрный говорит правду. Код всех
+   двенадцати снят; сборка с ними лежит рядом в
+   hero-mockups-с-полями-2026-08-17.html.bak.
+   Разбор, ради которого всё это делалось, остался в hero-notes.md. */
+
+function build(){
+  clearAll(); touched = false; counterBusy = true;
+  setCaption();
+
+  const n = LIVE.paying;
+  const word = plural(n, 'человек', 'человека', 'человек');
+  const verb = plural(n, 'платит', 'платят', 'платят');
+  const next = ordinal(n + 1);
+
+  hero.className = 'hero';
+  hero.innerHTML =
+    `<p class="stat"><a class="numlink" href="#" onclick="return false" aria-label="${n} ${word} ${verb} за этот VPN прямо сейчас — как считается"><span class="num"></span></a><span class="say"> ${word} ${verb} за этот VPN прямо сейчас</span>` +
+    `<span class="live" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span></p>` +
+    // Порядок в разметке приведён к визуальному: раньше скринридер
+    // читал сноску с датой раньше призыва.
+    // Цена унесена в прейскурант. Формулировка листается клавишей J.
+    `<p class="join">${copyIx === 2 ? SUSTAIN : ''}</p>` +
+    // Точка посередине убрана: она склеивала дату и вопрос в одну
+    // строку-перечисление, хотя это две разные вещи — факт и приглашение
+    // его проверить. Разводит их теперь просвет, а не глиф.
+    // Просвет между датой и вопросом набран ПРОБЕЛАМИ, а не отступом.
+    // Холст растра рисует строку одним `fillText` — про `margin` он не
+    // знает, растровая версия выходила короче настоящей ровно на эти
+    // одиннадцать пикселей, и в момент подмены вопрос прыгал вправо.
+    // `\u2002` — полукруглая шпация, её меряют одинаково и вёрстка,
+    // и холст, и подряд идущие не схлопываются.
+    `<p class="asof"><span class="asof-line">на ${LIVE.asOf}\u2002\u2002` +
+      `<button type="button" class="howq" aria-expanded="false">как считается?</button></span>` +
+      `<span class="howa" hidden>${HOWTO}</span></p>` +
+    `<div class="probe" aria-hidden="true"></div>` +
+    (variant === 2
+      ? `<a class="strip" href="#" onclick="return false" aria-label="Выбрать тариф"></a>` +
+        `<a class="striplabel" href="#" onclick="return false">выбрать тариф →</a>` +
+        `<a class="btn" href="#" onclick="return false">выбрать тариф</a>`
+      : `<div class="plist">` +
+          (copyIx === 1 ? `<p class="plist-cap">${SUSTAIN}</p>` : '') +
+          PLANS.map(p =>
+            `<a class="prow${p.pick ? ' pick' : ''}" href="#" onclick="return false">` +
+              `<span class="term">${p.term}</span>` +
+              `<span class="amt"><b>${p.amt}</b><i>${p.unit}</i></span>` +
+            `</a>`).join('') +
+          `<p class="plist-note">цены предложенные · сегодня в каталоге другие</p>` +
+        `</div>`) +
+    // Метка идёт последней и в разметке: она про то, что БУДЕТ ниже, и
+    // скринридер должен встретить её после всего, что есть здесь.
+    // Вторая ячейка ленты — точная копия первой и для чтения не нужна.
+    (MARKS[markIx].body
+      ? (() => {
+          // Ступень 4 px, поэтому ступеней ровно четверть ячейки, а
+          // длительность прохода — ступени на выбранный шаг. Шаг остаётся
+          // тем, что выбран глазом, при любом росте знака.
+          const cell  = MARKS[markIx].cell;
+          const steps = cell / 4;
+          const dur   = steps * ROLL[rollIx].ms;
+          return `<div class="smark s${markIx}" style="--cell:${cell}px">` +
+          `<a class="mwin" href="#" onclick="return false" aria-label="Ниже — продолжение страницы">` +
+            `<span class="mlane" style="animation-duration:${dur}ms;` +
+                  `animation-timing-function:steps(${steps},jump-start)">` +
+              `<span class="mcell">${MARKS[markIx].body}</span>` +
+              `<span class="mcell" aria-hidden="true">${MARKS[markIx].body}</span>` +
+            `</span></a></div>`;
+        })()
+      : '');
+
+  const P = narrow ? POS_PHONE : POS;
+  place(hero.querySelector('.asof'),  P.asof);
+  if (!reduce) hero.querySelector('.asof-line').classList.add('waiting');
+  bindHow(hero.querySelector('.asof'));
+  place(hero.querySelector('.join'),  P.join);
+  place(hero.querySelector('.probe'), P.probe);
+  if (narrow) place(hero.querySelector('.btn'), P.btn);
+
+  // Раскладка, зависящая от фактического кегля и ширины числа. Вынесена
+  // отдельно, потому что по ресайзу надо звать её, а не пересборку:
+  // пересборка перезапускала счёт, а на телефоне ресайз порождается
+  // появлением адресной строки при обычном скролле.
+  relayout = () => {
+    const num = hero.querySelector('.num'), as = hero.querySelector('.asof'),
+          sayEl = hero.querySelector('.say');
+    if (!num) return;
+    const F = parseFloat(getComputedStyle(num).fontSize) || 0;
+    // Паддинг сажает фразу на базовую линию числа — это нужно только
+    // широкой раскладке. На узком фраза стоит ПОД числом, и паддинг
+    // там лишний зазор.
+    if (sayEl) sayEl.style.paddingBottom = narrow ? '' : Math.round(F * .183) + 'px';
+    // Замеры общие для даты и для фона: раньше они жили внутри if (as) и
+    // блок фона обращался к ним снаружи — relayout рвало на середине.
+    const fb = frame.getBoundingClientRect(), nb = num.getBoundingClientRect();
+    if (as){
+      // Центрирование под числом верно только на широкой: там число
+      // от 190 до 560 px и стоит в поле 12,5%. На узком оно всего
+      // 159 px у левого края, центр приходится на 99 px, минус половина
+      // ширины даты даёт минус тридцать — и упор прибивал дату к кромке,
+      // срезая первую букву. На узком дата просто стоит на общем поле.
+      // ДАТА СТОИТ ВПЛОТНУЮ ПОД ЧИСЛОМ — на обеих раскладках.
+      // Правка по разметке владельца красным (17 августа, 22:03): обе
+      // стрелки показывали вверх, к низу числа. Основание не только его:
+      // дата поясняет ЧИСЛО, а не блок целиком, — так и записано в
+      // решённом. Стояла же она после фразы, то есть через чужое
+      // предложение от того, что объясняет.
+      // База глифов, а не низ бокса: бокс числа включает окно одометра
+      // и паддинг под размытие — 0,183 кегля ниже настоящей базы.
+      const base = nb.bottom - F * .183;
+      if (narrow){
+        as.style.left = '';
+        as.style.top = Math.round(base - fb.top + 14) + 'px';
+        // Фраза уходит ПОД дату: на телефоне порядок стал
+        // число → дата → фраза. Отступ считается, а не назначается —
+        // высота даты зависит от кегля.
+        if (sayEl){
+          const ah = as.getBoundingClientRect().height || 14;
+          sayEl.style.marginTop = Math.round(14 + ah + 18 - (nb.bottom - base)) + 'px';
+        }
+        // Реплика — за фразой, той же цепочкой. Разрыв больше, чем
+        // между своими строками: это чужая речь.
+        const pr = hero.querySelector('.probe'), sb2 = sayEl && sayEl.getBoundingClientRect();
+        if (pr && sb2 && sb2.height) pr.style.top = Math.round(sb2.bottom - fb.top + 34) + 'px';
+      }
+      else {
+        // Отсчёт идёт от ПАДДИНГ-бокса предка, поэтому отступы .hero сюда
+        // не входят — вычитать их было ошибкой, дата уезжала влево на 106 px.
+        if (nb.width) as.style.left = Math.max(0, Math.round(
+          nb.left - fb.left + nb.width / 2 - as.getBoundingClientRect().width / 2)) + 'px';
+        as.style.top = Math.round(base - fb.top + 24) + 'px';
+      }
+    }
+  };
+  requestAnimationFrame(relayout);
+
+  runCounter(n);
+
+}
+
+/* Шрифты грузятся с `font-display:swap`, то есть первая раскладка
+   считается на подстановке, а потом строки перевёрстываются. Дата на
+   узком привязана к низу фразы — без этого пересчёта её зазор уезжал
+   ровно на одну строку (46 px вместо 22) на числах 7 и 112. */
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => relayout());
+
+/* ── Барабан в кнопке шапки ──────────────────────────────────
+   Каждая буква едет в собственном окне. Промежуточные глифы берутся
+   из кириллицы и цифр, чтобы алфавит не менялся на глазах.
+
+   ЗАМОК ОТ БЕСКОНЕЧНОЙ КРУТИЛКИ. Без него достаточно водить мышью
+   через край, чтобы запускать барабан сколько угодно раз — отклик
+   превращается в игрушку. Условий два и они разные:
+   · пока идёт проход, повторный заход игнорируется целиком;
+   · после окончания держится пауза, и в это время заход тоже не
+     заводит. То есть быстрым дёрганьем мыши не раскрутить.
+   Считаем от МОМЕНТА ОКОНЧАНИЯ, а не начала: иначе длинная надпись
+   успевала бы доехать ровно к концу паузы и крутилась бы подряд. */
+(() => {
+  const btn = document.querySelector('.headcta');
+  const lbl = btn && btn.querySelector('.lbl');
+  if (!lbl) return;
+  const TEXT = lbl.textContent;
+  const POOL = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯабвгдежзиклмнопрстуфхцчшщэюя0123456789';
+  const STEP = 18, RUN = 165, PAUSE = 900;
+  const rnd = () => POOL[Math.random() * POOL.length | 0];
+
+  // раскладываем надпись по окнам один раз; дальше меняются только
+  // промежуточные глифы, а разметка остаётся на месте
+  lbl.textContent = '';
+  const cells = [];
+  [...TEXT].forEach((ch, k) => {
+    if (ch === ' '){ lbl.append(' '); return; }
+    const w = document.createElement('span');
+    w.className = 'rl';
+    w.style.setProperty('--d', (k * STEP) + 'ms');
+    const lane = document.createElement('i');
+    const real = document.createElement('b');
+    real.textContent = ch;                       // настоящая буква — первой
+    lane.append(real);
+    w.append(lane); lbl.append(w);
+    cells.push({ lane, real, ch });
+  });
+
+  let busy = false, until = 0;
+  btn.addEventListener('pointerenter', () => {
+    const now = performance.now();
+    if (busy || now < until) return;
+    busy = true;
+    for (const c of cells){
+      // три случайные ячейки ПОД настоящей: лента едет вниз, буква
+      // приходит последней — то же направление, что у героя
+      for (let n = 0; n < 3; n++){
+        const cell = document.createElement('b');
+        cell.textContent = rnd();
+        c.lane.append(cell);
+      }
+    }
+    btn.classList.remove('roll'); void btn.offsetWidth; btn.classList.add('roll');
+    // событие ради проверяемости: по классу считать нельзя, снятие и
+    // постановка дают наблюдателю две записи на один проход
+    btn.dispatchEvent(new CustomEvent('rollstart'));
+    const total = RUN + STEP * cells.length + 40;
+    setTimeout(() => {
+      btn.classList.remove('roll');
+      for (const c of cells) while (c.lane.children.length > 1) c.lane.lastChild.remove();
+      busy = false;
+      until = performance.now() + PAUSE;
+    }, total);
+  });
+})();
+
+/* ── РАСТРОВОЕ ПРОЯВЛЕНИЕ ────────────────────────────────────
+   Строка не проявляется прозрачностью — она РАЗРЕШАЕТСЯ. Сначала её
+   растр огрублён до блока в 6 px и слово нечитаемо, дальше блок
+   уменьшается ступенями до единицы, и на последнем шаге холст
+   уступает место настоящему тексту.
+
+   Огрубление честное, а не «мелкий шрифт»: строка рисуется в ПОЛНОМ
+   разрешении, потом уменьшается с усреднением (сглаживание включено),
+   потом растягивается обратно ближайшим соседом (сглаживание
+   выключено). Первый способ дал бы просто другой кегль, а нам нужен
+   тот же самый растр, но грубее.
+
+   Ступени дискретны — промежуточных состояний нет, как и везде. */
+// Первая ступень грубее остальных нарочно: на блоке в 10 px от строки
+// остаётся почти ничего, и появление начинается действительно из
+// пустоты, а не из «читаемого, но мутного».
+// Лестница НЕ доходит до единицы. Блок 1 — это точная копия строки,
+// после которой холст всё равно уступает место настоящему тексту:
+// два одинаковых по смыслу состояния подряд, и на стыке видно смену
+// растеризации — холст рисует текст серым сглаживанием, DOM своим.
+// Последняя ступень теперь и есть подмена на текст.
+const RAST = [10, 6, 4, 3, 2];
+const RAST_STEP = 150;
+function rasterIn(el, steps, stepMs){
+  steps = steps || RAST; stepMs = stepMs || RAST_STEP;
+  // Любой выход — только сняв укрытие, иначе строка останется
+  // прозрачной навсегда.
+  if (!el) return;
+  el.classList.remove('waiting');
+  if (reduce || !el.textContent.trim()) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const box = el.getBoundingClientRect();
+  const W = Math.ceil(box.width), H = Math.ceil(box.height);
+  if (!W || !H) return;
+  const cs = getComputedStyle(el);
+
+  // 1 · эталон в полном разрешении
+  const full = document.createElement('canvas');
+  full.width = Math.ceil(W * dpr); full.height = Math.ceil(H * dpr);
+  const fg = full.getContext('2d');
+  fg.scale(dpr, dpr);
+  fg.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+  if ('letterSpacing' in fg) fg.letterSpacing = cs.letterSpacing;
+  fg.fillStyle = cs.color;
+  fg.textBaseline = 'alphabetic';
+  // база берётся из метрик самого шрифта, а не из доли высоты бокса
+  const m = fg.measureText(el.textContent);
+  const asc = m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * .72;
+  fg.fillText(el.textContent, 0, (H + asc) / 2);
+
+  const view = document.createElement('canvas');
+  view.className = 'rast';
+  view.width = full.width; view.height = full.height;
+  view.style.width = W + 'px'; view.style.height = H + 'px';
+  const vg = view.getContext('2d');
+  const small = document.createElement('canvas');
+  const sg = small.getContext('2d');
+
+  el.classList.add('rasting');
+  el.append(view);
+
+  const draw = k => {
+    const w = Math.max(1, Math.round(full.width / k)), h = Math.max(1, Math.round(full.height / k));
+    small.width = w; small.height = h;
+    sg.imageSmoothingEnabled = true;              // вниз — с усреднением
+    sg.clearRect(0, 0, w, h);
+    sg.drawImage(full, 0, 0, w, h);
+    vg.imageSmoothingEnabled = false;             // вверх — ближайшим соседом
+    vg.clearRect(0, 0, view.width, view.height);
+    vg.drawImage(small, 0, 0, w, h, 0, 0, view.width, view.height);
+  };
+
+  let i = 0;
+  draw(steps[0]);
+  const tick = () => {
+    i++;
+    if (i >= steps.length){                       // холст уступает место тексту
+      el.classList.remove('rasting');
+      view.remove();
+      return;
+    }
+    draw(steps[i]);
+    later(tick, stepMs);
+  };
+  later(tick, stepMs);
+}
+
+/* ── ОТВЕТ НА «КАК СЧИТАЕТСЯ?» ───────────────────────────────
+   Раскрывается щелью за 210 мс: у строки появление — событие, здесь
+   отклик на наведение, и девятьсот миллисекунд были бы уже задержкой,
+   а не приёмом.
+   Наведение, фокус и нажатие обрабатываются все три: на телефоне
+   наведения нет, с клавиатуры нет курсора. */
+function bindHow(root){
+  const q = root.querySelector('.howq'), a = root.querySelector('.howa');
+  if (!q || !a) return;
+  let on = false;
+  const show = () => {
+    clearTimeout(shut);
+    // Второй замок, кроме `pointer-events`: с клавиатуры фокус можно
+    // получить и на невидимую строку, а мышь тут ни при чём.
+    const line = root.querySelector('.asof-line');
+    if (line && (line.classList.contains('waiting') || line.classList.contains('rasting'))) return;
+    if (on) return;
+    on = true;
+    a.hidden = false;
+    a.classList.remove('in'); void a.offsetWidth; a.classList.add('in');
+    q.setAttribute('aria-expanded', 'true');
+  };
+  let shut = 0;
+  const hideSoon = () => { clearTimeout(shut); shut = setTimeout(hide, 140); };
+  const hide = () => {
+    clearTimeout(shut);
+    if (!on) return;
+    on = false;
+    a.hidden = true;
+    a.classList.remove('in');
+    q.setAttribute('aria-expanded', 'false');
+  };
+  q.addEventListener('pointerenter', show);
+  // Уход закрывает не сразу: провал в 140 мс переживает дрожание руки
+  // на границе зоны, иначе ответ мигает.
+  q.addEventListener('pointerleave', hideSoon);
+  q.addEventListener('focus', show);
+  q.addEventListener('blur', hideSoon);
+  q.addEventListener('click', e => { e.preventDefault(); on ? hide() : show(); });
+}
+
+function wake(){
+  if (touched || reduce) return;
+  touched = true;
+  runProbe(hero.querySelector('.probe'));
+}
+['pointerdown','touchstart','wheel','keydown'].forEach(ev =>
+  frame.addEventListener(ev, wake, {passive:true}));
+
+// Узость меряется по ФАКТИЧЕСКОЙ ширине кадра, а не окна: имитация в
+// 390 px посреди широкого экрана иначе осталась бы без своей композиции,
+// а настоящий телефон — без неё же, но по обратной причине.
+// 760 px — ниже этого широкая раскладка перестаёт сходиться: прейскуранту
+// нужно 336 px справа, числу — поле 12,5% слева, между ними фраза.
+const NARROW = 760;
+let narrow = false;
+function measureNarrow(){
+  const w = frame.getBoundingClientRect().width || innerWidth;
+  const n = w < NARROW;
+  if (n === narrow) return false;
+  narrow = n;
+  stage.classList.toggle('narrow', narrow);
+  return true;                          // порог перейден — нужна пересборка
+}
+
+function sync(){
+  stage.classList.toggle('phone', phone);
+  measureNarrow();                      // ширина кадра меняется вместе с .phone
+  history.replaceState(null, '', '#' + variant + (phone ? '&phone' : '') + '&n=' + LIVE.paying);
+}
+function setVariant(i){ variant = i; sync(); build(); }
+function setN(v){ LIVE.paying = v; sync(); build(); }
+
+addEventListener('keydown', e => {
+  if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === '1') setVariant(0);
+  if (k === '2') setVariant(2);
+  if (k === 'j' || k === 'о'){ copyIx = (copyIx + 1) % COPY_NOTE.length; build(); }
+  if (k === 'p' || k === 'з'){ phone = !phone; sync(); build(); }
+  if (k === 'd' || k === 'в'){ tapeUp = !tapeUp; build(); }
+  if (k === 'f' || k === 'а'){ moveIx = (moveIx + 1) % MOVE_NOTE.length; build(); }
+  if (k === 'r' || k === 'к'){ build(); }
+  if (k === 's' || k === 'ы'){ markIx = (markIx + 1) % MARKS.length; build(); }
+  if (k === 'a' || k === 'ф'){ rollIx = (rollIx + 1) % ROLL.length; build(); }
+  // Панель убрана, а число листать надо: 7 · 34 · 112 переехали на N.
+  if (k === 'n' || k === 'т'){
+    const N = [7, 34, 112];
+    setN(N[(N.indexOf(LIVE.paying) + 1) % N.length]);
+  }
+});
+
+// Ресайз больше НЕ пересобирает героя: раньше он перезапускал счёт с нуля,
+// а на телефоне появление адресной строки при скролле — это тоже ресайз.
+// Единственное исключение — переход через порог узости: там меняется сама
+// композиция, и её надо собрать заново. Адресная строка порога не переходит.
+let rt;
+addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if (measureNarrow()) build(); else relayout(); }, 120);
+});
+
+// Регресс, внесённый при переписывании счётчика: правка варианта прямо
+// в адресной строке перестала работать. Возвращаю.
+addEventListener('hashchange', () => {
+  const p = location.hash.slice(1).split('&');
+  const i = /^[02]$/.test(p[0]) ? +p[0] : variant;
+  const ph = p.includes('phone');
+  const nm = location.hash.match(/n=(\d+)/);
+  const nv = nm ? Math.min(999, Math.max(1, +nm[1])) : LIVE.paying;
+  if (i === variant && ph === phone && nv === LIVE.paying) return;
+  variant = i; phone = ph; LIVE.paying = nv;
+  sync(); build();
+});
+
+const h = location.hash.slice(1);
+if (h){
+  const p = h.split('&');
+  if (/^[02]$/.test(p[0])) variant = +p[0];
+  phone = p.includes('phone');
+  const nm = h.match(/n=(\d+)/);
+  if (nm) LIVE.paying = Math.min(999, Math.max(1, +nm[1]));
+}
+sync();
+build();
+})();
+</script>
+</body>
+</html>

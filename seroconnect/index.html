@@ -1,0 +1,86 @@
+<meta charset="utf-8">
+<title>SEROCONNECT — три экрана подряд</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   СКЛЕЙКА. Три секции по высоте окна: два готовых экрана и третий,
+   пустой, — место под то, что будет дальше. Листать сверху вниз.
+
+   Кадры, а не слияние кода: у обеих сборок есть свои `.frame`,
+   `.say`, `.box` и свои самозапускающиеся сценарии. Слить их в один
+   документ значило бы переписать оба и получить третий, который
+   рассыпется при первой же правке любого из двух. Кадр держит их
+   раздельными и ничего не ломает.
+
+   Сцена второго экрана заводится ОТСЮДА, когда он попал в поле
+   зрения: иначе она отыграет, пока смотрят на первый.
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0;height:100%;background:#0a0606}
+body{scroll-snap-type:y proximity}
+.sec{position:relative;width:100%;height:100vh;scroll-snap-align:start}
+.sec iframe{display:block;width:100%;height:100%;border:0}
+/* Тонкий стык, чтобы тёмные секции не читались как одна длинная. */
+.sec + .sec::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:rgba(255,255,255,.05);z-index:2}
+
+/* ── ТРЕТИЙ ЭКРАН ───────────────────────────────────────────────
+   Пуст намеренно. Фон тот же, что у кадров обоих экранов (#110a0a,
+   он же `--color-surface-0` живого продукта), иначе пустая секция
+   читалась бы не как продолжение сайта, а как его конец.
+   Метка в углу — служебная, набрана языком подсказок обоих экранов
+   и снимается одной строкой, когда экран начнут собирать. */
+.empty{background:#110a0a}
+.empty b{position:absolute;left:12.5%;bottom:36px;font-weight:400;
+  font-family:"Geist Mono Variable",ui-monospace,monospace;
+  font-size:11px;letter-spacing:.08em;color:#4f4741}
+@media (max-width:760px){ .empty b{left:20px;bottom:24px} }
+</style>
+
+<div class="sec"><iframe id="s1" src="hero-mockups.html?v=preview" title="первый экран"></iframe></div>
+<div class="sec"><iframe id="s2" src="screen2-motion.html?v=preview&wait=1" title="второй экран"></iframe></div>
+<div class="sec empty"><b>третий экран — пусто</b></div>
+
+<script>
+/* ── Служебные подсказки о клавишах прячутся ────────────────────
+   В обоих экранах внизу стоит строка про R / P / B / O / M. Она нужна,
+   когда смотришь экран поодиночке, и мешает, когда смотришь всё
+   подряд. Кадры свои же, с того же адреса, поэтому стиль просто
+   вкладывается внутрь. */
+function hideHint(f){
+  try {
+    const d = f.contentDocument;
+    const st = d.createElement('style');
+    st.textContent = '.hint{display:none!important}';
+    d.head ? d.head.append(st) : d.documentElement.append(st);
+  } catch (err) {}
+}
+for (const id of ['s1','s2']){
+  const f = document.getElementById(id);
+  f.addEventListener('load', () => hideHint(f));
+  hideHint(f);
+}
+
+/* ── Сцена второго экрана ───────────────────────────────────────
+   Заводится, когда экран попал в поле зрения, и заводится ЗАНОВО
+   при каждом возвращении — здесь это не витрина, а смотровая: если
+   прокрутил мимо и вернулся, сцену надо увидеть, а не её финал.
+   В бою правило другое: сцена играется один раз. */
+const f2 = document.getElementById('s2');
+let inside = false, timer = 0;
+new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (e.isIntersecting && !inside){
+      inside = true;
+      // Задержка в 400 мс — та же, что принята в раскадровке: сцена не
+      // должна трогаться в тот самый кадр, когда экран показался.
+      timer = setTimeout(() => { try { f2.contentWindow.__play(); } catch(err){} }, 400);
+    } else if (!e.isIntersecting && inside){
+      inside = false;
+      clearTimeout(timer);
+    }
+  });
+}, {threshold:.55}).observe(f2);
+</script>

@@ -1,0 +1,1269 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>SEROCONNECT — экран 2, моушен</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   ЭКРАН 2 · «Одна ссылка — восемь путей»
+
+   Два правила, на которых стоит этот экран:
+
+   1. Что СЧИТАЕТСЯ — щёлкает, что ДВИЖЕТСЯ — движется. Растр и
+      ступени остаются первому экрану: там одометр, у него нет
+      промежуточных значений. Здесь предмет перемещается в
+      пространстве, и отнимать у него промежуточные положения —
+      врать наоборот.
+   2. Всё ВНУТРИ коробки принадлежит приложению, всё СНАРУЖИ —
+      сайту. Поэтому кнопка подключения собрана на языке кабинета
+      (брусок с медной полосой), а брендовый градиент #d4a574
+      остаётся кнопкам сайта: иначе самая заметная кнопка страницы
+      оказалась бы ненажимаемой приманкой, уводящей от покупки.
+
+   Закон сцены: В КАЖДЫЙ МОМЕНТ МЕНЯЕТСЯ РОВНО ОДНА ВЕЩЬ.
+
+   Разборы: refs/motion-brief.md · refs/vpn-ui-research.md ·
+   refs/final-frame-critique.md
+   ══════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:Geist Mono Variable;font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2)format("woff2-variations");
+  unicode-range:U+301,U+400-45F,U+490-491,U+4B0-4B1,U+2116;}
+@font-face{font-family:Geist Mono Variable;font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/geist-mono-latin-ext-wght-normal.b6lpi8_2.woff2)format("woff2-variations");
+  unicode-range:U+100-2BA,U+2BD-2C5,U+2C7-2CC,U+2CE-2D7,U+2DD-2FF,U+304,U+308,U+329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+@font-face{font-family:Geist Mono Variable;font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/geist-mono-latin-wght-normal.Cjtb1TV-.woff2)format("woff2-variations");
+  unicode-range:U+??,U+131,U+152-153,U+2BB-2BC,U+2C6,U+2DA,U+2DC,U+304,U+308,U+329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+
+:root{
+  color-scheme:dark;
+  --bg:#110a0a; --ink:#f5f5f5; --soft:#a59a89; --gold:#d4a574;
+  --sans:"Onest","Inter",system-ui,sans-serif;
+  --mono:"Geist Mono Variable","Geist Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#0a0606;color:var(--soft);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+/* Кадр — сам себе единица измерения. Пороги композиции спрашивают
+   ЕГО ширину, а не ширину окна: иначе узкий кадр посреди широкого
+   окна (телефонный вид по клавише P) получил бы широкие стили, а
+   раскладка в это время считала бы его узким. Тем же переходом
+   склейка двух секций перестаёт зависеть от того, чем меряет iframe. */
+.frame{position:relative;width:100%;height:100%;overflow:hidden;background:var(--bg);
+  container-type:inline-size}
+
+/* ── ТЕЛЕФОННЫЙ ВИД, клавиша P ───────────────────────────────────
+   Та же клавиша и та же рамка, что на первом экране, — и тот же
+   приём: рамка ИМИТИРУЕТ устройство, а композицию выбирает
+   фактическая ширина кадра. Настоящий телефон и узкое окно попадают
+   в неё тем же путём.
+
+   Одно отличие от первого экрана осознанное: там кадру задана только
+   ширина, высоту берёт окно. Здесь высота задана тоже — 844. На этом
+   экране именно ВЫСОТА решает, где пройдёт обрез списка, и телефонный
+   вид без телефонной высоты показывал бы то, чего на телефоне не
+   бывает: в окне 900 влезают все восемь строк. */
+body.phoneview{display:flex;align-items:center;justify-content:center;padding:14px 0}
+/* content-box здесь намеренно: 390×844 — это размер САМОГО кадра, а
+   рамка лежит снаружи. При общем border-box она съела бы по пикселю
+   с каждой стороны, и кадр вышел бы 388×842 — то есть не тот. */
+body.phoneview .frame{box-sizing:content-box;width:390px;height:844px;
+  max-width:100%;max-height:100%;border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 20px 60px rgba(0,0,0,.6)}
+body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bottom:20px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#4f4741}
+
+/* ── левая колонка ──────────────────────────────────────────────
+   Заголовок вырос с 26 до 52 px. Причина замерена: на кадре не было
+   ничего громкого — самое крупное отличалось от самого мелкого в
+   2,4 раза, тогда как в герое это отношение 18, и 85% знаков были
+   набраны моно 11–13. Растёт ВНИЗ от направляющей: раньше висел над
+   ней, и три строки уехали бы за верхнюю кромку. */
+.label{position:absolute;left:12.5%;margin:0;font-family:var(--mono);
+  font-size:11px;letter-spacing:.14em;color:#6f655a;text-transform:uppercase}
+.h2{position:absolute;left:12.5%;margin:0;font-size:52px;font-weight:600;
+  line-height:1.08;letter-spacing:-.02em;color:var(--ink);max-width:12ch}
+/* Фраза переехала налево под заголовок: это сильнейший текст экрана,
+   а стояла сноской под таблицей самым мелким кеглем. */
+.say{position:absolute;left:12.5%;margin:0;font-size:17px;line-height:1.55;
+  color:#d1d1d1;max-width:34ch}
+
+/* ── коробка ────────────────────────────────────────────────────
+   Была дырой, а не предметом: поверхность отличалась от фона в 1,07
+   раза (ниже порога различимости), а чёрная тень на почти чёрном
+   фоне давала 1,03 — то есть физически не существовала.
+   На тёмном фоне тело поднимают СВЕТЛЫМ СВЕРХУ, а не чёрным снизу;
+   приём взят из продукта — там медный волосок уже принят. */
+.box{position:absolute;width:547px;padding:32px;border-radius:18px;
+  background:#1d1712;border:1px solid rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(226,185,142,.18), 0 32px 80px rgba(0,0,0,.55);
+  overflow:hidden}
+.cab,.app,.fly-layer{position:absolute;left:32px;right:32px}
+.fly-layer{top:32px;pointer-events:none;z-index:3}
+
+/* ── кабинет ─────────────────────────────────────────────────── */
+.ctop{display:flex;align-items:center;justify-content:space-between;height:38px}
+.ctop .t{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:#ece7dd;
+  text-transform:uppercase}
+.seg{display:flex;align-items:center;width:151px;height:38px;border-radius:14px;
+  background:#0f0c09;padding:3px}
+.seg b{flex:1 1 0;height:32px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  font-weight:400;color:var(--soft);text-transform:uppercase}
+.seg b.on{background:linear-gradient(#dcb486,#c79a6b);color:#241a10}
+.steps{margin-top:45.7px;font-size:13px;color:var(--soft)}
+.steps b{color:#f3eee4;font-weight:700}
+.steps i{font-style:normal;color:#6f655a;padding:0 6px}
+.field{position:relative;display:flex;align-items:center;height:50px;margin-top:18px;
+  border-radius:13px;background:#0f0c09;border:1px solid rgba(255,255,255,.12);padding:0 16px}
+.field .url{font-family:var(--mono);font-size:14px;color:var(--soft);white-space:nowrap}
+.field .url i{font-style:normal;display:inline-block}
+.field .ico{position:absolute;top:50%;width:34px;height:34px;margin-top:-17px;border-radius:9px;
+  background:#171411;border:1px solid rgba(255,255,255,.13);
+  display:flex;align-items:center;justify-content:center}
+.field .ico.eye{right:62px} .field .ico.copy{right:16px}
+.field .ico svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:1.5}
+
+/* Брусок — замер живой кнопки кабинета: волосок #63513d сверху и
+   заливка сверху вниз. Медная полоса снизу, которая была в замере,
+   снята по решению владельца: сперва у кнопки подключения (там её
+   место занял нагрев), следом и у кнопки копирования — ради одного
+   языка у обеих. Это осознанное расхождение с оригиналом. */
+.brick{position:relative;height:50px;border-radius:14px;overflow:hidden;
+  background:linear-gradient(#292018,#100b07);box-shadow:inset 0 1px 0 #63513d;
+  display:flex;align-items:center;justify-content:center}
+.brick span.t{position:absolute;font-family:var(--sans);font-size:14px;font-weight:700;
+  color:var(--ink);white-space:nowrap}
+/* Поправка в −3 px снята вместе с полосой: она компенсировала ровно
+   её. Без полосы видимое поле совпадает с боксом, и центр честный. */
+.cbtn{margin-top:18px}
+.cbtn2{height:48px;margin-top:6px;border-radius:13px;
+  background:linear-gradient(#161009,#110c07);box-shadow:inset 0 -3px 0 #080604;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#aeacaa}
+
+/* ── приложение ─────────────────────────────────────────────── */
+/* Окно списка. Высоту ему назначает раскладка — и на телефоне, и на
+   невысоком окне ноутбука: см. layoutList(). Когда всё влезает,
+   высота равна содержимому и окно себя ничем не проявляет. */
+.list{overflow:hidden}
+.gr{overflow:hidden}          /* группа узла обрезается своей кромкой */
+.grp{height:48px;display:flex;align-items:center;font-family:var(--mono);font-size:13px;
+  color:#ece7dd;letter-spacing:.02em}
+.grp i{font-style:normal}
+/* Просветы перед маской. Обе величины — из замера чернил, а не на глаз.
+   В ГРУППЕ маска — отдельное слово (закрытый хеш), и просвет перед ней
+   ровно один: ячейка моно, то есть обычный пробел.
+
+   В ПОЛЕ величина спорная, и спор решается глазом, а не числом. Замер
+   давал два разных ответа в зависимости от того, ЧТО мерить:
+     · по крайним чернилам — слеш ближе к точке на 1,25 px, чем точки
+       друг к другу (3,63 против 4,88);
+     · на высоте самих точек — наоборот, дальше (5,31 против 4,92),
+       потому что крайняя правая точка слеша стоит НАВЕРХУ, а точка
+       маски — по центру строки.
+   Первый замер и увёл меня в поправку, которая владельцу не помогла.
+   Поэтому величина вынесена на клавишу M — см. SEAM ниже. */
+#gmask{padding-left:1ch}
+/* Заголовок узла со счётчиком — вместо восьмикратного «узел N».
+   Так устроены все клиенты, у которых стран нет. */
+.node{display:flex;align-items:center;justify-content:space-between;height:34px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#6f655a;
+  text-transform:uppercase;border-top:1px solid rgba(255,255,255,.06);margin-top:6px}
+.node b{font-weight:400;color:#4f4741}
+.win{height:48px;overflow:hidden}
+/* Слот слева ПУСТОЙ. В живых клиентах ведущий значок несёт либо
+   страну, либо состояние — третьего назначения нет ни у кого. Стран
+   мы не называем, значит в слоте живёт только отметка выбора.
+   Шеврон убран: он обещал переход, которого здесь нет. */
+.srow{position:relative;display:flex;align-items:center;height:48px;padding-left:18px;
+  border-radius:8px}
+.srow .pk{position:absolute;left:0;top:50%;width:2px;height:20px;margin-top:-10px;
+  background:var(--gold);border-radius:1px;transform:scaleY(0);transform-origin:50% 50%}
+.srow .p{font-family:var(--mono);font-size:13px;color:#ece7dd;letter-spacing:.02em}
+.srow .p i{font-style:normal;color:#8a8073}   /* второй вес внутри строки */
+
+/* ── подключение ────────────────────────────────────────────── */
+.conn{margin-top:20px}
+.conn .st{display:block;height:16px;margin-bottom:10px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.14em;color:#6f655a;text-transform:uppercase}
+.conn .brick{cursor:pointer;will-change:transform}
+/* НАГРЕВ вместо заливки. Прошлая версия была плашкой, наклеенной
+   поверх кнопки: жёсткий вертикальный фронт со светлой чертой ехал
+   по скруглённому телу и ни с чем в нём не был связан — обычный
+   прогресс-бар, приделанный сбоку.
+
+   Здесь ничего не добавлено. Слой шире кнопки на 60 px и справа
+   сходит на нет — поэтому фронт мягкий, кромки нет вовсе. Слой не
+   растягивается, а ЕДЕТ: значит мягкость не плывёт по ходу, а
+   остаётся той же самой. Пройденная часть просто теплее.
+
+   Медный волосок сверху вшит в этот же слой — он разгорается
+   вместе с нагревом, и это то самое вторичное движение, по которому
+   движение читается живым. */
+.conn .heat{position:absolute;left:0;top:0;bottom:0;width:calc(100% + 60px);
+  background:linear-gradient(90deg,
+    rgba(212,165,116,.26) 0,
+    rgba(212,165,116,.26) calc(100% - 60px),
+    rgba(212,165,116,0) 100%);
+  box-shadow:inset 0 1px 0 rgba(226,185,142,.45);
+  will-change:transform}
+.pw{width:19px;height:19px;fill:none;stroke-width:1.7;stroke:#8a8073}
+
+.fly{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);
+  font-size:13px;color:#ece7dd;letter-spacing:.02em;transform-origin:0 50%}
+/* Куски клона растянуты на всю его высоту и центрируют текст сами —
+   так же, как это делает настоящая строка группы (флекс, 48 px, текст
+   17). Стояло `top:0`, и буквы клона держались по ВЕРХУ коробки: сама
+   коробка садилась в цель попиксельно, а текст в момент подмены падал
+   на 15,5 px. Контроль посадки мерил коробки и потому молчал. */
+.fly i{position:absolute;left:0;top:0;bottom:0;font-style:normal;
+  display:flex;align-items:center}
+.hint{position:absolute;left:12.5%;bottom:36px;margin:0;font-family:var(--mono);
+  font-size:11px;letter-spacing:.08em;color:#4f4741}
+
+/* ── МЕТКА «НИЖЕ!» ──────────────────────────────────────────────
+   Перенесена с первого экрана ДОСЛОВНО — устройство, размеры, ход и
+   даже причины, по которым они такие. Своего тут только слово: там
+   «ниже», здесь «ниже!», потому что за этим экраном продолжение уже
+   не первое, и звать надо настойчивее.
+
+   Знак стоит в окне ростом в одну ячейку; лента из двух одинаковых
+   ячеек в покое поднята на половину, так что в окне видна вторая, а
+   первая ждёт над кромкой. Раз в семь секунд лента уезжает на ячейку
+   вниз ступенями по 4 px — знак выполняет ровно то действие, о котором
+   просит. Ячейка вдвое выше знака: просвет между уходящим и приходящим
+   и есть то, по чему видно, что знак УЕХАЛ, а не дёрнулся.
+
+   Ход одиночный, по таймеру, а не бесконечной петлёй: петля на пустом
+   экране стала бы вторым центром внимания. `jump-start`, а не `end` —
+   с `end` последнее положение ленты не показывается вовсе.
+
+   Место: левая направляющая 12,5 % — та же, на которой стоят метка,
+   заголовок и фраза. Метка встаёт в их колонку, а не висит в никуда. */
+.smark{position:absolute;left:12.5%;bottom:11%;z-index:4}
+.mwin{display:block;width:max-content;overflow:hidden;height:var(--cell);
+  text-decoration:none;color:#8a8073}      /* 5,05:1 к фону */
+.mwin:hover{color:var(--ink)}
+.mwin:focus-visible{outline:2px solid var(--gold);outline-offset:6px}
+.mlane{display:block;transform:translateY(-50%)}
+.mcell{display:flex;align-items:center;gap:12px;height:var(--cell)}
+.mtxt{font-family:var(--mono);font-size:11px;letter-spacing:.14em}
+@keyframes mroll{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+.mlane.roll{animation-name:mroll;animation-fill-mode:both}
+/* Стрелка из блоков 4×4 — той крупности, до которой огрубляется растр
+   даты на первом экране. Две впритык, без просвета: одиночная стрелка
+   говорит «вниз», пара говорит «туда, дальше». */
+.pxarr{position:relative;display:block;width:20px;height:12px}
+.pxarr i{position:absolute;width:4px;height:4px;background:currentColor}
+.pxarr i.r0{left:0;top:0;box-shadow:16px 0 0 currentColor}
+.pxarr i.r1{left:4px;top:4px;box-shadow:8px 0 0 currentColor}
+.pxarr i.r2{left:8px;top:8px}
+.pxarr2{display:flex;flex-direction:column;gap:0}
+/* При «меньше движения» лента стоит, знак остаётся в окне: терять
+   содержание из-за этой настройки нельзя. */
+@media (prefers-reduced-motion:reduce){.mlane.roll{animation:none}}
+/* ══ ВЕРТИКАЛЬНАЯ КОМПОЗИЦИЯ ═════════════════════════════════════
+   Две колонки расходятся только на широком кадре. Считаем, где они
+   перестают: направляющая текста 12,5 %, коробка правой кромкой на
+   94 % и шириной 547, тексту нужно хотя бы 360 — значит
+   0,94W − 547 ≥ 0,125W + 360 + 60, то есть W ≥ 1186. Ниже этого
+   заголовок ложится прямо на коробку: на 768 (iPad портретно) он
+   разрезан ею пополам.
+
+   Поэтому ниже 1190 кадр вертикальный: текст сверху, коробка под ним.
+   Здесь только УСТРОЙСТВО — кегли и отступы телефона живут в своём
+   пороге ниже и переопределяют эти правила. ═══════════════════════ */
+@container (max-width:1190px){
+  .label,.h2,.say{right:12.5%}
+  /* Один предел на текст и на коробку: колонка кадра. Без него на
+     1024 текст шёл до направляющей, а коробка упиралась в свой предел
+     640 — правые кромки расходились на 128 px. */
+  .h2,.say{max-width:640px}
+  /* Приложение — колонка: заголовок группы и кнопка не сжимаются,
+     всю разницу высот забирает окно списка. */
+  .app{display:flex;flex-direction:column}
+  .grp,.conn,.list{flex:0 0 auto}
+  .list{min-height:0}
+  /* Подсказка о клавише живёт только в широком кадре: в вертикальном
+     она ложится на коробку — та стоит по центру и опущена к низу.
+     По той же причине здесь нет и метки «ниже!»: коробка прижата к
+     нижнему полю кадра, полосы под ней не остаётся вовсе. На первом
+     экране метке нашлось место замером — там под прейскурантом было
+     97 px; здесь их ноль. */
+  .hint,.smark{display:none}
+}
+
+/* ══ ТЕЛЕФОН — отдельная композиция, не уменьшение ═══════════════
+   Считаем, а не прикидываем. Список приложения при полях 20 px:
+   заголовок группы 48 + два заголовка узлов по 40 + восемь строк
+   по 48 + подключение 94 = 602 px, и это ещё без заголовка экрана.
+   На 390×844 под весь текст остаётся 242 px, на 375×667 — минус 75.
+   Значит кегли тут ни при чём: список длиннее любого телефона.
+
+   Решение — ОКНО. Список обрезается нижней кромкой своего окна, а
+   кнопка подключения прибита к низу коробки — в дугу большого
+   пальца. Сколько строк поместилось, столько и видно; «восемь»
+   несут счётчики у заголовков узлов, ради этого они и заведены.
+
+   Обрез ЖЁСТКИЙ, без размывки по низу. Мягкий край сказал бы
+   «дальше ничего», жёсткий говорит «дальше ещё» — и это тот самый
+   приём, на котором стоит первый экран: окно с кромкой, за которую
+   уходит лента.
+   ═══════════════════════════════════════════════════════════════ */
+@container (max-width:760px){
+  .label,.h2,.say{left:20px;right:20px}
+  .h2{font-size:32px;letter-spacing:-.025em}
+  .say{font-size:15px;line-height:1.5}
+
+  .box{padding:20px;border-radius:16px}
+  .cab,.app,.fly-layer{left:20px;right:20px}
+  .fly-layer{top:20px}
+
+  /* Шапка кабинета остаётся ОДНОЙ строкой: 21 знак моно 11 px это
+     139 px, переключатель 138 — вместе 277 при доступных 310.
+     Складывать в две строки не пришлось. */
+  .ctop{height:34px}
+  /* Замер: при .06em заголовок 152 px и переключатель 138 сходятся на
+     390 впритык, а на 375 уже ломаются в две строки. Разрядка сжата до
+     .03em, переключатель до 130 — вместе 271 при 278 доступных на 360.
+     `nowrap` держит строку целой, если шрифт приедет шире ожидаемого. */
+  .ctop .t{font-size:11px;letter-spacing:.03em;white-space:nowrap}
+  .seg{width:130px;height:34px;border-radius:12px}
+  .seg b{height:28px;font-size:10px}
+  .steps{margin-top:22px;font-size:12px}
+  .field{height:46px;margin-top:14px}
+  .field .url{font-size:12px}
+  .field .ico{width:30px;height:30px;margin-top:-15px;border-radius:8px}
+  .field .ico.eye{right:54px}
+  .field .ico svg{width:15px;height:15px}
+  .brick{height:46px;border-radius:12px}
+  .brick span.t{font-size:13px}
+  .cbtn{margin-top:14px}
+  .cbtn2{height:44px;margin-top:6px;font-size:11px}
+
+  .grp{height:40px;font-size:12px}
+  /* Просвет под кромкой окна больше, чем внутри списка: срезанная
+     строка и слово «подключиться» стояли в 10 px друг от друга и
+     слипались в одну полосу. */
+  .conn{margin-top:24px}
+  .node{height:30px}
+  .win,.srow{height:44px}
+}
+
+/* Второй порог. На 360 доступных 280 px, и шапка кабинета сходилась
+   впритык — 276. Переключатель ужат до 118, разрядка до .02em: вместе
+   262, просвет 18. Ломать шапку в две строки не пришлось. */
+@container (max-width:380px){
+  .field .url{font-size:11px}
+  .ctop .t{letter-spacing:.02em}
+  .seg{width:118px}
+  .seg b{font-size:9px;letter-spacing:.04em}
+}
+</style>
+
+<!-- Смаз полёта. CSS blur() изотропен — он размыл бы строку и вбок,
+     поперёк хода; поэтому фильтр SVG с раздельными осями, как у
+     барабана на первом экране. Область фильтра расширена по вертикали,
+     иначе он обрежет собственный смаз. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <filter id="fly-smear" x="-20%" y="-80%" width="140%" height="260%"
+          color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0 0"/></filter>
+</svg>
+
+<div class="frame" id="frame"></div>
+<script src="vendor/gsap.min.js"></script>
+<script>
+(() => {
+const frame  = document.getElementById('frame');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── СОДЕРЖАНИЕ. Всё здесь и только здесь: смена набора узлов,
+   разрешение называть страны или запрет называть протоколы —
+   правка этого куска, а не разметки. ─────────────────────────── */
+const URL_HEAD = 'https://seroconnect.ru/';
+// Запасная голова для кадров, где полная не оставляет места даже трём
+// точкам маски. Схема — единственное, чем можно пожертвовать: ссылка
+// остаётся той же самой, а маска обязана быть видна, она летит.
+const URL_SHORT = 'seroconnect.ru/';
+/* Порог тот же, что у медиазапроса, и спрашивается он при КАЖДОЙ
+   раскладке. Первая версия запоминала его один раз при сборке — и
+   поворот телефона в альбом (390 → 844) разваливал кадр: стили
+   переключались медиазапросом, а раскладка продолжала считаться по
+   телефонной. Замер: коробка 804 px по широким отступам, окно списка
+   58 px, кнопка подключения на 500-м пикселе при высоте кадра 390. */
+const tall  = () => frame.clientWidth <= 1190;   // композиция вертикальная
+const phone = () => frame.clientWidth <= 760;    // и вдобавок телефонные кегли
+// Длина маски на узком кадре не константа, а результат замера: см.
+// fitMask ниже. Двенадцать точек широкой раскладки уезжают под значки
+// уже на 390, а любое подобранное число ломается на следующем телефоне.
+const MASK_WIDE = 12;
+// Рамка коробки. Коробка считается по border-box, поэтому её рамка
+// съедает высоту у содержимого: без этих двух пикселей внутреннее поле
+// снизу выходило 18 при 20 сверху, а на 320×568 кабинет вылезал в него.
+const BORDER = 2;
+let MASK   = '•'.repeat(phone() ? 5 : MASK_WIDE);
+/* ТОЧКА-РАЗДЕЛИТЕЛЬ «·» СНЯТА СО ВСЕГО ЭКРАНА — решение владельца.
+   Первым попался стык имени и маски: там «·» делил имя и хеш, как в
+   живом приложении («SEROCONNECT VPN · 08839c8»), но хеш у нас закрыт
+   точками — и разделитель перестал делить, начал считаться. Замер
+   чернил: у «·» они шириной 1,75 px против 3,0 у точки маски, то есть
+   он читался недоделанной первой точкой.
+
+   В строках списка он заменён косой чертой — так эти же строки пишет
+   само приложение: VLESS/GRPC/REALITY. Разделитель, которого нет ни в
+   одном другом месте экрана, ни с чем не спутать.
+
+   Просвет перед маской задан в CSS: пробелом нельзя — и строка группы,
+   и поле флексовые, а флекс срезает пробел в конце своего куска
+   (замер: ширина того пробела была ровно 0). */
+const GRP_HEAD = 'SEROCONNECT VPN';
+const NODES = [
+  {name:'узел 1', rows:[['VLESS','/XHTTP/REALITY'], ['VLESS','/GRPC/REALITY'],
+                        ['TROJAN','/GRPC/TLS'],     ['HYSTERIA2','/TLS']]},
+  {name:'узел 2', rows:[['VLESS','/XHTTP/REALITY'], ['VLESS','/GRPC/REALITY'],
+                        ['TROJAN','/GRPC/TLS'],     ['HYSTERIA2','/TLS']]},
+];
+const HEAD  = 'Одна ссылка — восемь путей';
+const LABEL = 'что происходит после оплаты';
+const SAY   = 'в подписке несколько разных способов подключения — если у твоего '
+            + 'провайдера один не проходит, рядом лежат остальные';
+const ST_1 = 'подключиться', ST_3 = 'подключено';
+
+/* Метка «ниже!». Числа принесены с первого экрана как есть: знак ростом
+   24 (две стрелки впритык), ячейка 48 — вдвое выше знака, ступень 4 px,
+   отсюда 12 ступеней; шаг 105 мс выбран владельцем глазом на живой
+   странице, значит проход 1260 мс. Период 7 с. */
+const MARK_GLYPH = '<span class="pxarr2" aria-hidden="true">'
+  + '<span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span>'
+  + '<span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span>'
+  + '</span><span class="mtxt">ниже!</span>';
+const MARK_CELL = 48, MARK_STEP = 105, MARK_PERIOD = 7000;
+const MARK_STEPS = MARK_CELL / 4;
+// ЧЕРНОВИКИ. Владелец хочет, чтобы вместо слова «подключение» при
+// нажатии выпадали разные фразы. Формулировки за ним — эти мои.
+const CONNECTING = ['подключение', 'поднимаем туннель', 'проверяем маршрут',
+                    'ищем короткий путь', 'здороваемся с узлом'];
+
+const E_IN = 'expo.out', E_OUT = 'power3.in', E_MOVE = 'power2.inOut', E_FLY = 'power3.inOut';
+
+/* ── СМАЗ ПОЛЁТА ──────────────────────────────────────────────
+   Смаз считается ИЗ СКОРОСТИ, а не рисуется по времени. Поэтому он
+   сам появляется на разгоне и сам сходит в ноль на обоих концах, где
+   скорость нулевая, — а значит ни взлёт, ни посадка не мылятся, и
+   доводить их руками не приходится.
+
+   Число — сколько пикселей размытия даёт каждый пиксель в миллисекунду.
+   Замер полёта: пик скорости 2,06 px/мс, то есть при 1,5 пик смаза
+   выходит около 3 px. Листается клавишей B, как ход барабана на A. */
+const SMEAR = [0, 1, 1.5, 2.5];      // пик смаза: нет, 2, 3, 5 px
+let smearIx = 1;
+
+/* ── ПРОСВЕТ ПЕРЕД МАСКОЙ В ПОЛЕ ─────────────────────────────
+   Ноль — точная моносетка живого кабинета: точки там продолжают адрес
+   и стоят с тем же шагом, что буквы. Дальше — половина ячейки и целая:
+   маска отрывается от слеша и читается отдельным куском. Листается
+   клавишей M. */
+const SEAM = ['0', '.17ch', '.5ch', '1ch'];
+let seamIx = 0;                      // как в живом кабинете
+const smearNode = document.querySelector('#fly-smear feGaussianBlur');
+
+/* ── ПЕРЕЛЁТ ──────────────────────────────────────────────────
+   Насколько строка проскакивает цель перед посадкой. Было 5 px и
+   читалось как лишнее движение; ноль читается как остановка без тела.
+   Величина вынесена на клавишу O. При нуле полёт кончается одним
+   куском, при остальных — как раньше: перелёт и доводка. */
+const OVER = [0, 2, 3, 5];
+let overIx = 2;
+
+/* ── НАЖАТИЕ ──────────────────────────────────────────────────
+   Было микрокасание: кнопка уходила вниз и тут же возвращалась,
+   105 мс туда и 105 обратно. Настоящее нажатие состоит из трёх
+   частей, и средней у нас не было вовсе:
+
+     ход вниз    90 мс — быстрый, палец тяжелее кнопки
+     ВЫДЕРЖКА   170 мс — палец стоит, не движется ничего
+     отпускание        — с перелётом на 2 px и посадкой
+
+   Выдержка и есть то, чего не хватало: без неё нажатие читается
+   как дрожь, а не как действие. Плюс тело слегка сжимается: 4 px
+   вниз без изменения размера выглядят сдвигом, а не нажимом.
+
+   Отклик системы приходит в КОНЦЕ выдержки, пока палец ещё внизу, —
+   тогда связь «нажал → ответило» видна, а не додумывается. */
+const PRESS = {down:.09, hold:.17, back:.13, settle:.12};
+const PRESS_ANSWER = PRESS.down + PRESS.hold;                 // 260 мс
+function press(t, el, at){
+  const a = at || 0;
+  t.to(el, {y:5, scale:.985, duration:PRESS.down, ease:'power2.out'}, a)
+   .to(el, {y:-2, scale:1.004, duration:PRESS.back, ease:E_IN}, a + PRESS.down + PRESS.hold)
+   .to(el, {y:0, scale:1, duration:PRESS.settle, ease:E_MOVE},
+       a + PRESS.down + PRESS.hold + PRESS.back);
+  return t;
+}
+
+const eyeSVG  = '<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const copySVG = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+const pwSVG   = '<svg class="pw" viewBox="0 0 24 24"><path d="M12 3.5v8.5"/><path d="M6.6 6.9a7.5 7.5 0 1 0 10.8 0"/></svg>';
+
+let ri = 0;
+// Каждый узел — своя группа, и это не оформление: группа обрезается
+// отдельно, поэтому заголовок со счётчиком можно удержать в кадре,
+// когда строки под ним уже не помещаются.
+const listHTML = NODES.map(n =>
+  `<div class="gr">` +
+  `<div class="node">${n.name}<b>${n.rows.length}</b></div>` +
+  n.rows.map(([a, b]) =>
+    `<div class="win"><div class="srow" data-i="${ri++}"><span class="pk"></span>` +
+      `<span class="p">${a}<i>${b}</i></span></div></div>`).join('') +
+  `</div>`).join('');
+
+frame.innerHTML =
+  `<p class="label" id="label">${LABEL}</p>` +
+  `<h2 class="h2" id="h2">${HEAD}</h2>` +
+  `<p class="say" id="say">${SAY}</p>` +
+  `<div class="smark" style="--cell:${MARK_CELL}px">` +
+    `<a class="mwin" href="#" onclick="return false" aria-label="Ниже — продолжение страницы">` +
+      `<span class="mlane" style="animation-duration:${MARK_STEPS * MARK_STEP}ms;` +
+            `animation-timing-function:steps(${MARK_STEPS},jump-start)">` +
+        `<span class="mcell">${MARK_GLYPH}</span>` +
+        `<span class="mcell" aria-hidden="true">${MARK_GLYPH}</span>` +
+      `</span></a></div>` +
+  `<p class="hint">R заново&nbsp;&nbsp;&nbsp; P телефон&nbsp;&nbsp;&nbsp; B смаз&nbsp;&nbsp;&nbsp; O перелёт&nbsp;&nbsp;&nbsp; M просвет у маски&nbsp;&nbsp;&nbsp; кнопку подключения можно нажимать</p>` +
+  `<div class="box" id="box">` +
+    `<div class="cab" id="cab">` +
+      `<div class="ctop"><span class="t">Подключить устройство</span>` +
+        `<span class="seg"><b class="on">ссылка</b><b>QR-код</b></span></div>` +
+      `<div class="steps"><b>1.</b> скопируй ссылку <i>→</i> <b>2.</b> вставь в приложение</div>` +
+      `<div class="field"><span class="url" id="url">` +
+          `<i id="uhead">${URL_HEAD}</i><i id="umask">${MASK}</i></span>` +
+        `<span class="ico eye">${eyeSVG}</span><span class="ico copy">${copySVG}</span></div>` +
+      `<div class="brick cbtn" id="btn">` +
+        `<span class="t" id="lbl1">Скопировать ссылку подписки</span>` +
+        `<span class="t" id="lbl2">Скопировано</span></div>` +
+      `<div class="cbtn2">Какое приложение? →</div>` +
+    `</div>` +
+    `<div class="app" id="app">` +
+      `<div class="grp" id="grp"><i id="ghead">${GRP_HEAD}</i><i id="gmask">${MASK}</i></div>` +
+      // Окно списка. На широком кадре это простой блок и он ничего не
+      // делает; на узком в нём живёт весь запас высоты — см. медиазапрос.
+      `<div class="list">` + listHTML + `</div>` +
+      `<div class="conn" id="conn"><span class="st" id="st">${ST_1}</span>` +
+        // Нижней полосы у этой кнопки нет: брусок с медной полосой — деталь
+        // КАБИНЕТА, а кнопка подключения живёт в приложении. Пусть различаются.
+        `<div class="brick" id="cbtn"><span class="heat" id="heat"></span>${pwSVG}</div></div>` +
+    `</div>` +
+    `<div class="fly-layer" id="flyer"></div>` +
+  `</div>`;
+
+const $ = s => frame.querySelector(s);
+const box = $('#box'), cab = $('#cab'), app = $('#app'), flyer = $('#flyer');
+const url = $('#url'), uhead = $('#uhead'), umask = $('#umask');
+const grp = $('#grp'), gmask = $('#gmask');
+const btn = $('#btn'), lbl1 = $('#lbl1'), lbl2 = $('#lbl2');
+const label = $('#label'), h2 = $('#h2'), say = $('#say');
+const conn = $('#conn'), st = $('#st'), cbtn = $('#cbtn'), heat = $('#heat'), pw = $('.pw');
+const list = $('.list');
+const rows = [...frame.querySelectorAll('.srow')];
+const nodes = [...frame.querySelectorAll('.node')];
+const groups = [...frame.querySelectorAll('.gr')];
+/* Выбранная строка — вторая, но только пока она видна. На самых
+   коротких кадрах в окно попадает полторы строки, и отметка выбора
+   оказалась бы за кромкой: показывать выбор, которого не видно,
+   бессмысленно. Тогда выбирается первая. */
+let PICK = 1, pick = rows[PICK].querySelector('.pk');
+function choosePick(){
+  const fits = i => {
+    const r = rows[i], g = r.closest('.gr');
+    return (r.offsetTop - g.offsetTop) + r.offsetHeight <= g.clientHeight
+        && (g.offsetTop - list.offsetTop) + g.clientHeight <= list.clientHeight + 1;
+  };
+  PICK = 1;
+  while (PICK > 0 && !fits(PICK)) PICK--;
+  pick = rows[PICK].querySelector('.pk');
+}
+
+/* Раскладка считается, а не прибивается. Коробка правой кромкой на
+   94%, высота — по содержимому приложения. Кабинет центрируется в
+   ней по вертикали: он ниже списка, и при верхнем выравнивании под
+   ним зияло бы двести пустых пикселей в первом же кадре сцены. */
+function place(){ tall() ? placeTall() : placeWide(); }
+
+function placeWide(){
+  // Стереть следы узкой раскладки — она могла стоять здесь минуту
+  // назад, до поворота телефона. Ширина коробки и высота приложения
+  // прибиты ею в разметку, и без сброса широкая получила бы её числа.
+  box.style.width = ''; app.style.height = '';
+  for (const e of [label, h2, say]){ e.style.left = ''; e.style.right = ''; }
+  uhead.textContent = URL_HEAD;
+  umask.style.paddingLeft = SEAM[seamIx];
+  applyMask(MASK_WIDE);
+
+  const left = Math.round(frame.clientWidth * .94) - 547;
+  box.style.left = left + 'px';
+
+  /* При «меньше движения» обе панели стоят одна под другой, и вместе
+     они выше кадра: запуск ветки показал коробку, срезанную нижней
+     кромкой ровно на «узле 2», без кнопки подключения вовсе. Кадр,
+     в котором нет развязки, — не кадр. Значит здесь он и не кадр,
+     а страница; ровно то же решение принято на узком. */
+  if (reduce){
+    box.style.height = 'auto';
+    box.style.top    = '70px';
+    label.style.top  = '70px';
+    h2.style.top     = '100px';
+    say.style.top    = (100 + h2.offsetHeight + 34) + 'px';
+    document.body.style.overflow = 'auto';
+    frame.style.height = (70 + box.offsetHeight + 70) + 'px';
+    return;
+  }
+
+  /* Окно списка работает и здесь. Невысокое окно ноутбука (1440×700 —
+     это 1440×~600 после хрома браузера) срезало коробку по нижней
+     кромке вместе с кнопкой подключения: она стоит последней, и
+     теряется первой. Поле кадра сверху и снизу — 70 px, как и было. */
+  const H = frame.clientHeight;
+  const connH = conn.offsetHeight + parseFloat(getComputedStyle(conn).marginTop);
+  // Поля кадра — 70 px, но короткий кадр их отдаёт: телефон в альбоме
+  // (844×390) при полях 70 не вмещает даже кабинет.
+  const M = (H - 140 < cab.offsetHeight + 64) ? 8 : 70;
+  list.style.height = layoutList(H - 2 * M - 64 - grp.offsetHeight - connH) + 'px';
+
+  /* Высота — по БОЛЬШЕЙ из двух панелей. Раньше считалась только по
+     приложению, и когда окно списка ужималось, коробка становилась
+     ниже кабинета: тот центрировался в ней с отрицательным отступом и
+     срезался сверху — замер на 844×390 показал −9 px, то есть кадр
+     начинался с обрезанного заголовка. */
+  const h = Math.max(app.offsetHeight, cab.offsetHeight) + 64 + BORDER;
+  box.style.height = h + 'px';
+  // Нижний предел поля — 8 px; верхний не нужен, коробка центрируется.
+  const top = Math.max(8, Math.round((H - h) / 2));
+  box.style.top = top + 'px';
+  app.style.top = '32px';
+  cab.style.top = Math.round((h - cab.offsetHeight) / 2) + 'px';
+  label.style.top = top + 'px';
+  h2.style.top    = (top + 30) + 'px';
+  say.style.top   = (top + 30 + h2.offsetHeight + 34) + 'px';
+
+  /* Низ метки садится на нижнюю кромку коробки. На первом экране метка
+     стоит по своему правилу — 11 % от низа кадра, — и здесь это давало
+     753…801 при кромке коробки 787: метка висела поперёк линии, ни на
+     чём. Теперь у кадра появляется НИЖНЯЯ несущая горизонталь, которой
+     ему не хватало, и появляется без единого нового предмета: та же
+     метка, только на 14 px выше. Верхнюю линию (верх текста = верх
+     коробки) это не трогает — кадр получает обе. */
+  const mark = frame.querySelector('.smark');
+  if (mark) mark.style.bottom = (H - top - h) + 'px';
+}
+
+/* ── ВЕРТИКАЛЬНЫЙ КАДР ──────────────────────────────────────────
+   Порядок обратный широкому. Там высота коробки диктовалась
+   содержимым, и кадр под неё подстраивался. Здесь диктует КАДР:
+   текст занимает сверху сколько ему нужно, коробка забирает всё
+   остальное до нижнего поля, а окно списка внутри неё принимает
+   на себя разницу между кадрами.
+
+   Числа не константы. Поле кадра равно направляющей текста — той
+   самой, по которой стоят заголовок и фраза (20 px на телефоне,
+   12,5 % выше него), поэтому коробка и текст стоят на одной линии
+   без единого отдельного числа. Просветы считаются от отступа самой
+   коробки: он и есть единица этого кадра. */
+function placeTall(){
+  // Кадр мог быть отпущен в страницу прошлым пересчётом — мерим его
+  // самого, а не то, во что он вырос.
+  frame.style.height = ''; document.body.style.overflow = '';
+  const W = frame.clientWidth, H = frame.clientHeight;
+  const P = parseFloat(getComputedStyle(box).paddingTop);   // 20 или 32
+  const ph = phone();
+
+  /* ОДНА КОЛОНКА на всё: и текст, и коробка. Ширина — не больше 640
+     (содержимое коробки рисовалось на 547; без предела она на 1180
+     разъезжается в полосу под 900), поле по бокам одинаковое, колонка
+     стоит посередине. Иначе выходило то, что поймал замер на 1024:
+     текст до направляющей 12,5 %, коробка до своего предела 640, и
+     правые кромки расходятся на 128 px. Поля кадра: 20/28 на телефоне
+     (поля первого экрана), 48 выше него. */
+  const COL = Math.min(W - 2 * (ph ? 20 : 48), 640);
+  const M   = Math.round((W - COL) / 2);
+  const VT  = ph ? 28 : 48;                                 // поле сверху
+  const VB  = ph ? 20 : 48;                                 // и снизу
+
+  box.style.left  = M + 'px';
+  box.style.width = COL + 'px';
+  for (const e of [label, h2, say]){ e.style.left = M + 'px'; e.style.right = M + 'px'; }
+  /* Голова ссылки на телефоне — без схемы. Замер: с полной головой на
+     360 не остаётся места даже трём точкам маски, а маска обязана быть
+     видна — она летит, и она же означает «ссылка скрыта». Схема здесь
+     наименее содержательная часть строки, ею и жертвуем; ссылка от
+     этого не меняется. Заодно маска перестаёт быть тремя сиротливыми
+     точками: места хватает на все двенадцать, как на широком.
+     Осознанное расхождение с кабинетом, как и медная полоса у кнопок.
+
+     Порядок обязателен: подгонка меряет ПОЛЕ, а поле получает свою
+     ширину строкой выше. Первая версия звала подгонку до раскладки —
+     коробка была ещё 547 px широкая, и «влезали» все двенадцать точек. */
+  uhead.textContent = phone() ? URL_SHORT : URL_HEAD;
+  umask.style.paddingLeft = SEAM[seamIx];
+  fitMask();
+
+  const labelTop = VT;
+  label.style.top = labelTop + 'px';
+  const h2Top = labelTop + P + 4;
+  h2.style.top  = h2Top + 'px';
+  const sayTop  = h2Top + h2.offsetHeight + P - 2;
+  say.style.top = sayTop + 'px';
+
+  const top = sayTop + say.offsetHeight + P + 8;
+  // При «меньше движения» обе панели стоят рядом и коробка растёт по
+  // содержимому — там высоту не назначаем, иначе список обрежется без
+  // единого движения, которое объяснило бы обрез.
+  if (reduce){
+    // Обе панели рядом выше любого кадра. Значит кадр перестаёт быть
+    // кадром и становится страницей — это единственный честный выход,
+    // когда движения нет и обрез списка нечем объяснить.
+    box.style.top = top + 'px';
+    document.body.style.overflow = 'auto';
+    frame.style.height = (top + box.offsetHeight + VB) + 'px';
+    return;
+  }
+
+  /* Высота коробки считается обратным ходом от кромки окна, поэтому
+     кнопка подключения всегда прижата к её низу. */
+  const grpH  = grp.offsetHeight;
+  const connH = conn.offsetHeight + parseFloat(getComputedStyle(conn).marginTop);
+  const PAD   = 2 * P + BORDER;
+  let LH = layoutList((H - top - VB) - PAD - grpH - connH);
+  let h  = PAD + grpH + LH + connH;
+
+  /* Коробка не может быть ниже кабинета — он в ней первый жилец. На
+     узком коротком кадре (390×600 и ниже: браузер со своей полосой,
+     разделённый экран) окно списка садилось на свой пол, коробка
+     выходила 224 px против кабинета в 296, и у кабинета срезало низ
+     вместе с кнопкой копирования. Освободившуюся высоту забирает
+     окно списка — обрез остаётся на середине строки. */
+  const cabH = cab.offsetHeight + PAD;
+  if (h < cabH){
+    LH = layoutList(cabH - PAD - grpH - connH);
+    h  = Math.max(PAD + grpH + LH + connH, cabH);
+  }
+  list.style.height = LH + 'px';
+  /* Излишек, оставшийся от округления окна до половины строки, уходит
+     НАВЕРХ, в просвет между фразой и коробкой: коробка прижата к
+     нижнему полю, потому что кнопка подключения должна доставаться
+     большому пальцу на любом телефоне. Внизу болтаться нечему —
+     воздух собирается в одном месте, между двумя блоками. */
+  // Нижнее поле в 20 px нерушимо — это поле первого экрана, и коробка
+  // стоит на нём. Уступает просвет над коробкой: он сжимается с 28 до
+  // 16, если список влез целиком и коробке нужны эти пиксели.
+  /* ТЕСНЫЙ КАДР. Телефон в альбоме (844×390) не вмещает эту секцию ни
+     одной композицией: заголовок с фразой и коробка со списком и
+     кнопкой требуют около 450 px высоты. Замер показал коробку,
+     свисающую за нижнюю кромку на 273 px, — то есть без кнопки
+     подключения и без половины списка.
+     Решение то же, что при «меньше движения»: кадр перестаёт быть
+     кадром и становится страницей. Прокрутка честнее обрезанной
+     развязки. */
+  let boxTop = Math.max(top - 12, H - VB - h);
+  // Отпускаем в страницу только когда коробка не влезает и без нижнего
+  // поля вовсе. Пока не хватает единиц пикселей, их отдаёт поле —
+  // прокрутка ради 13 px была бы хуже самой тесноты.
+  if (boxTop + h > H){
+    /* Раз кадр всё равно стал страницей — обрезать список незачем:
+       обрез существует ради того, чтобы кнопка подключения осталась
+       в кадре, а здесь она достаётся прокруткой. Показываем целиком. */
+    LH = layoutList(Infinity);
+    list.style.height = LH + 'px';
+    h = Math.max(PAD + grpH + LH + connH, cabH);
+    app.style.height = (h - PAD) + 'px';
+    box.style.height = h + 'px';
+    boxTop = top - 12;
+    document.body.style.overflow = 'auto';
+    frame.style.height = (boxTop + h + VB) + 'px';
+  }
+  box.style.top    = boxTop + 'px';
+  box.style.height = h + 'px';
+  app.style.top    = P + 'px';
+  app.style.height = (h - PAD) + 'px';   // назначается и здесь, и в ветке страницы
+  // Кабинет прижат к ВЕРХУ, а не центрирован. Центровка делит пустоту
+  // коробки на две половины, ни одна из которых ничего не значит; при
+  // верхнем выравнивании вся пустота собирается внизу — ровно там, где
+  // через секунду вырастет список. Пустота становится обещанием.
+  cab.style.top    = P + 'px';
+}
+
+/* ── ОКНО СПИСКА ────────────────────────────────────────────────
+   Сколько списка показывать, когда он не помещается целиком.
+
+   Правило первое: окно кончается СЕРЕДИНОЙ СТРОКИ. Замер на 375×667
+   показал кромку, севшую на заголовок «узел 2» и срезавшую его за 2 px
+   до конца — выходит «дальше ничего нет», ровно обратное тому, что
+   обрез должен сказать. Половина строки за кромкой — единственная
+   форма, которую нельзя прочесть как конец списка. Хвост короче
+   половины строки не обрезается вовсе: он сказал бы «дальше ещё»,
+   когда дальше ничего нет.
+
+   Правило второе: ЗАГОЛОВОК УЗЛА СО СЧЁТЧИКОМ ОСТАЁТСЯ В КАДРЕ ВСЕГДА.
+   Счётчики и есть доказательство «восьми путей» — ради этого они
+   заведены. На коротком телефоне в окно попадал только «узел 1 · 4»,
+   и заголовок экрана обещал восемь там, где список показывал четыре.
+   Поэтому под заголовки ещё не показанных узлов место резервируется
+   заранее, а обрез отдаётся строкам того узла, до которого дошли.
+   Читается: узлов два, в каждом по четыре, список между ними
+   продолжается. ─────────────────────────────────────────────────── */
+function headHeight(g){
+  const n = g.firstElementChild;
+  return n.offsetHeight + parseFloat(getComputedStyle(n).marginTop);
+}
+
+// Высота одной группы, обрезанная серединой строки. Если не влезает
+// даже половина первой строки — остаётся один заголовок.
+function cutInside(g, avail){
+  const rs = [...g.querySelectorAll('.srow')];
+  const half = Math.round(rs[0].offsetHeight / 2);
+  if (g.offsetHeight - avail <= half) return g.offsetHeight;
+  let H = headHeight(g);
+  // offsetTop, а не rect: пересчёт может прийтись на середину сцены,
+  // когда строки сдвинуты трансформом, и rect соврал бы на 52 px.
+  for (const r of rs){
+    const cut = r.offsetTop - g.offsetTop + half;
+    if (cut <= avail) H = cut;
+  }
+  return H;
+}
+
+function layoutList(avail){
+  /* Сбросить назначенные высоты ПЕРЕД замером. У элемента с высотой
+     scrollHeight возвращает большее из содержимого и высоты — и после
+     поворота с широкого кадра на узкий список продолжал мерить широкие
+     464 px вместо своих 424, обрезая себя без причины. */
+  list.style.height = '';
+  groups.forEach(g => g.style.height = '');
+  const full = list.scrollHeight;
+  const half = Math.round(rows[0].offsetHeight / 2);
+  if (full - avail <= half) return full;
+
+  const hdr = groups.map(headHeight);
+  let used = 0, cut = false;
+  for (let i = 0; i < groups.length; i++){
+    if (cut){                                    // дальше — одни заголовки
+      groups[i].style.height = hdr[i] + 'px';
+      used += hdr[i];
+      continue;
+    }
+    // Место под заголовки всех оставшихся узлов резервируется здесь.
+    const reserve = hdr.slice(i + 1).reduce((a, b) => a + b, 0);
+    const room = Math.max(hdr[i], avail - used - reserve);
+    const nat  = groups[i].offsetHeight;
+    if (nat <= room){ used += nat; continue; }
+    const h = cutInside(groups[i], room);
+    groups[i].style.height = h + 'px';
+    used += h; cut = true;
+  }
+  return used;
+}
+
+/* ── МАСКА ПО ЗАМЕРУ ────────────────────────────────────────────
+   В поле остаётся ровно столько места, сколько остаётся; на 375 от
+   пяти точек уже наезжает глаз. Считаем: сколько точек влезает между
+   концом головы и левой кромкой глаза — столько и ставим, но не
+   меньше трёх, иначе маска перестаёт читаться множеством. */
+function applyMask(n){
+  if (n === MASK.length) return;
+  MASK = '•'.repeat(n);
+  umask.textContent = MASK; gmask.textContent = MASK;
+}
+function fitMask(){
+  const eyeL = frame.querySelector('.ico.eye').getBoundingClientRect().left;
+  const g    = document.createRange();
+  g.selectNodeContents(umask);
+  const gb   = g.getBoundingClientRect();
+  const dot  = gb.width / MASK.length;
+  // Считаем от НАЧАЛА САМИХ ТОЧЕК, а не от конца головы: между ними
+  // теперь стоит просвет, и он тоже занимает место.
+  const room = eyeL - 10 - gb.left;
+  applyMask(Math.max(3, Math.min(MASK_WIDE, Math.floor(room / dot))));
+}
+
+/* Всё, что зависит от шрифта, ждёт шрифт. Сцена запускалась раньше
+   его загрузки, и замер это поймал: маска подгонялась по подменному
+   шрифту, а клон полёта уносил в воздух её устаревшую длину. */
+const FONTS = (document.fonts && document.fonts.ready) || Promise.resolve();
+
+// Телефонный вид ставится ДО первой раскладки: он меняет ширину кадра,
+// а от неё зависит всё остальное.
+if (/(^|[#&])phone\b/.test(location.hash)) document.body.classList.add('phoneview');
+
+let tl, ct, connected = false;      // ct — идущее подключение
+
+/* ── ХОД МЕТКИ ─────────────────────────────────────────────────
+   Заводится не по загрузке, а через 2,2 с ПОСЛЕ развязки — правило
+   «не первым» с первого экрана, только главное событие тут другое:
+   там растр даты, здесь «подключено». До этого момента в кадре и так
+   есть чем заняться, а после он замирает навсегда — метка остаётся
+   единственным движением и получает его законно.
+   Заводится один раз за жизнь страницы: повторные нажатия кнопки
+   подключения его не перезапускают. */
+let markTimer = 0, markStarted = false;
+function startMark(){
+  if (markStarted || reduce) return;
+  markStarted = true;
+  const lane = frame.querySelector('.mlane');
+  if (!lane) return;
+  const roll = () => {
+    lane.classList.remove('roll');
+    void lane.offsetWidth;               // перезапуск анимации с начала
+    lane.classList.add('roll');
+  };
+  setTimeout(() => { roll(); markTimer = setInterval(roll, MARK_PERIOD); }, 2200);
+}
+
+function scene(){
+  if (tl) tl.kill();
+  /* Подключение живёт СВОЕЙ дорожкой, не в сцене: кнопка нажимается
+     когда угодно. Значит и убивать её надо отдельно — иначе «сцена
+     заново» посреди подключения оставляет за собой хвост, который
+     через полсекунды дописывает «подключено» поверх нового первого
+     кадра и заливает кнопку нагревом. */
+  if (ct) ct.kill();
+  flyer.innerHTML = '';
+  gsap.set([cab, app, rows, nodes, grp, uhead, umask, lbl1, lbl2, btn, conn, say, pick],
+           {clearProps:'transform,opacity,visibility'});
+  place();
+  choosePick();          // раскладка могла отрезать вторую строку
+
+  gsap.set([app, grp, conn], {autoAlpha:0});
+  gsap.set([rows, nodes], {y:-52, autoAlpha:0});
+  // Сдвиг на 10 px, с которого строка приходит в поле, задаётся В САМОМ
+  // твине, а не заранее: геометрия полёта считается ниже по этим же
+  // буквам, и заготовленный трансформ уводил её ровно на эти 10 px.
+  gsap.set([uhead, umask], {autoAlpha:0, y:0});
+  gsap.set(lbl2, {autoAlpha:0, y:14});
+  gsap.set(heat, {xPercent:-100});
+  gsap.set(say,  {autoAlpha:0, y:8});
+  gsap.set(pick, {scaleY:0});
+  gsap.set(rows[PICK], {backgroundColor:'rgba(255,255,255,0)'});
+  gsap.set(rows[PICK].querySelector('.p'), {color:'#ece7dd'});
+  st.textContent = ST_1; connected = false;
+  gsap.set(pw, {stroke:'#8a8073'});
+
+  tl = gsap.timeline({paused:true});
+
+  // К1 · ссылка приходит в поле. Хвост строки на 45 мс позже головы —
+  // инерция, из-за неё строка читается телом, а не картинкой.
+  // immediateRender:false обязателен: fromTo по умолчанию применяет
+  // начальное состояние СРАЗУ при сборке дорожки, и эти 10 px опять
+  // попадали в замер геометрии полёта, который идёт ниже.
+  tl.fromTo(uhead, {y:10}, {autoAlpha:1, y:0, duration:.42, ease:E_IN, immediateRender:false}, 0.63)
+    .fromTo(umask, {y:10}, {autoAlpha:1, y:0, duration:.42, ease:E_IN, immediateRender:false}, 0.675)
+  ;
+  // К2 · нажатие с выдержкой.
+  press(tl, btn, 1.795);
+  // К3 · отклик — в конце выдержки, пока палец ещё внизу.
+  tl.to(lbl1, {y:-14, autoAlpha:0, duration:.105, ease:E_OUT}, 1.795 + PRESS_ANSWER)
+    .to(lbl2, {y:0,   autoAlpha:1, duration:.21,  ease:E_IN},  1.795 + PRESS_ANSWER + .105);
+
+  /* ── К4 · ПОЛЁТ (FLIP) ────────────────────────────────────────
+     Клон рисуется сразу В ЦЕЛИ, со стилями строки группы, и
+     отбрасывается назад инвертирующим трансформом; анимация
+     кончается на нулевом — посадка попиксельна по построению.
+
+     ПОПРАВКА первая, после «дрыгается дважды»: концы твинов полёта
+     были размазаны на 430 мс — масштаб 3,49, подмена 3,50, маска
+     3,61, посадка 3,92, — и предмет садился в четыре приёма. Сведены
+     в один, запаздывать оставили ровно одно: перелёт по вертикали.
+
+     ПОПРАВКА вторая, после «лишнее перемещение надписи»: снят и он.
+     Замер показал, что строка проходит цель насквозь, уходит на 5 px
+     выше, стоит там 60 мс и возвращается, — а к этому времени она уже
+     не ссылка, а НАЗВАНИЕ ПОДПИСКИ, то есть заголовок, который
+     приехал на своё место. Заголовку перелетать нечего: он не
+     догоняет, он встаёт. Перелёт был выбором ради телесности —
+     телесность держат дуга вбок, смена масштаба и доезжающая маска.
+     Теперь ВСЕ твины полёта кончаются в один момент, 3,605, и там же
+     клон уступает место настоящей строке. */
+  // Начало отсчёта — САМ слой полёта. Раньше здесь стояло «минус 32»,
+  // отступ широкой коробки; на телефоне он 20, и клон садился мимо на
+  // 11 px по вертикали. Замер: посадка 1 px на широком и −4,−11 на
+  // узком — ошибка ровно в разнице отступов.
+  const bb = flyer.getBoundingClientRect(), gb = grp.getBoundingClientRect(),
+        ub = url.getBoundingClientRect();
+  const fly = document.createElement('span');
+  fly.className = 'fly';
+  // Голова и маска берутся из ПОЛЯ, а не из констант: на узком кадре
+  // обе подогнаны замером, и константы унесли бы в воздух другую строку.
+  fly.innerHTML = `<i class="fh1">${uhead.textContent}</i>` +
+                  `<i class="fh2">${GRP_HEAD}</i><i class="fm">${MASK}</i>`;
+  flyer.append(fly);
+  fly.style.left = (gb.left - bb.left) + 'px';
+  fly.style.top  = (gb.top  - bb.top) + 'px';
+  fly.style.height = gb.height + 'px';
+  fly.style.display = 'flex'; fly.style.alignItems = 'center';
+  fly.style.filter = 'none';           // смаз включается скоростью, см. ниже
+  const fh1 = fly.querySelector('.fh1'), fh2 = fly.querySelector('.fh2'), fm = fly.querySelector('.fm');
+  /* Привязка — по БУКВАМ, а не по коробкам вокруг них. Коробки у двух
+     концов полёта разной природы: в поле это строчный span высотой в
+     строку (17 px), в приложении — флекс-строка высотой 48 с текстом
+     по центру. Пока считали по коробкам, один конец обязан был врать:
+     замер показал 15,5 px промаха на посадке и 15 px на взлёте — то
+     самое «лишнее перемещение надписи». Буквы меряются диапазоном
+     (Range): он не зависит от того, во что они обёрнуты. */
+  const glyph = e => { const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect(); };
+  const ug = glyph(uhead), gmg = glyph(gmask), umg = glyph(umask);
+  const gmx = gmg.left - gb.left;
+  const umx = umg.left - ug.left;
+  fm.style.left = gmx + 'px';
+
+  /* ── КЛОН РОЖДАЕТСЯ КОПИЕЙ ИСТОЧНИКА ────────────────────────
+     Он собирался по стилю ЦЕЛИ и подменял собой поле мгновенно. Замер
+     кадра подмены: строка разом белела (#a59a89 → #ece7dd) и
+     растягивалась на 20,6 px, потому что несла кегль и трекинг строки
+     группы, а не поля. Хвост со слешем при этом наезжал на маску —
+     голова кончалась на 1493,59 при точках, начинающихся с 1477.
+     Прежние проверки сравнивали левые края и молчали.
+
+     Теперь клон в момент рождения неотличим от того, что подменяет, а
+     к посадке — от того, чем становится: кегль, трекинг и цвет едут
+     вместе с ним. Масштабирования нет вовсе — оно и было причиной
+     несовпадения: 13 px, растянутые до 14, это не 14 px. */
+  const gf  = parseFloat(getComputedStyle(grp).fontSize);
+  const uf  = parseFloat(getComputedStyle(url).fontSize);
+  const gls = parseFloat(getComputedStyle(grp).letterSpacing) || 0;
+  const uls = parseFloat(getComputedStyle(url).letterSpacing) || 0;
+  const gcol = getComputedStyle(grp).color, ucol = getComputedStyle(url).color;
+  fly.style.fontSize = uf + 'px';
+  const track = {v: uls};
+  fly.style.letterSpacing = uls + 'px';
+  fly.style.color = ucol;
+  const dx = ug.left - gb.left;
+  // Клон центрирует текст в своей коробке, поэтому вертикаль сводится
+  // по ЦЕНТРАМ: центр коробки — он же начало отсчёта масштаба
+  // (origin 0 50%), и масштаб его не двигает.
+  const dy = (ug.top + ug.height / 2) - (gb.top + gb.height / 2);
+  const SWING = tall() ? 20 : 34;                     // вынос дуги вбок
+  gsap.set(fly, {x:dx, y:dy, autoAlpha:0});
+  gsap.set(fh2, {autoAlpha:0});
+  /* Маска стоит там же, где в поле, и переезжает на своё место в
+     строке группы вместе с полётом. Делить на масштаб больше не нужно:
+     масштабирования нет, всё в собственных пикселях клона. */
+  fm.style.left = umx + 'px';
+  gsap.set(fm, {x:0});
+
+  /* ── СМАЗ ─────────────────────────────────────────────────────
+     Размытие берётся из скорости самого клона, кадр за кадром: путь,
+     пройденный за миллисекунду, умножается на коэффициент. Ни одно
+     значение не задано по времени, поэтому смаз не нужно гасить на
+     концах — там скорость нулевая, и он сходит сам.
+
+     Время берётся у ДОРОЖКИ, а не у часов: тогда счёт верен и при
+     покадровой проверке, когда сцену листают вручную. Квантование до
+     полпикселя и снятие фильтра ниже 0,3 — приём с первого экрана:
+     фильтр, который не виден, всё равно стоит кадру растеризации. */
+  let smY = 0, smX = 0, smT = 0, smQ = -1;
+  const smear = () => {
+    const k = SMEAR[smearIx];
+    const t = tl.time(), y = gsap.getProperty(fly, 'y'), x = gsap.getProperty(fly, 'x');
+    const dt = (t - smT) * 1000;
+    if (dt > 0 && k){
+      const q  = Math.round(Math.min(24, Math.abs(y - smY) / dt * k) * 2) / 2;
+      const qx = Math.round(Math.min(24, Math.abs(x - smX) / dt * k) * 2) / 2;
+      if (q !== smQ){ smearNode.setAttribute('stdDeviation', qx + ' ' + q); smQ = q; }
+      const f = q > .3 ? 'url(#fly-smear)' : 'none';
+      if (fly.style.filter !== f) fly.style.filter = f;
+    }
+    smY = y; smX = x; smT = t;
+  };
+  const smearOff = () => { fly.style.filter = 'none'; smQ = -1; };
+
+  const over = OVER[overIx];
+  // Конец полёта: без перелёта всё кончается одним куском, с перелётом
+  // доводка запаздывает — то самое «догоняющее движение», выбранное, а
+  // не полученное само из твинов разной длины.
+  const LAND = over ? 3.815 : 3.605;
+
+  tl.set(url, {autoAlpha:0}, 2.975)
+    .set(fly, {autoAlpha:1}, 2.975)
+    .to(fly, {y:dy + 6, duration:.105, ease:E_MOVE}, 2.975)          // замах
+    // полёт: вертикаль и горизонталь — два твина одного тела с разными
+    // кривыми; из их расхождения рождается дуга. Прямая вертикаль
+    // читалась бы как перемотка лентой, а лента отсюда выброшена.
+    .to(fly, {y:-over, duration:.525, ease:E_FLY, onUpdate:smear}, 3.08)
+    // Вынос дуги вбок: на узком кадре весь перелёт по горизонтали —
+    // 17 px, и вынос в 34 уводил бы клон вдвое дальше, чем он летит.
+    // Последний ключевой кадр — НОЛЬ, то есть цель. Раньше здесь стояло
+    // dx − SWING/2, и на широком кадре это сходилось случайно: dx равен
+    // 17 (отступ поля 16 плюс рамка), половина выноса — тоже 17. На
+    // узком вынос другой, и клон садился мимо на 7 px. Посадка обязана
+    // быть нулём по построению, а не по совпадению двух чисел.
+    .to(fly, {keyframes:{x:[dx, dx - SWING, 0]}, duration:.525, ease:E_MOVE}, 3.08)
+    // Кегль и трекинг едут вместе с телом: набор всё время настоящий,
+    // а не растянутый, поэтому ни один конец не «прыгает» в свой набор.
+    .to(fm,  {x:gmx - umx, duration:.12, ease:E_MOVE}, 3.30)
+    /* ── ОКНО СМЕНЫ ЛИЧНОСТИ, 3,395 → 3,605 ────────────────────
+       ВСЁ, чем клон отличается от поля, меняется здесь и только здесь:
+       слово, цвет, трекинг, кегль и место маски. До этого окна клон —
+       точная копия поля и просто летит.
+
+       Раньше маска ехала к своему новому месту весь полёт, а адрес всё
+       это время был цел: замер показал, что к 3,42 точки стояли на
+       47,5 px ВНУТРИ адреса при его полной непрозрачности. Плюс к
+       тому адрес за полёт не сужался, а рос — 184 → 190, — потому что
+       шаг у Geist Mono квантуется по целым пикселям (12→7, 13→8,
+       14→8, 26→16) и уменьшение кегля ширину не меняет вовсе, а
+       трекинг цели её прибавляет. Голова ехала вправо, маска влево.
+
+       Окно стоит НА ПИКЕ СКОРОСТИ, а не в конце полёта. Первая сборка
+       ставила его на 3,395, когда строка уже почти встала, — и два
+       разной длины текста наложились друг на друга видимой кашей:
+       «SEROCONNECT VPN» поверх «…nect.ru/», да ещё точки поперёк.
+       На 3,36 предмет идёт 72 px за кадр и смазан на 2 px: глаз там
+       деталей не разбирает, и подмена проходит незамеченной. Приём
+       старый — прятать смену под самым быстрым движением.
+       К посадке прилетает уже строка группы, и садится она чисто. */
+    .to(fh1, {autoAlpha:0, duration:.12, ease:E_MOVE}, 3.30)
+    .to(fh2, {autoAlpha:1, duration:.12, ease:E_MOVE}, 3.30)
+    .to(fly, {color:gcol, duration:.12, ease:E_MOVE}, 3.30)
+    /* Трекинг ведётся через посредника, а не свойством напрямую: твин
+       по `letterSpacing` доводил его до `normal`, и на посадке строка
+       выходила на один трекинг уже цели — замер показал −3,91 px на
+       пятнадцати знаках, ровно 0,26 на знак. */
+    .to(track, {v:gls, duration:.12, ease:E_MOVE,
+                onUpdate:() => { fly.style.letterSpacing = track.v + 'px'; }}, 3.30)
+    /* Кегль переключается разом, посередине окна, где оба слова стоят
+       примерно на половине прозрачности. Плавно он всё равно не идёт —
+       замер: GSAP пишет 14px, потом 13px, промежуточных нет ни одного;
+       да и менять ему нечего — шаг шрифта на 13 и 14 px одинаков. */
+    .set(fly, {fontSize:gf + 'px'}, 3.36);
+  if (over) tl.to(fly, {y:0, duration:.21, ease:E_IN, onUpdate:smear}, 3.605);
+  tl.call(smearOff, null, LAND)
+    .set(grp, {autoAlpha:1}, LAND)
+    .set(fly, {autoAlpha:0}, LAND);
+
+  // Кабинет уходит ОДНИМ куском и успевает уйти до посадки: в главный
+  // момент в кадре движется только герой.
+  tl.to(cab, {y:34, autoAlpha:0, duration:.42, ease:E_OUT}, 3.185)
+    .set(app, {autoAlpha:1}, 3.185)
+  // Список: заголовки узлов и строки одной волной сверху вниз.
+    .to([nodes[0], ...rows.slice(0, 4), nodes[1], ...rows.slice(4)],
+        {y:0, autoAlpha:1, duration:.315, ease:E_IN, stagger:.06}, 3.90)
+    .to(say, {autoAlpha:1, y:0, duration:.42, ease:E_IN}, 4.60)
+  // Выбор строки. В приложении одна строка действительно выбрана, но
+  // в момент, который рисует кадр, выбора ещё не было — значит его
+  // надо ПОКАЗАТЬ, а не нарисовать заранее.
+    .to(pick, {scaleY:1, duration:.24, ease:E_IN}, 5.30)
+    .to(rows[PICK], {backgroundColor:'rgba(255,255,255,.045)', duration:.24, ease:E_IN}, 5.30)
+    .to(rows[PICK].querySelector('.p'), {color:'#efd4b0', duration:.24, ease:E_IN}, 5.30)
+  // Кнопка оживает — теперь есть что подключать.
+    .to(conn, {autoAlpha:1, duration:.315, ease:E_IN}, 5.62);
+
+  return tl;
+}
+
+/* ── ПОДКЛЮЧЕНИЕ ──────────────────────────────────────────────
+   Заливка идёт по всей кнопке и НЕРОВНО: рывок — залипание — рывок.
+   Это не украшение. Ровная шкала изображает известный заранее объём
+   работы — так грузится файл. А подключение это переговоры, объём
+   которых неизвестен, и идут они скачками. Ровный ход был бы враньём
+   о природе самого ожидания.
+   Спиннера нет намеренно: он читается как «страница грузится», а
+   ждут здесь не страницу. */
+// Доля прохода превращается в сдвиг слоя: 0 → −100%, 1 → 0.
+const XP = v => -100 + v * 100;
+const FILL = [                      // доля · длительность · характер
+  {v:.34, d:.22, e:'power2.out'},   // рывок: первый ответ приходит быстро
+  {v:.37, d:.16, e:'none'},         // залипание
+  {v:.58, d:.18, e:'power1.in'},
+  {v:.62, d:.20, e:'none'},         // второе залипание, длиннее первого
+  {v:.93, d:.24, e:'power2.out'},
+  {v:1,   d:.26, e:'power2.inOut'}, // доводка
+];
+function doConnect(){
+  if (gsap.isTweening(heat) || gsap.isTweening(cbtn)) return;
+  const t = ct = gsap.timeline();
+  press(t, cbtn, 0);
+  if (connected){                       // повторное нажатие — отключаемся
+    t.call(() => { st.textContent = ST_1; connected = false; }, null, PRESS_ANSWER)
+     .to(pw,   {stroke:'#8a8073', duration:.21, ease:E_MOVE}, PRESS_ANSWER)
+     .to(heat, {xPercent:-100, duration:.34, ease:E_OUT}, PRESS_ANSWER);
+    return;
+  }
+  // Нагрев трогается в конце выдержки: ответ приходит, пока палец внизу.
+  t.call(() => { st.textContent = CONNECTING[(Math.random() * CONNECTING.length) | 0]; },
+         null, PRESS_ANSWER)
+   .fromTo(heat, {xPercent:-100},
+           {keyframes: FILL.map(k => ({xPercent:XP(k.v), duration:k.d, ease:k.e}))},
+           PRESS_ANSWER)
+   .call(() => { st.textContent = ST_3; connected = true; startMark(); })
+   .to(pw, {stroke:'#d4a574', duration:.21, ease:E_IN}, '<');
+}
+cbtn.addEventListener('click', doConnect);
+
+function play(){ FONTS.then(_play); }
+function _play(){
+  const s = scene();
+  // Сцена доигрывает до подключения САМА: на витрине почти никто
+  // ничего не трогает, и без этого развязку не увидел бы никто.
+  // Но кнопка остаётся живой — нажимать можно сколько угодно.
+  s.call(() => doConnect(), null, 6.62);
+  s.play(0);
+}
+
+function init(){
+if (reduce){
+  // При «меньше движения» сцены нет: обе панели стоят рядом готовыми.
+  gsap.set([cab, app, grp, conn], {autoAlpha:1, clearProps:'transform'});
+  gsap.set([rows, nodes, say, uhead, umask, lbl1], {autoAlpha:1, y:0});
+  gsap.set([lbl2], {autoAlpha:0});
+  gsap.set(pick, {scaleY:1});
+  gsap.set(heat, {xPercent:0});
+  choosePick();
+  gsap.set(rows[PICK], {backgroundColor:'rgba(255,255,255,.045)'});
+  // Кнопка нагрета целиком — значит и подпись, и знак должны говорить
+  // «подключено». Запуск ветки поймал противоречие: нагрев стоял на
+  // единице, а над ним висело «подключиться».
+  st.textContent = ST_3; connected = true;
+  gsap.set(pw, {stroke:'#d4a574'});
+  cab.style.position = 'static'; app.style.position = 'static';
+  app.style.marginTop = '24px'; box.style.height = 'auto';
+  place();
+} else {
+  place();
+  // На склейке страниц сцену заводит родитель, когда экран попал в
+  // поле зрения: иначе она отыграет, пока смотрят ещё на первый экран.
+  // Одиночный файл заводит себя сам.
+  if (/[?&]wait=1/.test(location.search)) scene();   // собрать, но не пускать
+  else _play();
+}
+}
+FONTS.then(() => { place(); init(); });
+window.__play = play;                                // родитель зовёт когда угодно
+
+addEventListener('resize', place);
+/* P — телефонный вид. Кадр меняет размер, поэтому сцена собирается
+   заново: геометрия полёта считается при сборке, а не на ходу. Это
+   же и удобнее — переключился и сразу видишь всю сцену. */
+function togglePhone(){
+  const on = document.body.classList.toggle('phoneview');
+  // Метка в адресе — как на первом экране: сборка перезагружается по
+  // сто раз за вечер, и каждый раз возвращаться клавишей утомительно.
+  history.replaceState(null, '', location.pathname + location.search + (on ? '#phone' : ''));
+  play();
+}
+addEventListener('keydown', e => {
+  if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'r' || k === 'к') play();
+  if (k === 'p' || k === 'з') togglePhone();   // з — та же клавиша в ЙЦУКЕН
+  if (k === 'b' || k === 'и'){ smearIx = (smearIx + 1) % SMEAR.length; play(); }
+  if (k === 'o' || k === 'щ'){ overIx  = (overIx  + 1) % OVER.length;  play(); }
+  if (k === 'm' || k === 'ь'){ seamIx  = (seamIx  + 1) % SEAM.length;  play(); }
+});
+window.__pick = () => PICK;                          // для замера
+window.__smear = v => { if (v !== undefined) smearIx = v; return SMEAR[smearIx]; };
+window.__over  = v => { if (v !== undefined) overIx  = v; return OVER[overIx]; };
+window.__seam  = v => { if (v !== undefined){ seamIx = v; place(); } return SEAM[seamIx]; };
+// pause(t) по умолчанию ГАСИТ колбэки, и покадровая проверка не
+// видела бы ни смаза, ни его снятия. Второй аргумент их возвращает.
+window.__t = t => { (tl || scene()).pause(t, false); return t; };
+window.__dur = () => (tl || scene()).duration();
+})();
+</script>
