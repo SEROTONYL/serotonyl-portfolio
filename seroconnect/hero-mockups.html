@@ -512,6 +512,13 @@
   }
   .stage.narrow .plist-cap{ margin-bottom:20px; font-size:14px }
 
+  /* Сноска «цены предложенные · сегодня в каталоге другие» снята
+     19 августа по решению владельца. Она была оговоркой к ценам,
+     которые всё равно подлежат замене на настоящие три тарифа, и
+     держала под прейскурантом 46 px на узком кадре. Без неё
+     прейскурант опускается, а вместе с ним подпись к сделке — и
+     верхней цепочке достаётся ровно столько, сколько ей не хватало.
+     Стиль оставлен: строка вернётся, если понадобится оговорка. */
   .plist-note{
     margin:22px 0 0; text-align:right;
     font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837a70;
@@ -942,6 +949,10 @@ let variant = 0, phone = false, touched = false;
 let rafId = 0, counterGen = 0, lastDigits = 0;
 let relayout = () => {};          // ставится в build, зовётся по ресайзу
 let fitHeight = () => {};         // подгонка по высоте, ставится там же
+// Разрыв перед репликой. Больше, чем между своими строками: это чужая
+// речь. На низких кадрах он — последнее, что можно отдать после кегля
+// числа, и отдаётся не ниже 20 px, иначе чужая речь склеится со своей.
+let probeGap = 34;
 const timers = new Set();
 
 function setVBlur(p, b){
@@ -1278,7 +1289,6 @@ function build(){
               `<span class="term">${p.term}</span>` +
               `<span class="amt"><b>${p.amt}</b><i>${p.unit}</i></span>` +
             `</a>`).join('') +
-          `<p class="plist-note">цены предложенные · сегодня в каталоге другие</p>` +
         `</div>`) +
     // Метка идёт последней и в разметке: она про то, что БУДЕТ ниже, и
     // скринридер должен встретить её после всего, что есть здесь.
@@ -1353,7 +1363,7 @@ function build(){
         // Реплика — за фразой, той же цепочкой. Разрыв больше, чем
         // между своими строками: это чужая речь.
         const pr = hero.querySelector('.probe'), sb2 = sayEl && sayEl.getBoundingClientRect();
-        if (pr && sb2 && sb2.height) pr.style.top = Math.round(sb2.bottom - fb.top + 34) + 'px';
+        if (pr && sb2 && sb2.height) pr.style.top = Math.round(sb2.bottom - fb.top + probeGap) + 'px';
 
         /* Подпись к сделке цепляется за ПРЕЙСКУРАНТ, а не за проценты
            кадра. Стояла на 50 % высоты, и это сходилось только на
@@ -1392,18 +1402,26 @@ function build(){
   fitHeight = function(){
     const num = hero.querySelector('.num'), pl = hero.querySelector('.plist');
     if (!num) return;
-    if (!narrow || !pl){ num.style.fontSize = ''; return; }
+    probeGap = 34;
+    if (!narrow || !pl){ num.style.fontSize = ''; relayout(); return; }
     num.style.fontSize = '';
     relayout();
     const tail = () => {
       const els = ['.say', '.probe'].map(s => hero.querySelector(s)).filter(Boolean);
       return els.length ? Math.max(...els.map(e => e.getBoundingClientRect().bottom)) : 0;
     };
-    const GAP = 22, MIN = 96;
+    const GAP = 22, MIN = 96, GAP_MIN = 20;
+    const тесно = () => tail() > pl.getBoundingClientRect().top - GAP;
     let size = parseFloat(getComputedStyle(num).fontSize) || 0, guard = 0;
-    while (guard++ < 30 && size > MIN && tail() > pl.getBoundingClientRect().top - GAP){
+    while (guard++ < 30 && size > MIN && тесно()){
       size = Math.max(MIN, size - 6);
       num.style.fontSize = size + 'px';
+      relayout();
+    }
+    // Кегль на полу, а всё ещё тесно — отдаёт разрыв перед репликой.
+    guard = 0;
+    while (guard++ < 10 && probeGap > GAP_MIN && тесно()){
+      probeGap = Math.max(GAP_MIN, probeGap - 2);
       relayout();
     }
   }
