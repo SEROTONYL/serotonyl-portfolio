@@ -20,7 +20,15 @@
 html{scroll-behavior:smooth}
 html,body{margin:0;height:100%;background:#0a0606}
 body{scroll-snap-type:y proximity}
-.sec{position:relative;width:100%;height:100vh;scroll-snap-align:start}
+/* Высота секции — `svh`, а не `vh`. На телефоне `vh` считается по экрану
+   БЕЗ адресной строки: секция выходит выше видимой области, и низ уходит
+   под кромку — у второго экрана это кнопка подключения, то есть развязка.
+   `svh` — высота при показанной строке, наименьшая из возможных: не режет
+   ни в одном её состоянии. Когда строка прячется, снизу проглядывает
+   полоска следующей секции — это честнее обрезанного низа.
+   `dvh` не годится: он меняется, пока строка уезжает, и кадр пересчитывает
+   раскладку прямо посреди сцены. */
+.sec{position:relative;width:100%;height:100vh;height:100svh;scroll-snap-align:start}
 .sec iframe{display:block;width:100%;height:100%;border:0}
 /* Тонкий стык, чтобы тёмные секции не читались как одна длинная. */
 .sec + .sec::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
