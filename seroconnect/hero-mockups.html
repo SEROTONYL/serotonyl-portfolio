@@ -941,6 +941,7 @@ function startMark(){
 let variant = 0, phone = false, touched = false;
 let rafId = 0, counterGen = 0, lastDigits = 0;
 let relayout = () => {};          // ставится в build, зовётся по ресайзу
+let fitHeight = () => {};         // подгонка по высоте, ставится там же
 const timers = new Set();
 
 function setVBlur(p, b){
@@ -1353,6 +1354,18 @@ function build(){
         // между своими строками: это чужая речь.
         const pr = hero.querySelector('.probe'), sb2 = sayEl && sayEl.getBoundingClientRect();
         if (pr && sb2 && sb2.height) pr.style.top = Math.round(sb2.bottom - fb.top + 34) + 'px';
+
+        /* Подпись к сделке цепляется за ПРЕЙСКУРАНТ, а не за проценты
+           кадра. Стояла на 50 % высоты, и это сходилось только на
+           высоком телефоне: замер по пяти высотам показал, что уже на
+           750 она оказывается ВНУТРИ прейскуранта, а на 650 — на 76 px
+           внутри. Смысл строки — подпись к тому, что под ней, значит и
+           место у неё от того, что под ней. */
+        const jn = hero.querySelector('.join'), pls = hero.querySelector('.plist');
+        if (jn && pls){
+          const pt = pls.getBoundingClientRect().top - fb.top;
+          jn.style.top = Math.round(pt - (jn.getBoundingClientRect().height || 14) - 22) + 'px';
+        }
       }
       else {
         // Отсчёт идёт от ПАДДИНГ-бокса предка, поэтому отступы .hero сюда
@@ -1363,7 +1376,39 @@ function build(){
       }
     }
   };
-  requestAnimationFrame(relayout);
+  /* ── ПОДГОНКА ПО ВЫСОТЕ, только узкий кадр ─────────────────────
+     Верхняя цепочка — число, дата, фраза, реплика — висит от 11 %
+     сверху и почти не зависит от высоты кадра; прейскурант прибит к
+     низу. Ниже ~800 они встречаются: замер дал наложение 27 px на
+     667 и 47 на 650. Ломалось это на любом телефоне ростом 667 —
+     iPhone SE и 8 — и без всякой склейки; склейка с `100vh` дефект
+     прятала, выдавая кадру 844 вместо настоящих 667.
+
+     Уступает ЧИСЛО: оно самое крупное и единственное, чей кегль можно
+     отдать без потери содержания. Ниже 96 px не опускаемся — там оно
+     перестаёт быть героем кадра. Если и этого мало, наложение
+     остаётся: значит содержимого больше, чем высоты, и решать это
+     надо составом, а не кеглем. */
+  fitHeight = function(){
+    const num = hero.querySelector('.num'), pl = hero.querySelector('.plist');
+    if (!num) return;
+    if (!narrow || !pl){ num.style.fontSize = ''; return; }
+    num.style.fontSize = '';
+    relayout();
+    const tail = () => {
+      const els = ['.say', '.probe'].map(s => hero.querySelector(s)).filter(Boolean);
+      return els.length ? Math.max(...els.map(e => e.getBoundingClientRect().bottom)) : 0;
+    };
+    const GAP = 22, MIN = 96;
+    let size = parseFloat(getComputedStyle(num).fontSize) || 0, guard = 0;
+    while (guard++ < 30 && size > MIN && tail() > pl.getBoundingClientRect().top - GAP){
+      size = Math.max(MIN, size - 6);
+      num.style.fontSize = size + 'px';
+      relayout();
+    }
+  }
+
+  requestAnimationFrame(() => { relayout(); fitHeight(); });
 
   runCounter(n);
 
@@ -1373,7 +1418,7 @@ function build(){
    считается на подстановке, а потом строки перевёрстываются. Дата на
    узком привязана к низу фразы — без этого пересчёта её зазор уезжал
    ровно на одну строку (46 px вместо 22) на числах 7 и 112. */
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => relayout());
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { relayout(); fitHeight(); });
 
 /* ── Барабан в кнопке шапки ──────────────────────────────────
    Каждая буква едет в собственном окне. Промежуточные глифы берутся
@@ -1627,7 +1672,7 @@ addEventListener('keydown', e => {
 let rt;
 addEventListener('resize', () => {
   clearTimeout(rt);
-  rt = setTimeout(() => { if (measureNarrow()) build(); else relayout(); }, 120);
+  rt = setTimeout(() => { if (measureNarrow()) build(); else { relayout(); fitHeight(); } }, 120);
 });
 
 // Регресс, внесённый при переписывании счётчика: правка варианта прямо
