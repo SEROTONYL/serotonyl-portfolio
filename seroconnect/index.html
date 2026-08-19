@@ -88,6 +88,45 @@ document.getElementById('s2').addEventListener('load', () => setTimeout(fitSecon
 addEventListener('resize', () => setTimeout(fitSecond, 60));
 setTimeout(fitSecond, 300);
 
+/* ── ДОВОДКА К КНОПКЕ ───────────────────────────────────────────
+   Секция выше окна, поэтому на невысоком телефоне кнопка подключения
+   стоит за нижней кромкой: развязку сцены — «подключено» — человек не
+   увидит, если не докрутит. В момент, когда кнопка появляется (экран
+   сообщает об этом сам), страница мягко доводится ровно настолько,
+   чтобы кнопка вошла в кадр с полем в 24 px. Не больше: это доводка,
+   а не перелистывание.
+
+   ЛЮБОЕ действие человека отменяет её навсегда — приём взят с первого
+   экрана дословно. Автоматика, спорящая с рукой, хуже её отсутствия. */
+let рукой = false;
+/* Слежка вешается и на страницу, и ВНУТРЬ обоих кадров. Замер поймал:
+   колесо крутится над кадром, событие достаётся его документу и до
+   родителя не доходит вовсе — отмена молча не срабатывала. */
+function следитьЗаРукой(doc){
+  if (!doc) return;
+  ['pointerdown','touchstart','wheel','keydown'].forEach(ev =>
+    doc.addEventListener(ev, () => { рукой = true; }, {passive:true}));
+}
+следитьЗаРукой(document);
+for (const id of ['s1','s2']){
+  const f = document.getElementById(id);
+  const внутрь = () => { try { следитьЗаРукой(f.contentDocument); } catch (err) {} };
+  f.addEventListener('load', внутрь);
+  внутрь();
+}
+
+function доводка(){
+  if (рукой) return;
+  const f = document.getElementById('s2');
+  try {
+    const cb = f.contentDocument.querySelector('#cbtn');
+    if (!cb) return;
+    const низ = f.getBoundingClientRect().top + cb.getBoundingClientRect().bottom;
+    const нужно = Math.round(низ - innerHeight + 24);
+    if (нужно > 8) scrollBy({top: нужно, behavior: 'smooth'});
+  } catch (err) {}
+}
+
 /* ── Сцена второго экрана ───────────────────────────────────────
    Заводится, когда экран попал в поле зрения, и заводится ЗАНОВО
    при каждом возвращении — здесь это не витрина, а смотровая: если
@@ -101,7 +140,10 @@ new IntersectionObserver(es => {
       inside = true;
       // Задержка в 400 мс — та же, что принята в раскадровке: сцена не
       // должна трогаться в тот самый кадр, когда экран показался.
-      timer = setTimeout(() => { try { f2.contentWindow.__play(); } catch(err){} }, 400);
+      timer = setTimeout(() => { try {
+        f2.contentWindow.__onConn(доводка);
+        f2.contentWindow.__play();
+      } catch(err){} }, 400);
     } else if (!e.isIntersecting && inside){
       inside = false;
       clearTimeout(timer);

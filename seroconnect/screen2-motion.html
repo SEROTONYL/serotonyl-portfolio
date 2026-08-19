@@ -942,6 +942,7 @@ const FONTS = (document.fonts && document.fonts.ready) || Promise.resolve();
 if (/(^|[#&])phone\b/.test(location.hash)) document.body.classList.add('phoneview');
 
 let needed = 0;                    // высота, при которой список цел
+let onConn = null;                 // кому сообщить о появлении кнопки
 let tl, connected = false;
 /* Дорожек подключения может быть больше одной: кнопка нажимается когда
    угодно, а при покадровой проверке перемотка в конец сама запускает
@@ -1210,7 +1211,12 @@ function scene(){
     .to(rows[PICK], {backgroundColor:'rgba(255,255,255,.045)', duration:.24, ease:E_IN}, 5.30)
     .to(rows[PICK].querySelector('.p'), {color:'#efd4b0', duration:.24, ease:E_IN}, 5.30)
   // Кнопка оживает — теперь есть что подключать.
-    .to(conn, {autoAlpha:1, duration:.315, ease:E_IN}, 5.62);
+    .to(conn, {autoAlpha:1, duration:.315, ease:E_IN}, 5.62)
+  /* Об этом моменте экран сообщает наружу. Он же — единственное место,
+     где такое сообщение осмысленно: до него подключать нечего, после
+     него начинается развязка. Что с этим делать, решает тот, кто
+     вложил кадр в страницу; сам кадр никуда не скроллит. */
+    .call(() => { if (typeof onConn === 'function') onConn(); }, null, 5.62 + .315);
 
   return tl;
 }
@@ -1320,6 +1326,7 @@ addEventListener('keydown', e => {
 /* Сколько высоты просит экран, чтобы показать список целиком. Ноль —
    когда спрашивать нечего: широкая композиция вмещает его всегда. */
 window.__needed = () => (tall() ? Math.ceil(needed) : 0);
+window.__onConn = fn => { onConn = fn; };
 window.__pick = () => PICK;                          // для замера
 window.__smear = v => { if (v !== undefined) smearIx = v; return SMEAR[smearIx]; };
 window.__over  = v => { if (v !== undefined) overIx  = v; return OVER[overIx]; };
