@@ -573,13 +573,17 @@ const groups = [...frame.querySelectorAll('.gr')];
    бессмысленно. Тогда выбирается первая. */
 let PICK = 1, pick = rows[PICK].querySelector('.pk');
 function choosePick(){
-  const fits = i => {
-    const r = rows[i], g = r.closest('.gr');
-    return (r.offsetTop - g.offsetTop) + r.offsetHeight <= g.clientHeight
-        && (g.offsetTop - list.offsetTop) + g.clientHeight <= list.clientHeight + 1;
+  /* Выбранная — ВТОРАЯ из тех, что видны целиком. Вторая, а не первая:
+     отметка у самой кромки читалась бы частью кромки. Считается от
+     видимого окна, а не от начала списка: окно теперь стоит на границе
+     узлов, и первые строки могут быть выше него. */
+  const видна = i => {
+    const r = rows[i];
+    const t = r.offsetTop - list.offsetTop - list.scrollTop;
+    return t >= -0.5 && t + r.offsetHeight <= list.clientHeight + 0.5;
   };
-  PICK = 1;
-  while (PICK > 0 && !fits(PICK)) PICK--;
+  const целые = rows.map((_, i) => i).filter(видна);
+  PICK = целые.length > 1 ? целые[1] : (целые[0] !== undefined ? целые[0] : 0);
   pick = rows[PICK].querySelector('.pk');
 }
 
@@ -831,35 +835,74 @@ function cutInside(g, avail){
   return H;
 }
 
+/* ── ОКНО ПОСЕРЕДИНЕ ────────────────────────────────────────────
+   Когда список не влезает, окно показывает не начало, а ГРАНИЦУ УЗЛОВ.
+   Причина замерена: на 390×700 окно 248 px, узел 1 целиком стоит 212, и
+   заголовок второго добирает ровно до 248 — первый узел обслуживался
+   жадно, второму доставалась одна вывеска. Кадр показывал один узел там,
+   где заголовок обещает два.
+
+   Резать окно на доли было нельзя: две строки из четырёх, а следом сразу
+   второй узел — это список, которого не существует, никакая прокрутка
+   так не выглядит. Поэтому окно не делится, а СДВИГАЕТСЯ: видно конец
+   первого узла, заголовок второго и начало второго — ровно то, что
+   увидел бы человек, докрутивший до границы.
+
+   ОБЕ КРОМКИ РЕЖУТ СТРОКУ ПОПОЛАМ. Это и есть главное правило: высота
+   окна у нас не задана извне, она вычисляется, — значит её можно выбрать
+   из тех, что дают такой результат. Первая сборка резала верх всего на
+   11 px, и строки над заголовком узла 2 читались началом списка, а не
+   продолжением: две сироты под названием подписки. Половина строки с
+   обеих сторон не оставляет сомнений, что список идёт и вверх, и вниз.
+
+   Заголовок узла обязан войти целиком — правило не отменялось, оно
+   входит в условие отбора. */
+function windowAtBoundary(avail){
+  const lt = list.offsetTop, rowH = rows[0].offsetHeight;
+  if (groups.length < 2) return null;
+  const mid = r => r.offsetTop - lt + rowH / 2;         // середина строки
+  // Граница ближе всего к середине содержимого.
+  const full = list.scrollHeight;
+  let br = groups[1], best = Infinity;
+  for (const g of groups.slice(1)){
+    const d = Math.abs((g.offsetTop - lt) - full / 2);
+    if (d < best){ best = d; br = g; }
+  }
+  const bTop = br.offsetTop - lt, bBot = bTop + headHeight(br);
+  const сверху = rows.filter(r => mid(r) < bTop).map(mid);
+  const снизу  = rows.filter(r => mid(r) > bBot).map(mid);
+  let вышло = null;
+  for (const t of сверху) for (const b of снизу){
+    const win = b - t;
+    if (win > avail) continue;                          // не помещается
+    if (!вышло || win > вышло.win || (win === вышло.win &&
+        Math.abs((bTop + bBot) / 2 - (t + win / 2)) < Math.abs((bTop + bBot) / 2 - (вышло.top + win / 2))))
+      вышло = {top: t, win};
+  }
+  return вышло;
+}
+
 function layoutList(avail){
   /* Сбросить назначенные высоты ПЕРЕД замером. У элемента с высотой
      scrollHeight возвращает большее из содержимого и высоты — и после
      поворота с широкого кадра на узкий список продолжал мерить широкие
      464 px вместо своих 424, обрезая себя без причины. */
   list.style.height = '';
+  list.scrollTop = 0;
   groups.forEach(g => g.style.height = '');
   const full = list.scrollHeight;
   const half = Math.round(rows[0].offsetHeight / 2);
   if (full - avail <= half) return full;
 
-  const hdr = groups.map(headHeight);
-  let used = 0, cut = false;
-  for (let i = 0; i < groups.length; i++){
-    if (cut){                                    // дальше — одни заголовки
-      groups[i].style.height = hdr[i] + 'px';
-      used += hdr[i];
-      continue;
-    }
-    // Место под заголовки всех оставшихся узлов резервируется здесь.
-    const reserve = hdr.slice(i + 1).reduce((a, b) => a + b, 0);
-    const room = Math.max(hdr[i], avail - used - reserve);
-    const nat  = groups[i].offsetHeight;
-    if (nat <= room){ used += nat; continue; }
-    const h = cutInside(groups[i], room);
-    groups[i].style.height = h + 'px';
-    used += h; cut = true;
-  }
-  return used;
+  /* Группы остаются в своей естественной высоте — их не режут. Режет
+     окно, и оно же сдвигается на границу узлов. */
+  const w = windowAtBoundary(avail);
+  // Высота назначается ЗДЕСЬ, до сдвига: пока у окна нет высоты, оно не
+  // прокручивается вовсе и сдвиг молча остаётся нулевым.
+  const win = w ? w.win : Math.max(rows[0].offsetHeight + half, avail);
+  list.style.height = win + 'px';
+  list.scrollTop = w ? Math.round(w.top) : 0;
+  return win;
 }
 
 /* ── МАСКА ПО ЗАМЕРУ ────────────────────────────────────────────
@@ -893,7 +936,14 @@ const FONTS = (document.fonts && document.fonts.ready) || Promise.resolve();
 // а от неё зависит всё остальное.
 if (/(^|[#&])phone\b/.test(location.hash)) document.body.classList.add('phoneview');
 
-let tl, ct, connected = false;      // ct — идущее подключение
+let tl, connected = false;
+/* Дорожек подключения может быть больше одной: кнопка нажимается когда
+   угодно, а при покадровой проверке перемотка в конец сама запускает
+   автоподключение. Помним ВСЕ живые — одной ссылки мало: сцена убивала
+   последнюю, а первая доигрывала поверх нового первого кадра и
+   дописывала «подключено» туда, где всё только началось. Убийство
+   твинов тут не спасает: колбэки принадлежат дорожке, а не телу. */
+let conns = [];
 
 /* ── ХОД МЕТКИ ─────────────────────────────────────────────────
    Заводится не по загрузке, а через 2,2 с ПОСЛЕ развязки — правило
@@ -924,7 +974,8 @@ function scene(){
      заново» посреди подключения оставляет за собой хвост, который
      через полсекунды дописывает «подключено» поверх нового первого
      кадра и заливает кнопку нагревом. */
-  if (ct) ct.kill();
+  conns.forEach(t => t.kill());
+  conns = [];
   flyer.innerHTML = '';
   gsap.set([cab, app, rows, nodes, grp, uhead, umask, lbl1, lbl2, btn, conn, say, pick],
            {clearProps:'transform,opacity,visibility'});
@@ -1177,8 +1228,11 @@ const FILL = [                      // доля · длительность · �
   {v:1,   d:.26, e:'power2.inOut'}, // доводка
 ];
 function doConnect(){
-  if (gsap.isTweening(heat) || gsap.isTweening(cbtn)) return;
-  const t = ct = gsap.timeline();
+  // Не по «идёт ли твин»: у приостановленной дорожки он не идёт, и
+  // проверка пропускала второе подключение поверх первого.
+  if (conns.some(t => t.isActive())) return;
+  const t = gsap.timeline();
+  conns.push(t);
   press(t, cbtn, 0);
   if (connected){                       // повторное нажатие — отключаемся
     t.call(() => { st.textContent = ST_1; connected = false; }, null, PRESS_ANSWER)
