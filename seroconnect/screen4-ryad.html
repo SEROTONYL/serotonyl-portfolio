@@ -1,0 +1,489 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Экран 4 — ряд и прибор</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- ══════════════════════════════════════════════════════════════════
+     ФОРМА B — «РЯД И ПРИБОР». Набросок 20 августа.
+
+     Что решала форма. Заглушка из трёх сроков в строку была
+     горизонтальным мини-прейскурантом — ровно то «просто повторение
+     прейскуранта», которое владелец забраковал словами «информационно
+     тот же, внешне должен выглядеть иначе». Плюс три болезни: выбор не
+     выглядел выбором (ни рамки, ни фона, ни подчёркивания), выбранный
+     отмечался ОДНОЙ яркостью (диагноз вечера 19-го: «предмет не
+     сопротивляется, ездит подсветка»), цель для пальца 24 px.
+
+     Устройство. Сроки — ОРГАН УПРАВЛЕНИЯ, голые метки без цен.
+     Ставка под ними — ПРИБОР, который на них отвечает. Причина и
+     следствие разнесены физически, глаз читает связь без подписи —
+     находка, снятая с артефакта «рычаг и часы» и записанная как
+     полезная в любой форме. Таблицы не возникает нигде: цена в месяц
+     на экране ОДНА, а не три.
+
+     Факт при сроке выбран владельцем — ЦЕНА В МЕСЯЦ (199 · 158 · 141).
+     Она не набирается вручную, а считается от суммы и срока: выдумать
+     число невозможно в принципе.
+
+     «Число падает» перестаёт быть картинкой и становится событием:
+     покупатель видит, как 199 превращается в 141.
+
+     ТРИ ДВИЖЕНИЯ, А ЗАКОН 2 ЦЕЛ. Меняются метка, ставка и цена на
+     кнопке — формально три вещи. Но это одно событие с частями разной
+     инерции, как удар у кнопки: причина → производная → итог, каждая
+     ступень отстаёт от предыдущей на ВЫБРАННУЮ величину (закон 4).
+     Ниже, в `ЗАДЕРЖКИ`, они стоят числами, а не получаются сами.
+
+     МЕХАНИКИ РАЗНЫЕ, ПОТОМУ ЧТО ЧИСЛА РАЗНОЙ ПРИРОДЫ.
+     Цена, которую платят, — КРУТИТСЯ барабаном (промежуточные цифры
+     это лента, а не значение). Ставка — производная величина, её
+     промежуточные значения были бы выдуманными ценами, поэтому она
+     РАЗРЕШАЕТСЯ растром: грубеет до нечитаемости, меняется там, где
+     прочесть нельзя, и снова становится резкой. Ни в один момент
+     на экране нет неверного числа.
+
+     Секция открывается на МЕСЯЦЕ — «месяц не один из трёх, а база,
+     начало координат». Отдельной пометки «рекомендуем» здесь нет:
+     подсвечено то, на чём стоим.
+
+     1 2 3 — срок · H — наведение · R — вернуть рубль герою
+     ══════════════════════════════════════════════════════════════════ -->
+<style>
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-latin-wght-normal.Cjtb1TV-.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2212}
+@font-face{font-family:"Space Grotesk Variable";font-style:normal;font-weight:300 700;
+  font-display:swap;src:url(fonts/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2212}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#110a0a;color:#a2a2a2;
+  font-family:"Geist Mono Variable",ui-monospace,monospace;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased}
+.col{display:flex;flex-direction:column;align-items:center;gap:30px}
+
+/* Орган управления и прибор стоят ближе друг к другу, чем к герою:
+   расстояние говорит о принадлежности раньше любой линии. */
+.pick{display:flex;flex-direction:column;align-items:center;gap:12px}
+
+/* ── МЕТКИ СРОКОВ · ОРГАН УПРАВЛЕНИЯ ────────────────────────────────
+   Голые слова: ни рамки, ни фона, ни подчёркивания. Залитых цветом
+   блоков на сайте нет ни одного, и заводить их ради переключателя
+   значило бы принести сюда предмет из чужого проекта.
+
+   ВЫСОТА ЦЕЛИ 44 px набирается полями, а не кеглем: у заглушки было
+   24 px, вдвое меньше нормы для пальца. Строка при этом остаётся
+   строкой — воздух вокруг слова не виден. */
+.terms{display:flex;gap:8px}
+.terms button{background:none;border:0;font-family:inherit;font-size:12.5px;
+  letter-spacing:.08em;color:#4f4741;cursor:pointer;
+  padding:12px calc(12px - .08em) 12px 12px;line-height:20px;
+  transition:color .15s cubic-bezier(.4,0,.2,1),
+             transform .12s cubic-bezier(.4,0,.2,1)}
+/* Наведение — медь, как и везде на сайте: медь отвечает КУРСОРУ.
+   Выбранный от курсора не теплеет: он уже белый, и подмена белого на
+   медь читалась бы как потеря выбора, а не как отклик. */
+.terms button:not(.on):hover{color:#8a7a68}
+
+/* ВЫБРАННЫЙ ВЫХОДИТ ИЗ РЯДА — вниз, В СТОРОНУ ПРИБОРА. Это и есть
+   сопротивление, которого не было у заглушки: предмет смещается, а не
+   просто разгорается. И смещение не произвольное — оно указывает на
+   то, чем срок управляет.
+
+   7 px: меньше пяти не читается на телефоне, больше девяти рвёт ряд
+   на две строки. Величина замерена, а не назначена (см. `ЗАМЕР` внизу). */
+.terms button.on{color:#f5f5f5;transform:translateY(7px)}
+
+/* ── СТАВКА · ПРИБОР ────────────────────────────────────────────────
+   Кегль выбран так, чтобы прибор был крупнее органа управления, но
+   заметно мельче героя: 34 против 12,5 и 132. Иерархия в кадре одна и
+   та же сверху вниз — причина тише следствия, следствие тише итога. */
+/* ── ОСЬ ────────────────────────────────────────────────────────────
+   Оба числа стоят на ОДНОЙ вертикали — это и есть ноль шкалы: на
+   месяце ставка равна цене, числа совпадают, дальше расходятся вниз и
+   вверх. Совпадение читается только при точном совпадении оси.
+
+   Хвост («₽ в месяц», «₽») центровать вместе с числом нельзя — он
+   уводил число влево на 41 и 22 px. Приём: НЕВИДИМЫЙ БЛИЗНЕЦ хвоста с
+   другой стороны. Он держит ровно ту же ширину, включая разрядку, при
+   любом шрифте и кегле — считать её вручную не нужно. */
+.тень{visibility:hidden}
+.rate{display:flex;align-items:baseline;justify-content:center;gap:9px;
+  color:#8a8079;font-size:12px;letter-spacing:.08em}
+/* Разрядка добавляется ПОСЛЕ последней буквы, и строка съезжает влево
+   на половину этого хвоста. Отрицательное поле в один трек убирает
+   его из коробки, и центр коробки совпадает с центром букв. */
+.unit{white-space:nowrap;margin-right:-.08em}
+.rnum{position:relative;display:inline-block;
+  font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em;
+  color:#cdc3b8;font-variant-numeric:tabular-nums}
+/* Холст ложится ПОВЕРХ строки и снимается на последней ступени.
+   `pixelated` обязателен: без него браузер сгладит блоки обратно и
+   огрубление превратится в размытие. */
+.rnum .rast{position:absolute;left:0;top:0;pointer-events:none;
+  image-rendering:pixelated}
+/* Пока рисует холст, настоящий текст прозрачен — иначе два растра
+   стоят друг на друге. */
+.rnum.rasting{color:transparent}
+
+/* ── ГЕРОЙ ──────────────────────────────────────────────────────────
+   Взят из `screen4-word.html` без изменений: набросок обязан быть
+   сравним с принятым, иначе оценивается не форма выбора, а разница
+   сборок. */
+.buy{position:relative;background:none;border:0;cursor:pointer;
+  padding:23px 40px 30px;font-family:inherit;color:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  transition:transform .12s cubic-bezier(.4,0,.2,1)}
+.buy.hv{transform:translateY(-2px);
+  transition:transform .16s cubic-bezier(.23,1,.32,1)}
+.buy.press{transform:translateY(1px);
+  transition:transform .09s cubic-bezier(.4,0,.2,1)}
+
+.sum{display:flex;align-items:baseline;
+  font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:132px;line-height:.92;letter-spacing:-.03em;
+  color:#f5f5f5;font-variant-numeric:tabular-nums;
+  transition:color .12s cubic-bezier(.4,0,.2,1)}
+.sum i{font-style:normal;font-size:52px;opacity:.56;margin-left:14px;
+  letter-spacing:0}
+/* Близнец рубля слева — зеркальный, поэтому и поле зеркальное. */
+.sum i.тень{margin-left:0;margin-right:14px}
+
+/* ── ПОЧЕМУ У ГЕРОЯ НЕТ РУБЛЯ ────────────────────────────────────────
+   Рубль у крупного числа и ось этого числа несовместимы, и это не
+   вкус, а арифметика. Рубль занимает 44,8 px справа. Либо он входит в
+   центровку — тогда цифры уезжают влево на 22,4 и не совпадают со
+   ставкой над ними; либо не входит — тогда слева от цифр остаётся
+   44,8 px пустоты, и рамка из меток реза становится однобокой: 126 px
+   воздуха слева против 71 справа. Третьего положения нет.
+
+   Выход не в центровке, а в том, что рубль в кадре ЛИШНИЙ: строка
+   «₽ в месяц» стоит на 40 px выше и называет валюту. Снятый рубль
+   ставит на место всё разом — цифры на оси, рамка 48/44, ставка над
+   ценой.
+
+   Разметка сохранена: `body.рубль` возвращает прежний вид, клавиша R
+   (она же К). Сравнивать надо живьём, а не по памяти. */
+.sum i{display:none}
+body.рубль .sum i{display:inline}
+.reels{display:flex}
+.slot{overflow:hidden;line-height:inherit}
+.slot.off{width:0!important}
+.reel{display:flex;flex-direction:column;will-change:transform}
+.buy.hv .sum{color:#efd4b0;transition:color .16s cubic-bezier(.23,1,.32,1)}
+.buy.press .sum{color:#d4a574;transition:color .06s linear}
+
+.act{font-size:15px;letter-spacing:.22em;margin-right:-.22em;text-transform:uppercase;
+  color:#d4a574;transition:color .25s cubic-bezier(.23,1,.32,1)}
+.buy.hv .act{color:#e2b98e}
+
+.mark{position:absolute;width:15px;height:15px;pointer-events:none;
+  border-color:#d4a57459;border-style:solid;border-width:0;
+  transition:transform .12s cubic-bezier(.4,0,.2,1),
+             border-color .12s cubic-bezier(.4,0,.2,1)}
+.m-tl{top:0;left:0;border-top-width:1px;border-left-width:1px}
+.m-tr{top:0;right:0;border-top-width:1px;border-right-width:1px}
+.m-bl{bottom:0;left:0;border-bottom-width:1px;border-left-width:1px}
+.m-br{bottom:0;right:0;border-bottom-width:1px;border-right-width:1px}
+@media (max-width:760px){ .mark{border-color:#d4a574a6} }
+.buy.hv .mark{border-color:#d4a574;
+  transition:transform .24s cubic-bezier(.23,1,.32,1),
+             border-color .16s cubic-bezier(.23,1,.32,1)}
+.buy.hv .m-tl{transform:translate(5px,5px)}
+.buy.hv .m-tr{transform:translate(-5px,5px)}
+.buy.hv .m-bl{transform:translate(5px,-5px)}
+.buy.hv .m-br{transform:translate(-5px,-5px)}
+
+@media (max-width:760px){
+  .sum{font-size:74px}
+  .sum i{font-size:30px;margin-left:9px}
+  .sum i.тень{margin-left:0;margin-right:9px}
+  .act{font-size:12px;letter-spacing:.18em;margin-right:-.18em}
+  .buy{padding:16px 24px 20px;gap:10px}
+  .mark{width:11px;height:11px}
+  .col{gap:22px}
+  .rnum{font-size:27px}
+  .terms{gap:2px}
+  .terms button{font-size:12px;padding:12px calc(8px - .08em) 12px 8px}
+}
+
+.after{font-size:11px;letter-spacing:.06em;margin-right:-.06em;color:#4f4741}
+.hint{position:fixed;left:20px;right:20px;bottom:14px;font-size:10px;
+  letter-spacing:.08em;line-height:1.7;color:#4f4741}
+</style>
+
+<div class="col">
+  <div class="pick">
+    <div class="terms" id="terms"></div>
+    <p class="rate"><span class="unit тень" aria-hidden="true">₽ в месяц</span
+      ><span class="rnum" id="rate">199</span><span class="unit">₽ в месяц</span></p>
+  </div>
+  <button class="buy" id="buy">
+    <span class="sum"><i class="тень" aria-hidden="true">₽</i
+      ><span class="reels" id="reels"></span><i class="руб">₽</i></span>
+    <span class="act">оформить</span>
+    <span class="mark m-tl"></span><span class="mark m-tr"></span>
+    <span class="mark m-bl"></span><span class="mark m-br"></span>
+  </button>
+  <p class="after">дальше — подтверждение и оплата</p>
+</div>
+<p class="hint">1 2 3 — срок · H — наведение · R — вернуть рубль герою</p>
+
+<script src="vendor/gsap.min.js"></script>
+<script>
+/* Ставка СЧИТАЕТСЯ, а не набирается: выдумать число невозможно. */
+const TERMS = [
+  { t:'1 месяц',   мес: 1,  sum: 199  },
+  { t:'6 месяцев', мес: 6,  sum: 950  },
+  { t:'год',       мес: 12, sum: 1690 },
+].map(x => ({ ...x, ставка: Math.round(x.sum / x.мес) }));
+
+/* ЗАДЕРЖКИ — цепочка причина → производная → итог. Стоят числами
+   именно потому, что закон 4 запрещает получать догоняющее движение
+   само из твинов разной длины. */
+const ЗАДЕРЖКА_СТАВКИ = 70;     // метка уже поехала, прибор отвечает
+const ЗАДЕРЖКА_ЦЕНЫ   = 160;    // итог приходит последним
+
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const terms = document.getElementById('terms');
+const rate  = document.getElementById('rate');
+const buy   = document.getElementById('buy');
+const reels = document.getElementById('reels');
+
+const кнопки = TERMS.map((x, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = x.t;
+  b.addEventListener('click', () => ставить(i));
+  terms.append(b); return b;
+});
+
+/* ── БАРАБАН ЦЕНЫ ───────────────────────────────────────────────────
+   Взят из `screen4-word.html` целиком, включая лечение отрицательного
+   индекса: при движении ВНИЗ стартуем с того же символа во втором
+   обороте, иначе разряд уходит выше начала ленты и показывает пустоту. */
+const РАЗРЯДОВ = 4;
+const слоты = [];
+for (let i = 0; i < РАЗРЯДОВ; i++){
+  const s = document.createElement('span'); s.className = 'slot';
+  const r = document.createElement('span'); r.className = 'reel';
+  for (let n = 0; n < 20; n++){
+    const d = document.createElement('span'); d.textContent = n % 10; r.append(d);
+  }
+  s.append(r); reels.append(s); слоты.push({s, r, цифра: 0});
+}
+let ЯЧЕЙКА = 0;
+function мерить(){
+  ЯЧЕЙКА = слоты[0].r.firstChild.getBoundingClientRect().height;
+  слоты.forEach(x => { x.s.style.height = ЯЧЕЙКА + 'px'; });
+  /* Ширина ячейки меряется КАЖДЫЙ раз, а не запоминается однажды: на
+     760 px кегль героя падает 132 → 74, и запомненная ширина оставляет
+     разряды стоять по-старому. Поворот телефона ловил ровно это.
+
+     Мерить надо отпущенным: слот с `overflow:hidden` и заданной шириной
+     обрезает собственную ленту, и замер вернул бы старое число. Скрытые
+     разряды на время замера тоже отпускаются — иначе им запомнится 0. */
+  const прятались = слоты.map(x => x.s.classList.contains('off'));
+  слоты.forEach(x => { x.s.classList.remove('off'); x.s.style.width = ''; });
+  const ш = слоты.map(x => Math.ceil(x.r.firstChild.getBoundingClientRect().width));
+  слоты.forEach((x, k) => {
+    x.s.style.width = ш[k] + 'px';
+    gsap.set(x.r, {y: -x.цифра * ЯЧЕЙКА});   // высота ячейки сменилась — сдвиг пересчитать
+  });
+  /* Ширина кнопки запирается по САМОМУ ШИРОКОМУ состоянию — четыре
+     разряда, — пока скрытые ещё отпущены. Иначе замок встал бы по трём
+     разрядам, и кнопка росла бы при переходе на год: рамка поехала бы
+     вместе с ценой, то есть две вещи разом. */
+  buy.style.minWidth = Math.ceil(buy.getBoundingClientRect().width) + 'px';
+  слоты.forEach((x, k) => x.s.classList.toggle('off', прятались[k]));
+}
+
+function крутить(сумма, мгновенно){
+  const цель = String(сумма).padStart(РАЗРЯДОВ, ' ');
+  const вверх = крутить.было === undefined || сумма > крутить.было;
+  крутить.было = сумма;
+  слоты.forEach((x, k) => {
+    const c = цель[k];
+    x.s.classList.toggle('off', c === ' ');
+    if (c === ' ') return;
+    const было = x.цифра, стало = +c;
+    if (мгновенно || reduce){
+      gsap.set(x.r, {y: -стало * ЯЧЕЙКА}); x.цифра = стало; return;
+    }
+    let старт = было, к = стало;
+    if (вверх && стало < было) к = стало + 10;
+    if (!вверх && стало > было) старт = было + 10;
+    gsap.fromTo(x.r, {y: -старт * ЯЧЕЙКА},
+      {y: -к * ЯЧЕЙКА, duration:.46, ease:'power3.out', delay: k * .045,
+       onComplete(){ gsap.set(x.r, {y: -стало * ЯЧЕЙКА}); }});
+    x.цифра = стало;
+  });
+}
+
+/* ── СТАВКА РАЗРЕШАЕТСЯ РАСТРОМ ─────────────────────────────────────
+   Механика с первого экрана, где так проявляется дата. Здесь она
+   работает в обе стороны: число ГРУБЕЕТ до нечитаемости, меняется
+   ровно там, где прочесть нельзя, и снова становится резким.
+
+   Почему не барабан: барабан уже занят ценой, а два крутящихся числа
+   в одном кадре — это две вещи разом. И природа чисел разная: цена
+   это то, что платят, ставка — производная от неё.
+
+   Почему не простая подмена: скачок читался бы как ошибка отрисовки,
+   а не как ответ прибора на рычаг.
+
+   Огрубление честное: строка рисуется в ПОЛНОМ разрешении, уменьшается
+   с усреднением и растягивается обратно ближайшим соседом. Мелкий
+   кегль дал бы просто другой размер, а нужен тот же растр, но грубее.
+
+   Лестница не доходит до единицы: блок 1 — точная копия строки, после
+   которой холст всё равно уступает место тексту, и на стыке видна
+   смена растеризации (холст сглаживает по-своему, DOM по-своему).
+   Последняя ступень и есть подмена на текст. */
+const ГРУБЕЕТ  = [2, 3, 5, 8];
+const РЕЗЧЕЕТ  = [5, 3, 2];
+const ШАГ_РАСТРА = 55;
+
+let растр_идёт = 0;
+function растворить(el, новое){
+  if (reduce){ el.textContent = новое; return; }
+  растр_идёт++;
+  const мой = растр_идёт;
+  const box = el.getBoundingClientRect();
+  const W = Math.ceil(box.width), H = Math.ceil(box.height);
+  if (!W || !H){ el.textContent = новое; return; }
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const cs = getComputedStyle(el);
+
+  const full = document.createElement('canvas');
+  const fg = full.getContext('2d');
+  const view = document.createElement('canvas');
+  view.className = 'rast';
+  const vg = view.getContext('2d');
+  const small = document.createElement('canvas');
+  const sg = small.getContext('2d');
+
+  /* Эталон перерисовывается ДВАЖДЫ: один раз старым числом, один раз
+     новым. Размер холста от текста не зависит — ставки трёхзначные, а
+     набор табличный, поэтому ширина одна и та же и рамка не дышит. */
+  function эталон(текст){
+    full.width = Math.ceil(W * dpr); full.height = Math.ceil(H * dpr);
+    fg.setTransform(1,0,0,1,0,0); fg.scale(dpr, dpr);
+    fg.clearRect(0, 0, W, H);
+    fg.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    if ('letterSpacing' in fg) fg.letterSpacing = cs.letterSpacing;
+    fg.fillStyle = cs.color === 'rgba(0, 0, 0, 0)' ? '#cdc3b8' : cs.color;
+    fg.textBaseline = 'alphabetic';
+    const m = fg.measureText(текст);
+    const asc = m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * .72;
+    fg.fillText(текст, 0, (H + asc) / 2);
+    view.width = full.width; view.height = full.height;
+    view.style.width = W + 'px'; view.style.height = H + 'px';
+  }
+  const рисовать = k => {
+    const w = Math.max(1, Math.round(full.width / k)), h = Math.max(1, Math.round(full.height / k));
+    small.width = w; small.height = h;
+    sg.imageSmoothingEnabled = true;              // вниз — с усреднением
+    sg.clearRect(0, 0, w, h);
+    sg.drawImage(full, 0, 0, w, h);
+    vg.imageSmoothingEnabled = false;             // вверх — ближайшим соседом
+    vg.clearRect(0, 0, view.width, view.height);
+    vg.drawImage(small, 0, 0, w, h, 0, 0, view.width, view.height);
+  };
+
+  эталон(el.textContent);
+  el.classList.add('rasting');
+  el.append(view);
+
+  const лестница = [...ГРУБЕЕТ, null, ...РЕЗЧЕЕТ];   // null — точка подмены
+  let i = 0;
+  const шаг = () => {
+    /* Рука обязана убивать сцену: новый выбор во время прохода
+       перебивает старый, а не идёт с ним наперегонки. Та же болезнь,
+       что с параллельными таймлайнами на втором экране. */
+    if (мой !== растр_идёт){ view.remove(); return; }
+    if (i >= лестница.length){
+      el.classList.remove('rasting'); view.remove(); return;
+    }
+    const k = лестница[i++];
+    if (k === null){                    // самая грубая точка — здесь и меняем
+      el.textContent = новое;
+      el.append(view);                  // textContent снёс холст, ставим назад
+      эталон(новое);
+      рисовать(ГРУБЕЕТ[ГРУБЕЕТ.length - 1]);
+    } else {
+      рисовать(k);
+    }
+    setTimeout(шаг, ШАГ_РАСТРА);
+  };
+  шаг();
+}
+
+let выбран = null;
+function ставить(i, мгновенно){
+  if (i === выбран) return;
+  выбран = i;
+  кнопки.forEach((b, j) => b.classList.toggle('on', j === i));
+  if (мгновенно){
+    rate.textContent = TERMS[i].ставка;
+    крутить(TERMS[i].sum, true);
+    return;
+  }
+  setTimeout(() => растворить(rate, String(TERMS[i].ставка)), ЗАДЕРЖКА_СТАВКИ);
+  setTimeout(() => крутить(TERMS[i].sum), ЗАДЕРЖКА_ЦЕНЫ);
+}
+
+/* Состояния героя висят на предмете, а не на псевдоклассах. */
+const жать   = () => buy.classList.add('press');
+const отжать = () => buy.classList.remove('press');
+buy.addEventListener('pointerenter', () => buy.classList.add('hv'));
+buy.addEventListener('pointerleave', () => { buy.classList.remove('hv'); отжать(); });
+buy.addEventListener('pointerdown', жать);
+buy.addEventListener('pointerup', отжать);
+buy.addEventListener('pointercancel', отжать);
+buy.addEventListener('focus', () => buy.classList.add('hv'));
+buy.addEventListener('blur', () => { buy.classList.remove('hv'); отжать(); });
+buy.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') жать(); });
+buy.addEventListener('keyup',   e => { if (e.key === 'Enter' || e.key === ' ') отжать(); });
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === '1') ставить(0);
+  if (k === '2') ставить(1);
+  if (k === '3') ставить(2);
+  if (k === 'h' || k === 'р') buy.classList.toggle('hv');
+  /* Возврат рубля — только для сравнения. Ширина кнопки заперта
+     замером, поэтому её надо отпустить и померить заново. */
+  if (k === 'r' || k === 'к'){
+    document.body.classList.toggle('рубль');
+    buy.style.minWidth = '';
+    document.fonts.ready.then(() => { мерить(); крутить(TERMS[выбран].sum, true); });
+  }
+});
+
+/* Секция открывается на МЕСЯЦЕ — начало координат. */
+document.fonts.ready.then(() => { мерить(); ставить(0, true); });
+addEventListener('resize', () => { buy.style.minWidth = ''; мерить(); });
+
+/* ── ЧТЕНИЕ С ТЕЛЕФОНА ──────────────────────────────────────────────
+   Клавиш на телефоне нет, поэтому оба вопроса, которые смотрят живьём,
+   вынесены в адрес:
+     ?рубль   — вернуть рубль герою (то же, что клавиша R);
+     ?v=preview — снять подсказку про клавиши: в склейке она мусор.
+   Кириллица в адресе жива и в мобильных браузерах, но на всякий случай
+   принимается и латиница. */
+{
+  const адрес = new URLSearchParams(location.search);
+  if (адрес.has('рубль') || адрес.has('rub')){
+    document.body.classList.add('рубль');
+    document.fonts.ready.then(() => { buy.style.minWidth = ''; мерить(); крутить(TERMS[выбран].sum, true); });
+  }
+  if (адрес.get('v') === 'preview') document.querySelector('.hint').remove();
+}
+
+window.__set = ставить;
+window.__hv = on => buy.classList.toggle('hv', on);
+</script>
