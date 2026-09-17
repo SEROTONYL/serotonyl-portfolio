@@ -1,0 +1,256 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Экран 3 — устройства</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- ══════════════════════════════════════════════════════════════════
+     ЭКРАН 3 · УСТРОЙСТВА. Набросок 17 сентября.
+
+     Содержание назначено 19 августа (раскладка «вариант 1»): «на моём
+     заработает?» это возражение ДО оплаты, поэтому оно стоит перед
+     кнопкой, а не после. Форма придумана сейчас, разбор целиком лежит
+     в `~/dev/seroconnect-план-секций.md`, раздел «СЕКЦИЯ 3».
+
+     ДВА ЗАКОНА, ИЗ КОТОРЫХ ВЫВЕДЕНО ВСЁ ОСТАЛЬНОЕ.
+
+     1. СЕКЦИЯ НЕ ИМЕЕТ ПРАВА ВЫГЛЯДЕТЬ КАК ПЕРЕКЛЮЧАТЕЛЬ. Четыре
+        устройства на выбор это та же фигура, что три срока в секции 4.
+        Два соседних экрана с рядом меток сделают сайт заикающимся и
+        ослабят орган управления четвёртой. Поэтому главная дверь стоит
+        ОТДЕЛЬНОЙ строкой, а три остальные уведены вниз и подписаны «на
+        другом устройстве»: подпись прямо говорит, что это не варианты
+        выбора, а выходы для чужого случая.
+
+     2. СЕКЦИЯ ОБЯЗАНА БЫТЬ ТИХОЙ. Первая секция громкая (число 132),
+        вторая это сцена с движением, четвёртая громкая (герой-кнопка).
+        Третья стоит вплотную перед героем: зашумит — утопит кнопку.
+        На тёмном фоне громкость это ЯРКОСТЬ, а не кегль. Отсюда крупная
+        и притушенная главная дверь вместо мелкой и белой.
+
+     СЕКЦИЯ ОТВЕЧАЕТ ЛИЧНО. Сайт определяет систему и показывает одну
+     крупную дверь в её инструкцию. Из рассмотренных форм это
+     единственная, где секция что-то ДЕЛАЕТ, а не сообщает.
+
+     «Инструкция для Android», а НЕ «у тебя Android». Аудитория покупает
+     VPN. Сайт, который за экран до оплаты объявляет, что опознал тебя,
+     бьёт по собственной теме. Первая формулировка персональна по делу и
+     ничего про человека не утверждает.
+
+     ПОРЯДОК СБОРКИ ПЕРЕВЁРНУТ. В разметке лежат все четыре двери, и это
+     честный вид по умолчанию: он работает без JS, при любой ошибке
+     определения и у поисковика. Скрипт не дорисовывает главную дверь, а
+     СВОРАЧИВАЕТ три лишние. Секция не может оказаться пустой ни при
+     каком сбое: вид без атрибута на корне и есть запасной вид.
+
+     НИ ОДНОГО КАДРА С МИГАНИЕМ. Секция едет в айфрейме внутри склейки,
+     и вспышка «четыре строки схлопнулись в одну» прямо перед кнопкой
+     покупки недопустима. Решение принимается инлайновым скриптом ниже,
+     до первой отрисовки, атрибутом на корне. Дальше всё делает CSS,
+     никакой анимации на смене вида нет и быть не должно.
+
+     ПРОМАХ БУДЕТ ВСЕГДА: сидят за виндой, ставят на телефон. Поэтому
+     три остальные НИКОГДА не прячутся за «показать все». На десктопе
+     вероятность «ставлю не сюда» выше, чем на телефоне, и это довод не
+     делать разрыв между главной дверью и остальными слишком большим.
+
+     ЧЕГО ЗДЕСЬ НАМЕРЕННО НЕТ. Поправки на айпэд, который представляется
+     маком. Отложена владельцем 17.09 как не относящаяся к первичному
+     дизайну, разбор в `BACKLOG.md`. Это дыра, а не недосмотр.
+
+     1 2 3 4 — вид по системе · 0 — вид «не определили»
+     ══════════════════════════════════════════════════════════════════ -->
+<script>
+/* Единственный скрипт, который обязан отработать ДО отрисовки. Сети не
+   спрашивает, файлов не ждёт: чистая строка из браузера. */
+(function(){
+  function определить(){
+    /* Современный путь. В Сафари его нет вовсе, поэтому он не
+       единственный, а первый. */
+    var uad = navigator.userAgentData;
+    var p = (uad && uad.platform || '').toLowerCase();
+    if (p){
+      if (p.indexOf('android') >= 0) return 'android';
+      if (p.indexOf('windows') >= 0) return 'win';
+      if (p.indexOf('macos')   >= 0) return 'mac';
+    }
+    var u = navigator.userAgent || '';
+    if (/Android/i.test(u))               return 'android';
+    if (/iPhone|iPad|iPod/i.test(u))      return 'ios';
+    if (/Windows NT/i.test(u))            return 'win';
+    /* ВНИМАНИЕ: сюда же попадает айпэд с iOS 13 и новее. Поправка по
+       maxTouchPoints отложена в беклог владельцем, см. шапку. */
+    if (/Macintosh|Mac OS X/i.test(u))    return 'mac';
+    return 'нет';
+  }
+  var знаю = {ios:1, android:1, mac:1, win:1, 'нет':1};
+  var адрес = new URLSearchParams(location.search);
+  var ключ = адрес.get('устройство') || адрес.get('os');
+  var ос = знаю[ключ] ? ключ : определить();
+  /* setAttribute, а не dataset: имя атрибута кириллическое, как и имена
+     классов в остальных экранах. */
+  document.documentElement.setAttribute('data-ос', ос);
+})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#110a0a;color:#8a8079;
+  /* САНС, потому что здесь говорим МЫ. Моно на сайте означает, что
+     что-то показывает система: внутри коробки второго экрана, в метках
+     сроков четвёртого. Названия платформ это наше утверждение о
+     продукте, а не строка чужого интерфейса. */
+  font-family:"Onest","Inter",system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased}
+
+.col{display:flex;flex-direction:column;align-items:center;
+  gap:34px;padding:0 24px;max-width:720px;width:100%}
+
+/* ── ДВЕРИ ──────────────────────────────────────────────────────────
+   Одна коробка на оба вида. Вид без определения задан БАЗОВЫМИ
+   правилами, вид с определением только добавляет к ним: так запасной
+   вид получается не обработкой ошибки, а состоянием по умолчанию. */
+.doors{display:flex;flex-direction:column;align-items:center;
+  gap:2px;width:100%}
+
+/* Голая ссылка: ни рамки, ни фона, ни подчёркивания. Залитых цветом
+   блоков на сайте нет ни одного, и заводить их здесь значило бы
+   принести предмет из чужого проекта.
+
+   Стрелка обязательна и стоит в ПОКОЕ, а не по наведению. Разбор
+   формы, где имена были ссылками внутри нашей фразы, разбился ровно об
+   это: обычный человек не понимает, что буковки жмутся. Стрелка это
+   то же «выбрать тариф →», что уже живёт на первом экране. */
+.door{display:flex;align-items:baseline;gap:12px;
+  text-decoration:none;color:#8a8079;font-size:23px;line-height:1.25;
+  padding:11px 6px;letter-spacing:-.01em;
+  transition:color .15s cubic-bezier(.4,0,.2,1)}
+.door:hover,.door:focus-visible{color:#d4a574;outline:0}
+/* Стрелка тусклее имени: она служебная, читают имя. */
+.ст{font-size:.72em;color:#5f564f;
+  transition:color .15s cubic-bezier(.4,0,.2,1),
+             transform .15s cubic-bezier(.23,1,.32,1)}
+.door:hover .ст,.door:focus-visible .ст{color:#d4a574;transform:translateX(4px)}
+/* Приставка живёт только у главной двери. */
+.для{display:none}
+
+/* Заголовок запасного вида. В личном виде он лишний: главная дверь
+   называет себя сама. */
+.lead{font-size:14px;letter-spacing:.06em;color:#4f4741}
+/* Подпись к трём остальным. Её работа не украшать, а СНЯТЬ ЧТЕНИЕ
+   «выбери одно»: это выходы для чужого случая, а не варианты. */
+.иначе{display:none;font-size:13px;letter-spacing:.05em;color:#4f4741;
+  padding-top:14px}
+
+/* ── ЛИЧНЫЙ ВИД ─────────────────────────────────────────────────────
+   Четыре правила вместо одного, потому что CSS не умеет сравнивать
+   значение на корне со значением на элементе. Зато решение остаётся
+   чистым CSS и не требует второго скрипта, который трогал бы разметку
+   после разбора документа. */
+:root[data-ос="ios"]     .lead,
+:root[data-ос="android"] .lead,
+:root[data-ос="mac"]     .lead,
+:root[data-ос="win"]     .lead{display:none}
+
+:root[data-ос="ios"]     .doors,
+:root[data-ос="android"] .doors,
+:root[data-ос="mac"]     .doors,
+:root[data-ос="win"]     .doors{flex-direction:row;flex-wrap:wrap;
+  justify-content:center;gap:0 30px}
+
+:root[data-ос="ios"]     .иначе,
+:root[data-ос="android"] .иначе,
+:root[data-ос="mac"]     .иначе,
+:root[data-ос="win"]     .иначе{display:block;width:100%;text-align:center;order:1}
+
+/* Остальные три уходят под подпись и мельчают. */
+:root[data-ос="ios"]     .door,
+:root[data-ос="android"] .door,
+:root[data-ос="mac"]     .door,
+:root[data-ос="win"]     .door{order:2;font-size:15px;color:#6f645c;
+  padding:11px 4px;gap:8px}
+
+/* ГЛАВНАЯ ДВЕРЬ. Крупная и притушенная: громкость это яркость.
+   #cdc3b8 это цвет ставки на четвёртом экране, то есть предмет того же
+   ранга, а не герой. */
+:root[data-ос="ios"]     .door[data-ос="ios"],
+:root[data-ос="android"] .door[data-ос="android"],
+:root[data-ос="mac"]     .door[data-ос="mac"],
+:root[data-ос="win"]     .door[data-ос="win"]{order:0;width:100%;
+  justify-content:center;font-size:40px;color:#cdc3b8;
+  padding:12px 0;gap:16px;letter-spacing:-.02em}
+:root[data-ос="ios"]     .door[data-ос="ios"]     .для,
+:root[data-ос="android"] .door[data-ос="android"] .для,
+:root[data-ос="mac"]     .door[data-ос="mac"]     .для,
+:root[data-ос="win"]     .door[data-ос="win"]     .для{display:inline}
+
+/* ── СПРОСИТЬ ───────────────────────────────────────────────────────
+   Живёт ВНУТРИ секции, ниже и мельче. Отдельным экраном делать нельзя:
+   между устройствами и покупкой встанет предложение поддержки, то есть
+   пауза ровно там, где уходят. Внутри же он превращает отсутствие
+   устройства в довод.
+
+   «Ответит человек» сказано от нашего лица (владелец подтвердил
+   17.09). На первом экране то же самое живёт цитатой клиента, и
+   повторять её здесь чужим голосом было бы слабее. */
+.ask{font-size:13px;color:#4f4741;letter-spacing:.02em}
+.ask a{color:#6f645c;text-decoration:none;
+  border-bottom:1px solid #4f4741;padding-bottom:1px;
+  transition:color .15s cubic-bezier(.4,0,.2,1),
+             border-color .15s cubic-bezier(.4,0,.2,1)}
+.ask a:hover,.ask a:focus-visible{color:#d4a574;border-color:#d4a574;outline:0}
+
+@media (max-width:760px){
+  .col{gap:26px}
+  :root[data-ос="ios"]     .door[data-ос="ios"],
+  :root[data-ос="android"] .door[data-ос="android"],
+  :root[data-ос="mac"]     .door[data-ос="mac"],
+  :root[data-ос="win"]     .door[data-ос="win"]{font-size:27px;gap:12px}
+  .door{font-size:19px}
+  :root[data-ос="ios"]     .doors,
+  :root[data-ос="android"] .doors,
+  :root[data-ос="mac"]     .doors,
+  :root[data-ос="win"]     .doors{gap:0 18px}
+  .ask{font-size:12px;text-align:center;line-height:1.6}
+}
+
+.hint{position:fixed;left:20px;right:20px;bottom:14px;font-size:10px;
+  letter-spacing:.08em;line-height:1.7;color:#4f4741;text-align:center}
+</style>
+
+<div class="col">
+  <p class="lead">Инструкции по установке</p>
+
+  <!-- ЧЕРНОВИК ТЕКСТОВ. Слова про поддержку принадлежат владельцу, как
+       и константа HOWTO на первом экране. Адреса гайдов пока пустые:
+       открытый вопрос 1 по секции 3. -->
+  <nav class="doors">
+    <a class="door" data-ос="ios" href="#" onclick="return false"
+      ><span class="для">Инструкция для </span><span class="имя">iOS</span
+      ><span class="ст">→</span></a>
+    <a class="door" data-ос="android" href="#" onclick="return false"
+      ><span class="для">Инструкция для </span><span class="имя">Android</span
+      ><span class="ст">→</span></a>
+    <a class="door" data-ос="mac" href="#" onclick="return false"
+      ><span class="для">Инструкция для </span><span class="имя">macOS</span
+      ><span class="ст">→</span></a>
+    <a class="door" data-ос="win" href="#" onclick="return false"
+      ><span class="для">Инструкция для </span><span class="имя">Windows</span
+      ><span class="ст">→</span></a>
+    <p class="иначе">на другом устройстве</p>
+  </nav>
+
+  <p class="ask">не нашли своё устройство?
+    <a href="#" onclick="return false">напишите</a>, ответит человек</p>
+</div>
+
+<p class="hint">1 2 3 4 — вид по системе · 0 — вид «не определили»</p>
+
+<script>
+/* Только для просмотра. В бою вид ставится один раз, до отрисовки. */
+addEventListener('keydown', function(e){
+  var карта = {'1':'ios','2':'android','3':'mac','4':'win','0':'нет'};
+  if (карта[e.key]) document.documentElement.setAttribute('data-ос', карта[e.key]);
+});
+if (new URLSearchParams(location.search).get('v') === 'preview')
+  document.querySelector('.hint').remove();
+</script>
