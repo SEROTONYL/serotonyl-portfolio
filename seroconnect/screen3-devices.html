@@ -35,6 +35,26 @@
      бьёт по собственной теме. Первая формулировка персональна по делу и
      ничего про человека не утверждает.
 
+     ЗНАК «СЮДА ЖМУТ» — МЕТКИ РЕЗА. Стрелки стояли здесь один заход и
+     сняты владельцем 17.09 («полный кал»). Подчёркивание отвергнуто им
+     же: искали не универсальный знак, а подходящий сайту.
+
+     Уголки взяты у кнопки покупки, где они живут с 20 августа. Это
+     единственный собственный знак сайта для «сюда жмут»: он стоит в
+     покое, не требует ни рамки, ни заливки, ни линии. Здесь он мельче и
+     тусклее, чем у героя: 12 px против 15, ранг читается сразу.
+
+     Расчёт сверх решения: человек знакомится с уголками на третьей
+     секции, а через экран встречает кнопку покупки с теми же уголками и
+     уже знает, что это. Метки становятся глаголом сайта, а не
+     украшением одной кнопки. Смотреть при этом надо ОДНО: не слабеет ли
+     герой оттого, что его знак встречается дважды.
+
+     ТРЁМ ОСТАЛЬНЫМ УГОЛКИ НЕ ДАЮТ: четыре обведённых слова это шум. Их
+     делает ссылками подпись, которая их называет, «инструкции для
+     остальных». Слово «инструкции» работает на все три разом, и ни
+     одному не нужен свой знак.
+
      ПОРЯДОК СБОРКИ ПЕРЕВЁРНУТ. В разметке лежат все четыре двери, и это
      честный вид по умолчанию: он работает без JS, при любой ошибке
      определения и у поисковика. Скрипт не дорисовывает главную дверь, а
@@ -51,6 +71,17 @@
      три остальные НИКОГДА не прячутся за «показать все». На десктопе
      вероятность «ставлю не сюда» выше, чем на телефоне, и это довод не
      делать разрыв между главной дверью и остальными слишком большим.
+
+     ЗАПАСНОЙ ВИД — ТА ЖЕ КОМПОЗИЦИЯ, ДРУГАЯ НАЧИНКА. Первый заход
+     делал его столбиком из четырёх одинаковых строк, и это был не вид, а
+     список. Теперь кадр, раскладка и кегли совпадают до пикселя, меняется
+     только КТО стоит в крупной строке: личный ответ («Инструкция для
+     Android») или утверждение о продукте. Ни один из двух видов не
+     выглядит обрубком другого.
+
+     Уголков в запасном виде нет, и это не упущение: крупная строка там
+     не дверь, а утверждение. Метка означает «жмут», и ставить её на то,
+     что не жмётся, значит сломать знак в тот же день, когда завели.
 
      ЧЕГО ЗДЕСЬ НАМЕРЕННО НЕТ. Поправки на айпэд, который представляется
      маком. Отложена владельцем 17.09 как не относящаяся к первичному
@@ -106,82 +137,92 @@ body{background:#110a0a;color:#8a8079;
   gap:34px;padding:0 24px;max-width:720px;width:100%}
 
 /* ── ДВЕРИ ──────────────────────────────────────────────────────────
-   Одна коробка на оба вида. Вид без определения задан БАЗОВЫМИ
-   правилами, вид с определением только добавляет к ним: так запасной
-   вид получается не обработкой ошибки, а состоянием по умолчанию. */
-.doors{display:flex;flex-direction:column;align-items:center;
-  gap:2px;width:100%}
+   Одна коробка на оба вида. Запасной вид задан БАЗОВЫМИ правилами, вид
+   с определением только добавляет к ним: так запасной получается не
+   обработкой ошибки, а состоянием по умолчанию. */
+.doors{display:flex;flex-wrap:wrap;justify-content:center;
+  align-items:baseline;gap:0 30px;width:100%}
 
 /* Голая ссылка: ни рамки, ни фона, ни подчёркивания. Залитых цветом
-   блоков на сайте нет ни одного, и заводить их здесь значило бы
-   принести предмет из чужого проекта.
-
-   Стрелка обязательна и стоит в ПОКОЕ, а не по наведению. Разбор
-   формы, где имена были ссылками внутри нашей фразы, разбился ровно об
-   это: обычный человек не понимает, что буковки жмутся. Стрелка это
-   то же «выбрать тариф →», что уже живёт на первом экране. */
-.door{display:flex;align-items:baseline;gap:12px;
-  text-decoration:none;color:#8a8079;font-size:23px;line-height:1.25;
-  padding:11px 6px;letter-spacing:-.01em;
+   блоков на сайте нет ни одного. */
+.door{display:flex;justify-content:center;text-decoration:none;
+  color:#6f645c;font-size:15px;line-height:1.25;padding:11px 4px;
   transition:color .15s cubic-bezier(.4,0,.2,1)}
-.door:hover,.door:focus-visible{color:#d4a574;outline:0}
-/* Стрелка тусклее имени: она служебная, читают имя. */
-.ст{font-size:.72em;color:#5f564f;
-  transition:color .15s cubic-bezier(.4,0,.2,1),
-             transform .15s cubic-bezier(.23,1,.32,1)}
-.door:hover .ст,.door:focus-visible .ст{color:#d4a574;transform:translateX(4px)}
+.door:hover,.door:focus-visible{color:#a8917a;outline:0}
+/* Коробка под метки. Уголки обязаны обнимать СЛОВА, а не строку во всю
+   ширину секции, поэтому они живут не на двери, а внутри неё. */
+.цель{position:relative;display:inline-flex;align-items:baseline}
 /* Приставка живёт только у главной двери. */
 .для{display:none}
 
-/* Заголовок запасного вида. В личном виде он лишний: главная дверь
-   называет себя сама. */
-.lead{font-size:14px;letter-spacing:.06em;color:#4f4741}
-/* Подпись к трём остальным. Её работа не украшать, а СНЯТЬ ЧТЕНИЕ
-   «выбери одно»: это выходы для чужого случая, а не варианты. */
-.иначе{display:none;font-size:13px;letter-spacing:.05em;color:#4f4741;
-  padding-top:14px}
+/* Крупная строка. В личном виде её занимает главная дверь, в запасном —
+   утверждение. Кегль и цвет общие: это одно место кадра. */
+.claim,:root[data-ос="ios"]     .door[data-ос="ios"],
+       :root[data-ос="android"] .door[data-ос="android"],
+       :root[data-ос="mac"]     .door[data-ос="mac"],
+       :root[data-ос="win"]     .door[data-ос="win"]{
+  font-size:40px;color:#cdc3b8;letter-spacing:-.02em;line-height:1.15}
+
+/* Подписи к ряду имён. Их работа не украшать, а НАЗВАТЬ имена
+   инструкциями: без этого «iOS» это просто слово, а не дверь. Заодно
+   подпись в личном виде снимает чтение «выбери одно» — там это выходы
+   для чужого случая, а не варианты. */
+.все,.иначе{font-size:13px;letter-spacing:.05em;color:#4f4741}
+.иначе{display:none;width:100%;text-align:center;order:1;padding-top:14px}
+.все{margin-top:-20px}
+
+/* ── МЕТКИ РЕЗА ─────────────────────────────────────────────────────
+   Знак сайта для «сюда жмут», взятый у кнопки покупки. Держатся только
+   на главной двери и только в личном виде. */
+.mark{position:absolute;width:12px;height:12px;pointer-events:none;
+  display:none;border-color:#d4a57452;border-style:solid;border-width:0;
+  transition:transform .14s cubic-bezier(.4,0,.2,1),
+             border-color .14s cubic-bezier(.4,0,.2,1)}
+.m-tl{top:-16px;left:-30px;border-top-width:1px;border-left-width:1px}
+.m-tr{top:-16px;right:-30px;border-top-width:1px;border-right-width:1px}
+.m-bl{bottom:-16px;left:-30px;border-bottom-width:1px;border-left-width:1px}
+.m-br{bottom:-16px;right:-30px;border-bottom-width:1px;border-right-width:1px}
+.door:hover .mark,.door:focus-visible .mark{border-color:#d4a574;
+  transition:transform .22s cubic-bezier(.23,1,.32,1),
+             border-color .16s cubic-bezier(.23,1,.32,1)}
+.door:hover .m-tl,.door:focus-visible .m-tl{transform:translate(4px,4px)}
+.door:hover .m-tr,.door:focus-visible .m-tr{transform:translate(-4px,4px)}
+.door:hover .m-bl,.door:focus-visible .m-bl{transform:translate(4px,-4px)}
+.door:hover .m-br,.door:focus-visible .m-br{transform:translate(-4px,-4px)}
 
 /* ── ЛИЧНЫЙ ВИД ─────────────────────────────────────────────────────
    Четыре правила вместо одного, потому что CSS не умеет сравнивать
-   значение на корне со значением на элементе. Зато решение остаётся
-   чистым CSS и не требует второго скрипта, который трогал бы разметку
-   после разбора документа. */
-:root[data-ос="ios"]     .lead,
-:root[data-ос="android"] .lead,
-:root[data-ос="mac"]     .lead,
-:root[data-ос="win"]     .lead{display:none}
-
-:root[data-ос="ios"]     .doors,
-:root[data-ос="android"] .doors,
-:root[data-ос="mac"]     .doors,
-:root[data-ос="win"]     .doors{flex-direction:row;flex-wrap:wrap;
-  justify-content:center;gap:0 30px}
+   значение на корне со значением на элементе. Зато вид остаётся чистым
+   CSS и не требует второго скрипта, который трогал бы разметку после
+   разбора документа. */
+:root[data-ос="ios"]     .claim,:root[data-ос="ios"]     .все,
+:root[data-ос="android"] .claim,:root[data-ос="android"] .все,
+:root[data-ос="mac"]     .claim,:root[data-ос="mac"]     .все,
+:root[data-ос="win"]     .claim,:root[data-ос="win"]     .все{display:none}
 
 :root[data-ос="ios"]     .иначе,
 :root[data-ос="android"] .иначе,
 :root[data-ос="mac"]     .иначе,
-:root[data-ос="win"]     .иначе{display:block;width:100%;text-align:center;order:1}
+:root[data-ос="win"]     .иначе{display:block}
 
-/* Остальные три уходят под подпись и мельчают. */
 :root[data-ос="ios"]     .door,
 :root[data-ос="android"] .door,
 :root[data-ос="mac"]     .door,
-:root[data-ос="win"]     .door{order:2;font-size:15px;color:#6f645c;
-  padding:11px 4px;gap:8px}
+:root[data-ос="win"]     .door{order:2}
 
-/* ГЛАВНАЯ ДВЕРЬ. Крупная и притушенная: громкость это яркость.
-   #cdc3b8 это цвет ставки на четвёртом экране, то есть предмет того же
-   ранга, а не герой. */
 :root[data-ос="ios"]     .door[data-ос="ios"],
 :root[data-ос="android"] .door[data-ос="android"],
 :root[data-ос="mac"]     .door[data-ос="mac"],
 :root[data-ос="win"]     .door[data-ос="win"]{order:0;width:100%;
-  justify-content:center;font-size:40px;color:#cdc3b8;
-  padding:12px 0;gap:16px;letter-spacing:-.02em}
+  padding:12px 0;color:#cdc3b8}
 :root[data-ос="ios"]     .door[data-ос="ios"]     .для,
 :root[data-ос="android"] .door[data-ос="android"] .для,
 :root[data-ос="mac"]     .door[data-ос="mac"]     .для,
 :root[data-ос="win"]     .door[data-ос="win"]     .для{display:inline}
+:root[data-ос="ios"]     .door[data-ос="ios"]     .mark,
+:root[data-ос="android"] .door[data-ос="android"] .mark,
+:root[data-ос="mac"]     .door[data-ос="mac"]     .mark,
+:root[data-ос="win"]     .door[data-ос="win"]     .mark{display:block}
 
 /* ── СПРОСИТЬ ───────────────────────────────────────────────────────
    Живёт ВНУТРИ секции, ниже и мельче. Отдельным экраном делать нельзя:
@@ -201,15 +242,16 @@ body{background:#110a0a;color:#8a8079;
 
 @media (max-width:760px){
   .col{gap:26px}
-  :root[data-ос="ios"]     .door[data-ос="ios"],
-  :root[data-ос="android"] .door[data-ос="android"],
-  :root[data-ос="mac"]     .door[data-ос="mac"],
-  :root[data-ос="win"]     .door[data-ос="win"]{font-size:27px;gap:12px}
-  .door{font-size:19px}
-  :root[data-ос="ios"]     .doors,
-  :root[data-ос="android"] .doors,
-  :root[data-ос="mac"]     .doors,
-  :root[data-ос="win"]     .doors{gap:0 18px}
+  .claim,:root[data-ос="ios"]     .door[data-ос="ios"],
+         :root[data-ос="android"] .door[data-ос="android"],
+         :root[data-ос="mac"]     .door[data-ос="mac"],
+         :root[data-ос="win"]     .door[data-ос="win"]{font-size:27px}
+  .doors{gap:0 18px}
+  .mark{width:9px;height:9px;border-color:#d4a574a6}
+  .m-tl,.m-bl{left:-18px}
+  .m-tr,.m-br{right:-18px}
+  .m-tl,.m-tr{top:-12px}
+  .m-bl,.m-br{bottom:-12px}
   .ask{font-size:12px;text-align:center;line-height:1.6}
 }
 
@@ -218,25 +260,30 @@ body{background:#110a0a;color:#8a8079;
 </style>
 
 <div class="col">
-  <p class="lead">Инструкции по установке</p>
+  <!-- ЧЕРНОВИКИ ТЕКСТОВ. Утверждение в крупной строке и слова про
+       поддержку принадлежат владельцу, как и константа HOWTO на первом
+       экране. Адреса гайдов пока пустые: открытый вопрос 1 по секции 3. -->
+  <p class="claim">Ставится на любом устройстве</p>
+  <p class="все">инструкции</p>
 
-  <!-- ЧЕРНОВИК ТЕКСТОВ. Слова про поддержку принадлежат владельцу, как
-       и константа HOWTO на первом экране. Адреса гайдов пока пустые:
-       открытый вопрос 1 по секции 3. -->
   <nav class="doors">
-    <a class="door" data-ос="ios" href="#" onclick="return false"
+    <a class="door" data-ос="ios" href="#" onclick="return false"><span class="цель"
       ><span class="для">Инструкция для </span><span class="имя">iOS</span
-      ><span class="ст">→</span></a>
-    <a class="door" data-ос="android" href="#" onclick="return false"
+      ><span class="mark m-tl"></span><span class="mark m-tr"></span
+      ><span class="mark m-bl"></span><span class="mark m-br"></span></span></a>
+    <a class="door" data-ос="android" href="#" onclick="return false"><span class="цель"
       ><span class="для">Инструкция для </span><span class="имя">Android</span
-      ><span class="ст">→</span></a>
-    <a class="door" data-ос="mac" href="#" onclick="return false"
+      ><span class="mark m-tl"></span><span class="mark m-tr"></span
+      ><span class="mark m-bl"></span><span class="mark m-br"></span></span></a>
+    <a class="door" data-ос="mac" href="#" onclick="return false"><span class="цель"
       ><span class="для">Инструкция для </span><span class="имя">macOS</span
-      ><span class="ст">→</span></a>
-    <a class="door" data-ос="win" href="#" onclick="return false"
+      ><span class="mark m-tl"></span><span class="mark m-tr"></span
+      ><span class="mark m-bl"></span><span class="mark m-br"></span></span></a>
+    <a class="door" data-ос="win" href="#" onclick="return false"><span class="цель"
       ><span class="для">Инструкция для </span><span class="имя">Windows</span
-      ><span class="ст">→</span></a>
-    <p class="иначе">на другом устройстве</p>
+      ><span class="mark m-tl"></span><span class="mark m-tr"></span
+      ><span class="mark m-bl"></span><span class="mark m-br"></span></span></a>
+    <p class="иначе">инструкции для остальных</p>
   </nav>
 
   <p class="ask">не нашли своё устройство?
