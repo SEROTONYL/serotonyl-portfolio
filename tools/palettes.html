@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>палитры главной</title>
+<style>
+  body { margin: 0; background: #111; color: #ddd; font: 15px/1.4 system-ui, sans-serif; padding: 24px 16px; }
+  .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 18px; max-width: 1700px; margin: 0 auto; }
+  .p { background: radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--accent2) 22%, transparent), transparent 60%), var(--bg); color: var(--text); border-radius: 12px; padding: 22px 20px 20px; outline: 1px solid #ffffff14; }
+  .tag { font: 600 12px/1 system-ui; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin-bottom: 14px; }
+  .tag b { color: var(--accent); font-size: 18px; margin-right: 6px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h1 span { color: var(--accent2); }
+  h1 { background: linear-gradient(90deg, var(--text) 40%, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
+  h1 span { -webkit-text-fill-color: var(--accent2); }
+  .c.on { border: 1px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, var(--accent), var(--accent2)) border-box; }
+  .n { color: var(--accent); }
+  .hi { color: var(--dim); margin: 0 0 18px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .c { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .c.on { border-color: var(--accent); }
+  .c img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+  .c div { padding: 9px 11px 12px; }
+  .n { font-weight: 650; margin: 0 0 2px; }
+  .n small { color: var(--dim); font-weight: 400; font-size: 12px; margin-left: 4px; }
+  .d { color: var(--dim); margin: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wall" id="wall"></div>
+<script>
+  // [номер, имя, фон, карточка, линия, текст, приглушённый, акцент, второй акцент]
+  const P = [
+    [1, 'лаванда × фиолетовый', '#100b1a', '#1a1329', '#2f2447', '#efe8ff', '#a99cc4', '#c9a7ff', '#7b2cff'],
+    [2, 'персик × слива',       '#170a15', '#241322', '#3d2238', '#fff0e8', '#c2a0b4', '#ffb38a', '#a1307a'],
+    [3, 'мята × малина',        '#0a1312', '#121f1d', '#213532', '#e8fff8', '#93b3ab', '#7dffcf', '#ff3d8b'],
+    [4, 'лимон × баклажан',     '#150a1c', '#21122b', '#3a2149', '#fbffe0', '#b49fc0', '#f2ff5c', '#8e3bd6'],
+    [5, 'сирень × золото',      '#120e18', '#1d1726', '#342a42', '#f6efff', '#ab9fbd', '#d9b8ff', '#ffcc4d'],
+    [6, 'шалфей × терракота',   '#0f120e', '#181d16', '#2b3427', '#eef3ea', '#9daa96', '#a8c49a', '#e0784f'],
+    [7, 'вишня × крем',         '#16080c', '#231016', '#3e1d27', '#fff3e6', '#c2a4a8', '#ffe7c7', '#ff2e63'],
+    [8, 'неон-розовый × уголь', '#0c0b0d', '#171518', '#2c282e', '#fbeefa', '#a99fa9', '#ff4fd8', '#ffd1f3'],
+  ];
+  const wall = document.getElementById('wall');
+  for (const [i, name, bg, card, line, text, dim, accent, accent2] of P) {
+    const el = document.createElement('section');
+    el.className = 'p';
+    el.style.cssText = `--bg:${bg};--card:${card};--line:${line};--text:${text};--dim:${dim};--accent:${accent};--accent2:${accent2}`;
+    el.innerHTML = `
+      <div class="tag"><b>${i}</b>${name}</div>
+      <h1>serotonyl<span>.</span></h1>
+      <p class="hi">привет, это мои штуки, тыкай куда хочешь</p>
+      <div class="cards">
+        <div class="c on"><img src="/previews/corridor.jpg"><div><p class="n">коридор<small>/corridor</small></p><p class="d">моё резюме, только по нему можно погулять</p></div></div>
+        <div class="c"><img src="/previews/seroconnect.jpg"><div><p class="n">seroconnect<small>/seroconnect</small></p><p class="d">невыпущенная версия сайта которую хрен знает когда выпущу</p></div></div>
+      </div>`;
+    wall.appendChild(el);
+  }
+</script>
+</body>
+</html>
