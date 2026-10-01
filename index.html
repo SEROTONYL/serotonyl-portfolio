@@ -46,7 +46,8 @@
     background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, var(--accent), var(--accent2)) border-box;
   }
   .shot { aspect-ratio: 16 / 10; background: #000; }
-  .shot video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  
+  .shot video, .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .body { padding: 14px 16px 18px; }
   .name { color: var(--accent); font-weight: 650; font-size: 18px; margin: 0 0 4px; }
   .name small { color: var(--dim); font-weight: 400; font-size: 13px; margin-left: 6px; }
@@ -91,6 +92,11 @@
       <div class="body"><p class="name">как вижу я<small>/vision</small></p>
         <p class="desc">возможно у мя протаномалия. кидаешь картинку и видишь как я</p></div>
     </a>
+    <a class="card" href="/duels/">
+      <div class="shot"><img src="/previews/duels.jpg" alt="" loading="lazy"></div>
+      <div class="body"><p class="name">дуэли<small>/duels</small></p>
+        <p class="desc">выбираешь из двух картинок или треков и смотришь, совпал ли со мной</p></div>
+    </a>
   </div>
 </main>
 <script>
@@ -101,7 +107,7 @@
   const stop = v => { v.pause(); };
   document.querySelectorAll('a.card').forEach(card => {
     const v = card.querySelector('video');
-    if (still) return;
+    if (still || !v) return;
     if (hover) {
       card.addEventListener('mouseenter', () => play(v));
       card.addEventListener('mouseleave', () => stop(v));

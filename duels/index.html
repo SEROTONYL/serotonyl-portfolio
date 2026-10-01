@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>дуэли · serotonyl</title>
+<style>
+  :root {
+    --bg: #16080c;
+    --card: #231016;
+    --line: #3e1d27;
+    --text: #fff3e6;
+    --dim: #c2a4a8;
+    --accent: #ffe7c7;
+    --accent2: #ff2e63;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { background: radial-gradient(90% 50% at 100% 0%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 65%) no-repeat, var(--bg); min-height: 100vh; }
+  body { font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 40px 16px 64px; }
+  main { max-width: 980px; margin: 0 auto; }
+  a { color: var(--accent); }
+  h1 { font-size: 28px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h1 span { color: var(--accent2); }
+  .hi { color: var(--dim); margin: 0 0 28px; }
+  .back { color: var(--dim); text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 18px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .btn { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; }
+  .btn:hover, .btn:focus-visible { border-color: var(--accent2); outline: none; }
+  .btn.main { background: var(--accent2); border-color: var(--accent2); color: #fff; font-weight: 600; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .mode { text-align: left; padding: 20px; }
+  .mode b { display: block; color: var(--accent); font-size: 18px; margin-bottom: 4px; }
+  .mode span { color: var(--dim); }
+  .top { display: flex; justify-content: space-between; align-items: baseline; color: var(--dim); margin-bottom: 14px; font-size: 14px; }
+  .bar { height: 3px; background: var(--line); border-radius: 2px; margin-bottom: 18px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent2); transition: width .25s; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 14px; overflow: hidden; padding: 0; text-align: left; display: flex; flex-direction: column; }
+  .opt:not(:disabled):hover, .opt:focus-visible { border-color: var(--accent); outline: none; }
+  .opt:disabled { cursor: default; }
+  .opt .pic { aspect-ratio: 1; background: #000; display: grid; place-items: center; width: 100%; }
+  .opt .pic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .opt .cap { padding: 10px 12px; color: var(--dim); font-size: 14px; min-height: 2.9em; visibility: hidden; }
+  .shown .opt .cap { visibility: visible; }
+  .tags { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+  .tag { font-size: 13px; font-weight: 650; padding: 3px 9px; border-radius: 999px; }
+  .tag.you { background: var(--accent); color: var(--bg); }
+  .tag.me { background: var(--accent2); color: #fff; }
+  .opt.picked { border-color: var(--accent); }
+  .opt.mine { border-color: var(--accent2); }
+  .opt.picked.mine { border-color: transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, var(--accent), var(--accent2)) border-box; }
+  /* звук */
+  .snd { padding: 18px 14px 0; display: flex; flex-direction: column; gap: 14px; }
+  .snd .letter { font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .play { width: 100%; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); padding: 12px; text-align: center; }
+  .play.on { border-color: var(--accent2); color: var(--accent2); }
+  .prog { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--accent); }
+  .take { margin: 12px 14px 0; }
+  .after { margin-top: 18px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; min-height: 48px; }
+  .verdict { font-weight: 600; }
+  .big { font-size: 64px; font-weight: 700; color: var(--accent); margin: 0; line-height: 1.1; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .hidden { display: none !important; }
+  @media (max-width: 520px) { .snd .letter { font-size: 30px; } .opt .cap { font-size: 13px; } }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← serotonyl.dev</a>
+  <h1>дуэли<span>.</span></h1>
+
+  <section id="start">
+    <p class="hi">20 пар, выбираешь что больше нравится. после каждого выбора видно, что выбрал я. в конце процент совпадения</p>
+    <div class="modes">
+      <button class="btn mode" data-mode="img"><b>картинки</b><span>картины, гравюры, космос, узоры</span></button>
+      <button class="btn mode" data-mode="snd"><b>звук</b><span>куски треков по 20 секунд, названия после выбора. нужны наушники</span></button>
+    </div>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="top"><span id="count"></span><span id="score"></span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="pair" id="pair"></div>
+    <div class="after"><span class="verdict" id="verdict"></span><button class="btn main hidden" id="next">дальше</button></div>
+  </section>
+
+  <section id="end" class="hidden">
+    <p class="hi">мы совпали</p>
+    <p class="big" id="pct"></p>
+    <p id="phrase"></p>
+    <p class="hi" id="chance">если выбирать наугад, выходит около 50%</p>
+    <div class="row">
+      <button class="btn main" id="again">ещё раз</button>
+      <button class="btn" id="other"></button>
+    </div>
+  </section>
+</main>
+<script src="data.js"></script>
+<script>
+  const N = 20;
+  const $ = id => document.getElementById(id);
+  let mode, round, i, hits, audios = [];
+
+  const shuffle = a => { for (let k = a.length - 1; k > 0; k--) { const j = Math.random() * (k + 1) | 0; [a[k], a[j]] = [a[j], a[k]]; } return a; };
+  const show = id => ['start', 'game', 'end'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  const stopAll = () => audios.forEach(a => a.pause());
+
+  function start(m) {
+    mode = m;
+    // пара: [a, b, кто выиграл у меня]. стороны мешаем, чтобы мой выбор не сидел всегда слева
+    round = shuffle(DATA[m].pairs.slice()).slice(0, N).map(([a, b, w]) => {
+      const mine = w === 'a' ? a : b;
+      return Math.random() < .5 ? { l: a, r: b, mine } : { l: b, r: a, mine };
+    });
+    i = 0; hits = 0;
+    show('game');
+    duel();
+  }
+
+  function src(id) { return mode === 'img' ? `img/${id}.webp` : `snd/${id}.m4a`; }
+
+  function duel() {
+    stopAll();
+    const p = round[i];
+    $('count').textContent = `${i + 1} / ${N}`;
+    $('score').textContent = i ? `совпали ${hits} из ${i}` : '';
+    $('fill').style.width = `${i / N * 100}%`;
+    $('verdict').textContent = '';
+    $('next').classList.add('hidden');
+    const pair = $('pair');
+    pair.className = 'pair';
+    pair.innerHTML = '';
+    audios = [];
+    [p.l, p.r].forEach((id, k) => pair.append(mode === 'img' ? imgOpt(id) : sndOpt(id, k)));
+    // подгружаем следующие картинки заранее
+    if (mode === 'img' && round[i + 1]) [round[i + 1].l, round[i + 1].r].forEach(id => { new Image().src = src(id); });
+  }
+
+  function cap(id) { const c = document.createElement('div'); c.className = 'cap'; c.textContent = DATA[mode].items[id]; return c; }
+
+  function imgOpt(id) {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.dataset.id = id;
+    b.innerHTML = `<div class="pic"><img alt="" src="${src(id)}"></div>`;
+    b.append(cap(id));
+    b.onclick = () => pick(id);
+    return b;
+  }
+
+  function sndOpt(id, k) {
+    const d = document.createElement('div');
+    d.className = 'opt'; d.dataset.id = id;
+    const a = new Audio(src(id)); a.preload = 'auto';
+    audios.push(a);
+    d.innerHTML = `<div class="snd"><div class="letter">${k ? 'Б' : 'А'}</div><button class="play">▶ слушать</button><div class="prog"><i></i></div></div><button class="btn take">этот</button>`;
+    const play = d.querySelector('.play'), fill = d.querySelector('.prog i');
+    play.onclick = () => {
+      if (a.paused) { stopAll(); a.play(); } else a.pause();
+    };
+    a.onplay = () => { play.classList.add('on'); play.textContent = '❚❚ пауза'; };
+    a.onpause = a.onended = () => { play.classList.remove('on'); play.textContent = '▶ слушать'; };
+    a.ontimeupdate = () => { fill.style.width = `${a.currentTime / (a.duration || 20) * 100}%`; };
+    d.querySelector('.take').onclick = () => pick(id);
+    d.append(cap(id));
+    return d;
+  }
+
+  function pick(id) {
+    const p = round[i], same = id === p.mine;
+    if (same) hits++;
+    const pair = $('pair');
+    pair.classList.add('shown');
+    pair.querySelectorAll('.opt').forEach(o => {
+      const t = document.createElement('div'); t.className = 'tags';
+      if (o.dataset.id === id) { o.classList.add('picked'); t.innerHTML += '<span class="tag you">ты</span>'; }
+      if (o.dataset.id === p.mine) { o.classList.add('mine'); t.innerHTML += '<span class="tag me">я</span>'; }
+      o.append(t);
+      if (o.tagName === 'BUTTON') o.disabled = true;
+      o.querySelectorAll('.take').forEach(x => x.disabled = true);
+    });
+    $('verdict').textContent = same ? 'совпали' : 'мимо';
+    $('score').textContent = `совпали ${hits} из ${i + 1}`;
+    $('next').textContent = i + 1 < N ? 'дальше' : 'итог';
+    $('next').classList.remove('hidden');
+    $('next').focus({ preventScroll: true });
+  }
+
+  function end() {
+    stopAll();
+    const pct = Math.round(hits / N * 100);
+    $('pct').textContent = `${pct}%`;
+    $('phrase').textContent =
+      pct >= 80 ? 'это подозрительно, ты точно не я?' :
+      pct >= 65 ? 'вкусы похожи, можно дружить дальше' :
+      pct >= 40 ? 'где-то совпадаем, где-то нет, как монетка' :
+      'мы почти противоположности. тоже результат';
+    $('other').textContent = mode === 'img' ? 'теперь звук' : 'теперь картинки';
+    show('end');
+  }
+
+  document.querySelectorAll('.mode').forEach(b => b.onclick = () => start(b.dataset.mode));
+  $('next').onclick = () => { if (++i < N) duel(); else end(); };
+  $('again').onclick = () => start(mode);
+  $('other').onclick = () => start(mode === 'img' ? 'snd' : 'img');
+</script>
+</body>
+</html>
