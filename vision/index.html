@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Загрузи картинку и посмотри, какие цвета на ней сливаются для человека с протаномалией.">
+</head><body>
+<title>Как вижу я</title>
+<style>
+:root{--bg:#262626;--fg:#eee;--mut:#aaa;--card:#313131;--line:#444;--acc:#9fd0ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+[hidden]{display:none!important}
+.wrap{max-width:1300px;margin:0 auto;padding:20px 16px}
+h1{font-size:26px;margin:0 0 8px}
+p{margin:8px 0;max-width:75ch}
+.mut{color:var(--mut)}
+.about{background:var(--card);border-radius:8px;padding:12px 16px;margin:12px 0}
+.about summary{cursor:pointer;font-weight:600}
+.ctl{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;margin:14px 0}
+.ctl label{display:flex;align-items:center;gap:8px}
+input[type=range]{width:180px}
+input[type=file],select{font:inherit;color:var(--fg);background:#1e1e1e;border:1px solid var(--line);border-radius:4px;padding:4px}
+#drop{border:2px dashed var(--line);border-radius:8px;padding:14px;text-align:center;color:var(--mut)}
+#drop.over{border-color:var(--acc);color:var(--fg)}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.views.one{grid-template-columns:1fr}
+.views figure{margin:0;min-width:0}
+.views figcaption{color:var(--mut);font-size:14px;margin-bottom:4px}
+canvas{display:block;max-width:100%;height:auto;image-rendering:auto}
+canvas.pix{image-rendering:pixelated}
+#splitBox{position:relative;display:inline-block;max-width:100%;cursor:ew-resize;user-select:none}
+#splitBox canvas{max-width:100%}
+#splitTop{position:absolute;left:0;top:0;overflow:hidden;height:100%}
+#splitTop canvas{max-width:none}
+#splitLine{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px #000}
+@media (max-width:700px){.views{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <h1>Как вижу я</h1>
+  <p class="mut">Загрузи картинку и посмотри, какие цвета на ней для меня сливаются.</p>
+
+  <details class="about">
+    <summary>Что тут показано</summary>
+    <p>У меня протаномалия: красные колбочки в глазу есть, но работают со сдвигом. Это выяснено моими тестами 01.10.2026, врачом пока не подтверждено.</p>
+    <p>Что это значит на деле:</p>
+    <ul>
+      <li>Красный для меня заметно темнее, чем для тебя.</li>
+      <li>Цвета, которые отличаются только «красностью и зелёностью», для меня почти одинаковые. Красный, коричневый, оливковый и зелёный сближаются. Розовый и бирюзовый сближаются с серым.</li>
+      <li>Синий и жёлтый, а также светлое и тёмное я различаю нормально.</li>
+    </ul>
+    <p>Справа картинка, пересчитанная так, чтобы для тебя исчезли те же различия, что исчезают для меня. Если на правой ты не можешь отличить две вещи, я не могу отличить их на любой.</p>
+    <p class="mut">Важно: это не то, «какими я вижу цвета». Залезть в чужое ощущение нельзя. Мне трава не кажется серой, а красный я вижу красным, если он достаточно яркий. Картинка показывает другое: какие различия у меня пропадают. Модель Machado 2009, сила подобрана по моим замерам (около 0.8 из 1).</p>
+  </details>
+
+  <div id="drop">Перетащи картинку сюда, вставь из буфера (Ctrl+V) или <label style="display:inline"><input type="file" id="file" accept="image/*"></label></div>
+
+  <div class="ctl">
+    <label>Сила <input type="range" id="sev" min="0" max="100" value="80"> <span id="sevV">0.80</span></label>
+    <label>Вид
+      <select id="mode"><option value="side">рядом</option><option value="split">шторка</option><option value="sim">только мой</option></select></label>
+    <label><input type="checkbox" id="pix"> пиксель-арт (без сглаживания)</label>
+  </div>
+  <p class="mut" style="margin-top:-6px">Сила 0.80 это моя оценка по тестам. 1.0 это полное отсутствие красных колбочек (протанопия), 0 обычное зрение.</p>
+
+  <div class="views" id="views">
+    <figure><figcaption>Как видишь ты</figcaption><canvas id="orig"></canvas></figure>
+    <figure><figcaption>Как различаю я</figcaption><canvas id="sim"></canvas></figure>
+  </div>
+  <div id="splitWrap" hidden>
+    <p class="mut">Двигай мышью по картинке: слева как видишь ты, справа как различаю я.</p>
+    <div id="splitBox"><canvas id="sB"></canvas><div id="splitTop"><canvas id="sA"></canvas></div><div id="splitLine"></div></div>
+  </div>
+</div>
+
+<script>
+/* Machado, Oliveira & Fernandes 2009, protanomaly matrices for severity 0.0..1.0 (linear RGB), interpolated between steps. */
+const MACHADO=[[1,0,0,0,1,0,0,0,1],
+[0.856167,0.182038,-0.038205,0.029342,0.955115,0.015544,-0.002880,-0.001563,1.004443],
+[0.734766,0.334872,-0.069637,0.051840,0.919198,0.028963,-0.004928,-0.004209,1.009137],
+[0.630323,0.465641,-0.095964,0.069181,0.890046,0.040773,-0.006308,-0.007724,1.014032],
+[0.539009,0.579343,-0.118352,0.082546,0.866121,0.051332,-0.007136,-0.011959,1.019095],
+[0.458064,0.679578,-0.137642,0.092785,0.846313,0.060902,-0.007494,-0.016807,1.024301],
+[0.385450,0.769005,-0.154455,0.100526,0.829802,0.069673,-0.007442,-0.022190,1.029632],
+[0.319627,0.849633,-0.169261,0.106241,0.815969,0.077790,-0.007025,-0.028051,1.035076],
+[0.259411,0.923008,-0.182420,0.110296,0.804340,0.085364,-0.006276,-0.034346,1.040622],
+[0.203876,0.990338,-0.194214,0.112975,0.794542,0.092483,-0.005222,-0.041043,1.046265],
+[0.152286,1.052583,-0.204868,0.114503,0.786281,0.099216,-0.003882,-0.048116,1.051998]];
+function matFor(s){const x=Math.min(10,Math.max(0,s*10)),i=Math.floor(x),f=x-i,a=MACHADO[i],b=MACHADO[Math.min(10,i+1)];return a.map((v,k)=>v+(b[k]-v)*f);}
+const TOLIN=new Float32Array(256);for(let i=0;i<256;i++){const c=i/255;TOLIN[i]=c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
+const TOS=new Uint8ClampedArray(4097);for(let i=0;i<=4096;i++){const c=i/4096;TOS[i]=Math.round(255*(c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055));}
+const enc=v=>TOS[v<=0?0:v>=1?4096:Math.round(v*4096)];
+const $=id=>document.getElementById(id);
+const MAXSIDE=1800;
+let src=null; // ImageData of the original
+
+function setImage(img){
+  const k=Math.min(1,MAXSIDE/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+  const w=Math.max(1,Math.round((img.naturalWidth||img.width)*k)),h=Math.max(1,Math.round((img.naturalHeight||img.height)*k));
+  const c=$('orig');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+  src=x.getImageData(0,0,w,h);
+  // tiny pixel art: show it larger so it is not a speck
+  const small=Math.max(w,h)<300;$('pix').checked=$('pix').checked||small;
+  render();
+}
+function render(){
+  if(!src)return;
+  const s=$('sev').value/100;$('sevV').textContent=s.toFixed(2);
+  const m=matFor(s),d=src.data,out=new ImageData(src.width,src.height),o=out.data;
+  for(let i=0;i<d.length;i+=4){const r=TOLIN[d[i]],g=TOLIN[d[i+1]],b=TOLIN[d[i+2]];
+    o[i]=enc(m[0]*r+m[1]*g+m[2]*b);o[i+1]=enc(m[3]*r+m[4]*g+m[5]*b);o[i+2]=enc(m[6]*r+m[7]*g+m[8]*b);o[i+3]=d[i+3];}
+  const sc=$('sim');sc.width=src.width;sc.height=src.height;sc.getContext('2d').putImageData(out,0,0);
+  const mode=$('mode').value,pix=$('pix').checked;
+  $('views').hidden=mode==='split';$('splitWrap').hidden=mode!=='split';
+  $('views').classList.toggle('one',mode==='sim');$('views').firstElementChild.hidden=mode==='sim';
+  for(const id of ['orig','sim','sA','sB'])$(id).classList.toggle('pix',pix);
+  const scale=pix&&Math.max(src.width,src.height)<300?Math.floor(600/Math.max(src.width,src.height)):1;
+  for(const id of ['orig','sim'])$(id).style.width=scale>1?(src.width*scale)+'px':'';
+  if(mode==='split'){
+    const a=$('sA'),b=$('sB');a.width=b.width=src.width;a.height=b.height=src.height;
+    a.getContext('2d').putImageData(src,0,0);b.getContext('2d').putImageData(out,0,0);
+    const W=scale>1?src.width*scale:Math.min(src.width,$('splitWrap').clientWidth||src.width);
+    b.style.width=W+'px';a.style.width=W+'px';setSplit(0.5);
+  }
+}
+function setSplit(f){const b=$('sB'),W=b.getBoundingClientRect().width;$('splitTop').style.width=(W*f)+'px';$('splitLine').style.left=(W*f-1)+'px';}
+$('splitBox').addEventListener('pointermove',e=>{const r=$('sB').getBoundingClientRect();setSplit(Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)));});
+$('sev').oninput=render;$('mode').onchange=render;$('pix').onchange=render;
+function loadFile(f){if(!f||!f.type.startsWith('image/'))return;const img=new Image();img.onload=()=>{setImage(img);URL.revokeObjectURL(img.src);};img.src=URL.createObjectURL(f);}
+$('file').onchange=e=>loadFile(e.target.files[0]);
+const dz=$('drop');
+['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();dz.classList.add('over');}));
+['dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();dz.classList.remove('over');}));
+document.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+document.addEventListener('paste',e=>{for(const it of e.clipboardData.items)if(it.type.startsWith('image/')){loadFile(it.getAsFile());break;}});
+
+// sample so the page shows something before an upload: fruit, leaves, a hue strip and swatch pairs
+(function sample(){
+  const c=document.createElement('canvas'),w=900,h=420;c.width=w;c.height=h;const x=c.getContext('2d');
+  x.fillStyle='#5f7f3f';x.fillRect(0,0,w,h);
+  for(let i=0;i<40;i++){x.fillStyle=['#3f7f2f','#4f8f35','#6b8f2a','#2f6f3a'][i%4];x.beginPath();
+    x.ellipse(30+((i*97)%840),20+((i*53)%260),40,18,(i*0.7)%3,0,7);x.fill();}
+  const fruit=[['#c8281e',140,120],['#b83a2e',260,180],['#d24a20',380,110],['#8fb83a',500,170],['#c03040',620,120],['#7a4a2a',740,180]];
+  for(const [col,cx,cy] of fruit){x.fillStyle=col;x.beginPath();x.arc(cx,cy,48,0,7);x.fill();x.fillStyle='rgba(255,255,255,.25)';x.beginPath();x.arc(cx-16,cy-16,12,0,7);x.fill();}
+  for(let i=0;i<w;i++){x.fillStyle='hsl('+(i/w*360)+',75%,50%)';x.fillRect(i,280,1,50);}
+  const pairs=[['#6e1c1c','#24492b'],['#7a4a2a','#6b6b2a'],['#d58aa0','#9a9a9a'],['#2f8f8a','#8a8a8a'],['#3456b0','#6a3f9a'],['#d8c040','#8fb83a']];
+  pairs.forEach(([a,b],k)=>{const px=20+k*148;x.fillStyle=a;x.fillRect(px,345,64,60);x.fillStyle=b;x.fillRect(px+64,345,64,60);});
+  const img=new Image();img.onload=()=>setImage(img);img.src=c.toDataURL();
+})();
+</script>
+
+</body></html>
