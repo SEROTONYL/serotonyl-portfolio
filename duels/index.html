@@ -64,6 +64,34 @@
   .row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
   .hidden { display: none !important; }
   @media (max-width: 520px) { .snd .letter { font-size: 30px; } .opt .cap { font-size: 13px; } }
+  .play { position: relative; overflow: hidden; }
+  .pfill { position: absolute; inset: 0 auto 0 0; width: 0; background: color-mix(in srgb, var(--accent2) 30%, transparent); display: none; }
+  .pt { position: relative; }
+  #score2 { display: none; color: var(--dim); font-size: 14px; }
+  /* телефон: пары столбиком, крупные плашки, «дальше» внизу под пальцем */
+  @media (max-width: 640px) {
+    body { padding-top: 20px; padding-bottom: 110px; }
+    h1 { font-size: 22px; }
+    .back { margin-bottom: 10px; }
+    .top #score { display: none; }
+    .bar { margin-bottom: 12px; }
+    .pair { grid-template-columns: 1fr; gap: 10px; }
+    .opt .pic { aspect-ratio: auto; height: 34svh; }
+    .opt:has(.pic) .cap { position: absolute; left: 0; right: 0; bottom: 0; min-height: 0; color: var(--text);
+      background: linear-gradient(transparent, rgba(0,0,0,.8)); padding-top: 24px; }
+    .snd { padding: 0; gap: 0; position: relative; }
+    .snd .letter { position: absolute; top: 12px; left: 14px; z-index: 1; pointer-events: none; }
+    .play { height: 22svh; border: 0; border-radius: 0; font-size: 18px; }
+    .pfill { display: block; }
+    .prog { display: none; }
+    .take { margin: 10px; padding: 14px; font-size: 17px; }
+    .snd + .take + .cap, .opt .cap { min-height: 0; }
+    .after { position: fixed; left: 0; right: 0; bottom: 0; margin: 0; z-index: 5; justify-content: space-between;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+    #score2 { display: inline; margin-right: auto; }
+    #score2:not(:empty)::before { content: '· '; }
+    #next { padding: 14px 28px; font-size: 17px; }
+  }
 </style>
 </head>
 <body>
@@ -83,7 +111,7 @@
     <div class="top"><span id="count"></span><span id="score"></span></div>
     <div class="bar"><i id="fill"></i></div>
     <div class="pair" id="pair"></div>
-    <div class="after"><span class="verdict" id="verdict"></span><button class="btn main hidden" id="next">дальше</button></div>
+    <div class="after"><span class="verdict" id="verdict"></span><span id="score2"></span><button class="btn main hidden" id="next">дальше</button></div>
   </section>
 
   <section id="end" class="hidden">
@@ -125,7 +153,7 @@
     stopAll();
     const p = round[i];
     $('count').textContent = `${i + 1} / ${N}`;
-    $('score').textContent = i ? `совпали ${hits} из ${i}` : '';
+    $('score').textContent = i ? `совпали ${hits} из ${i}` : ''; $('score2').textContent = i ? `${hits} из ${i}` : '';
     $('fill').style.width = `${i / N * 100}%`;
     $('verdict').textContent = '';
     $('next').classList.add('hidden');
@@ -154,14 +182,14 @@
     d.className = 'opt'; d.dataset.id = id;
     const a = new Audio(src(id)); a.preload = 'auto';
     audios.push(a);
-    d.innerHTML = `<div class="snd"><div class="letter">${k ? 'Б' : 'А'}</div><button class="play">▶ слушать</button><div class="prog"><i></i></div></div><button class="btn take">этот</button>`;
-    const play = d.querySelector('.play'), fill = d.querySelector('.prog i');
+    d.innerHTML = `<div class="snd"><div class="letter">${k ? 'Б' : 'А'}</div><button class="play"><i class="pfill"></i><span class="pt">▶ слушать</span></button><div class="prog"><i></i></div></div><button class="btn take">этот</button>`;
+    const play = d.querySelector('.play'), fill = d.querySelector('.prog i'), pfill = d.querySelector('.pfill'), pt = d.querySelector('.pt');
     play.onclick = () => {
       if (a.paused) { stopAll(); a.play(); } else a.pause();
     };
-    a.onplay = () => { play.classList.add('on'); play.textContent = '❚❚ пауза'; };
-    a.onpause = a.onended = () => { play.classList.remove('on'); play.textContent = '▶ слушать'; };
-    a.ontimeupdate = () => { fill.style.width = `${a.currentTime / (a.duration || 20) * 100}%`; };
+    a.onplay = () => { play.classList.add('on'); pt.textContent = '❚❚ пауза'; };
+    a.onpause = a.onended = () => { play.classList.remove('on'); pt.textContent = '▶ слушать'; };
+    a.ontimeupdate = () => { fill.style.width = pfill.style.width = `${a.currentTime / (a.duration || 20) * 100}%`; };
     d.querySelector('.take').onclick = () => pick(id);
     d.append(cap(id));
     return d;
@@ -181,7 +209,7 @@
       o.querySelectorAll('.take').forEach(x => x.disabled = true);
     });
     $('verdict').textContent = same ? 'совпали' : 'мимо';
-    $('score').textContent = `совпали ${hits} из ${i + 1}`;
+    $('score').textContent = `совпали ${hits} из ${i + 1}`; $('score2').textContent = `${hits} из ${i + 1}`;
     $('next').textContent = i + 1 < N ? 'дальше' : 'итог';
     $('next').classList.remove('hidden');
     $('next').focus({ preventScroll: true });
