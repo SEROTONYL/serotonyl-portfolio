@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Музыка</title>
+<meta name="description" content="Всё, что я начинал в Ableton, с июня 2025.">
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-0: #110a0a;
+    --surface-1: #1a1212;
+    --surface-2: #241818;
+    --text-primary: #f5f5f5;
+    --text-muted: #a2a2a2;
+    --accent: #D4A574;
+    --accent-on: #0a0606;
+    --border-subtle: rgba(245, 245, 245, 0.08);
+    --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+  header { padding: 32px 16px 20px; max-width: 1400px; margin: 0 auto; }
+  header a { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+  header a:hover { color: var(--accent); }
+  h1 { margin: 12px 0 4px; font-size: 32px; font-weight: 600; }
+  header p { margin: 0; color: var(--text-muted); max-width: 640px; }
+
+  .grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .tile.playing { border-color: var(--accent); }
+  .cover {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    border: 0;
+    background: #0b0606;
+    cursor: pointer;
+  }
+  .cover canvas { width: 100%; height: 100%; display: block; }
+  .cover .head {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    width: 2px; background: var(--text-primary);
+    display: none;
+  }
+  .tile.playing .head { display: block; }
+  .meta { padding: 10px 12px 12px; }
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .title { font-weight: 600; overflow-wrap: anywhere; }
+  .title.hidden { color: var(--text-muted); font-weight: 400; }
+  .date { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
+  .vers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .vers button {
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font: inherit; font-size: 13px;
+    cursor: pointer;
+  }
+  .vers button.on { color: var(--accent-on); background: var(--accent); border-color: var(--accent); }
+  form { display: flex; gap: 6px; margin-top: 8px; }
+  form input {
+    flex: 1; min-width: 0;
+    background: var(--surface-0);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 6px 8px;
+    font: inherit; font-size: 14px;
+  }
+  form button {
+    border: 0; border-radius: 6px;
+    padding: 6px 10px;
+    font: inherit; font-size: 14px;
+    cursor: pointer;
+  }
+  form .ok { background: var(--accent); color: var(--accent-on); }
+  form .skip { background: var(--surface-2); color: var(--text-muted); }
+  .yours { margin-top: 6px; color: var(--text-muted); font-size: 13px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 600px) { .cover { aspect-ratio: 3 / 1; } }
+</style>
+</head>
+<body>
+<header>
+  <a href="/">← serotonyl.dev</a>
+  <h1>Музыка</h1>
+  <p>Всё, что я начинал в Ableton, новое сверху. Названия спрятаны: послушай и придумай своё, потом покажу, как назвал я.</p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<script src="data.js"></script>
+<script>
+  const GUESS_URL = "https://serotonyl-guess.serveousercontent.com/guess";
+  const audio = new Audio();
+  const grid = document.getElementById("grid");
+  let cur = null;   // {tile, v}
+
+  function load(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+  const revealed = load("music-revealed");
+
+  function fmtDate(ts) {
+    return new Date(ts * 1000).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function draw(canvas, v) {
+    const r = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = r.width * dpr;
+    canvas.height = r.height * dpr;
+    const c = canvas.getContext("2d");
+    c.scale(dpr, dpr);
+    const W = r.width, H = r.height, pad = 8;
+    c.fillStyle = "#D4A574";
+    if (v.arr) {
+      // аранжировка: дорожка на строку, клипы полосками
+      const n = v.arr.length;
+      const h = (H - pad * 2) / n;
+      v.arr.forEach((clips, i) => {
+        c.globalAlpha = 0.45 + 0.55 * ((i * 7) % n) / Math.max(1, n - 1);
+        clips.forEach(([s, e]) => {
+          c.fillRect(pad + s * (W - pad * 2), pad + i * h + 1, Math.max(1, (e - s) * (W - pad * 2) - 1), Math.max(1, h - 2));
+        });
+      });
+    } else {
+      const n = v.peaks.length;
+      const w = (W - pad * 2) / n;
+      c.globalAlpha = 0.8;
+      v.peaks.forEach((p, i) => {
+        const h = Math.max(1, p * (H - pad * 2));
+        c.fillRect(pad + i * w, (H - h) / 2, Math.max(1, w - 1), h);
+      });
+    }
+  }
+
+  function tileFor(item, idx) {
+    const key = item.versions[0].src;
+    const t = document.createElement("article");
+    t.className = "tile";
+    t.innerHTML = `
+      <button class="cover" aria-label="Играть"><canvas></canvas><div class="head"></div></button>
+      <div class="meta">
+        <div class="row"><span class="title"></span><span class="date"></span></div>
+        <div class="vers"></div>
+        <form hidden>
+          <input maxlength="80" placeholder="как бы ты назвал?" aria-label="Твоё название">
+          <button class="ok">ок</button><button class="skip" type="button">показать</button>
+        </form>
+        <div class="yours" hidden></div>
+      </div>`;
+    const canvas = t.querySelector("canvas");
+    const title = t.querySelector(".title");
+    const form = t.querySelector("form");
+    const yours = t.querySelector(".yours");
+    let vi = 0;
+
+    function show() {
+      const v = item.versions[vi];
+      const known = revealed[key];
+      title.textContent = known ? v.title : "???";
+      title.classList.toggle("hidden", !known);
+      form.hidden = !!known || !t.dataset.heard;
+      t.querySelector(".date").textContent = fmtDate(v.date);
+      if (known && known.guess) {
+        yours.hidden = false;
+        yours.textContent = `ты назвал: ${known.guess}`;
+      }
+      draw(canvas, v);
+    }
+
+    if (item.versions.length > 1) {
+      const vers = t.querySelector(".vers");
+      item.versions.forEach((v, i) => {
+        const b = document.createElement("button");
+        b.textContent = `${i + 1}`;
+        b.title = "версия " + (i + 1);
+        b.onclick = () => {
+          vi = i;
+          vers.querySelectorAll("button").forEach((x, j) => x.classList.toggle("on", j === i));
+          show();
+          play();
+        };
+        if (i === 0) b.classList.add("on");
+        vers.append(b);
+      });
+    }
+
+    function play() {
+      const v = item.versions[vi];
+      if (cur && cur.tile === t && cur.v === v && !audio.paused) { audio.pause(); return; }
+      if (!cur || cur.v !== v) audio.src = v.src;
+      document.querySelectorAll(".tile.playing").forEach(x => x.classList.remove("playing"));
+      t.classList.add("playing");
+      cur = { tile: t, v };
+      audio.play();
+      if (!t.dataset.heard) { t.dataset.heard = "1"; show(); }
+    }
+    t.querySelector(".cover").onclick = play;
+
+    function reveal(guess) {
+      revealed[key] = guess ? { guess } : {};
+      save("music-revealed", revealed);
+      show();
+    }
+    form.onsubmit = e => {
+      e.preventDefault();
+      const g = form.querySelector("input").value.trim();
+      if (!g) return;
+      fetch(GUESS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ track: item.versions[0].title, guess: g }),
+      }).catch(() => {});
+      reveal(g);
+    };
+    form.querySelector(".skip").onclick = () => reveal("");
+
+    t._show = show;
+    return t;
+  }
+
+  const tiles = TRACKS.map(tileFor);
+  grid.append(...tiles);
+  tiles.forEach(t => t._show());
+  addEventListener("resize", () => tiles.forEach(t => t._show()));
+
+  const heads = () => cur && cur.tile.querySelector(".head");
+  audio.addEventListener("timeupdate", () => {
+    const h = heads();
+    if (h && audio.duration) h.style.left = (audio.currentTime / audio.duration * 100) + "%";
+  });
+  audio.addEventListener("ended", () => cur && cur.tile.classList.remove("playing"));
+</script>
+</body>
+</html>
