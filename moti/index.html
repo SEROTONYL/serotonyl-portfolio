@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Моти</title>
+<meta name="description" content="Моти, тайский котёнок сил-пойнт.">
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-0: #110a0a;
+    --surface-1: #1a1212;
+    --text-primary: #f5f5f5;
+    --text-muted: #a2a2a2;
+    --accent: #D4A574;
+    --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+  header { padding: 32px 16px 20px; max-width: 1400px; margin: 0 auto; }
+  header a { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+  header a:hover { color: var(--accent); }
+  h1 { margin: 12px 0 4px; font-size: 32px; font-weight: 600; }
+  header p { margin: 0; color: var(--text-muted); }
+
+  .grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 700px) { .grid { columns: 3; } }
+  @media (min-width: 1100px) { .grid { columns: 4; } }
+  .grid button {
+    display: block;
+    width: 100%;
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+    background: var(--surface-1);
+    cursor: zoom-in;
+    break-inside: avoid;
+  }
+  .grid img { display: block; width: 100%; height: auto; }
+  .grid button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  dialog {
+    width: 100vw; height: 100svh;
+    max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0;
+    background: rgba(8, 4, 4, 0.96);
+  }
+  dialog::backdrop { background: transparent; }
+  dialog img {
+    position: absolute; inset: 0; margin: auto;
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+  }
+  dialog .nav {
+    position: absolute; top: 0; bottom: 0; width: 30%;
+    border: 0; background: none; cursor: pointer;
+  }
+  dialog .prev { left: 0; }
+  dialog .next { right: 0; }
+  dialog .close {
+    position: absolute; top: 12px; right: 12px;
+    width: 44px; height: 44px;
+    border: 0; border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5); color: var(--text-primary);
+    font-size: 24px; cursor: pointer;
+  }
+  dialog .count {
+    position: absolute; bottom: 12px; left: 0; right: 0;
+    text-align: center; color: var(--text-muted); font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <a href="/">← serotonyl.dev</a>
+  <h1>Моти</h1>
+  <p>Тайский сил-пойнт, родился 1 июля 2026.</p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<dialog id="view">
+  <img id="big" alt="">
+  <button class="nav prev" aria-label="Предыдущая"></button>
+  <button class="nav next" aria-label="Следующая"></button>
+  <button class="close" aria-label="Закрыть">×</button>
+  <div class="count" id="count"></div>
+</dialog>
+
+<script>
+  // ширина и высота превью, чтобы сетка не прыгала при загрузке
+  const sizes = {
+    "09": [338, 600], "13": [451, 600],
+    "14": [600, 450], "17": [600, 450], "19": [600, 450],
+  };
+  const ids = Array.from({ length: 21 }, (_, i) => String(i + 1).padStart(2, "0"));
+  const grid = document.getElementById("grid");
+  const view = document.getElementById("view");
+  const big = document.getElementById("big");
+  const count = document.getElementById("count");
+  let cur = 0;
+
+  ids.forEach((id, i) => {
+    const [w, h] = sizes[id] || [450, 600];
+    const b = document.createElement("button");
+    b.innerHTML = `<img src="s/${id}.jpg" width="${w}" height="${h}" loading="lazy" alt="Моти, фото ${i + 1}">`;
+    b.onclick = () => open(i);
+    grid.append(b);
+  });
+
+  function show(i) {
+    cur = (i + ids.length) % ids.length;
+    big.src = `f/${ids[cur]}.jpg`;
+    count.textContent = `${cur + 1} / ${ids.length}`;
+    new Image().src = `f/${ids[(cur + 1) % ids.length]}.jpg`;
+  }
+  function open(i) { show(i); view.showModal(); }
+
+  view.querySelector(".prev").onclick = () => show(cur - 1);
+  view.querySelector(".next").onclick = () => show(cur + 1);
+  view.querySelector(".close").onclick = () => view.close();
+  document.addEventListener("keydown", e => {
+    if (!view.open) return;
+    if (e.key === "ArrowLeft") show(cur - 1);
+    if (e.key === "ArrowRight") show(cur + 1);
+  });
+
+  let x0 = null;
+  view.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  view.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) show(dx < 0 ? cur + 1 : cur - 1);
+    x0 = null;
+  });
+</script>
+</body>
+</html>
