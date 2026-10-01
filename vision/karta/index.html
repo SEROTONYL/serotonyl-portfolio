@@ -1,0 +1,617 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Карта цветозрения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column, one screen per stage, the stimulus centered on a strictly neutral ground.
+   Single dark theme by choice: a colour vision test must not tint the surround, so every neutral here is pure grey with no hue bias. */
+:root{
+  --bg:#161616; --surface:#202020; --line:#333333; --fg:#e6e6e6; --muted:#9a9a9a; --strong:#ffffff;
+  --good:#7fbf8a; --warn:#d9b26a; --bad:#d97a6a;
+  --display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:500;font-size:17px;margin:0 0 8px;text-wrap:balance}
+h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+p{margin:0;max-width:65ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+nav{display:flex;gap:6px}
+nav button{background:none;border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer}
+nav button[aria-current="true"]{color:var(--strong);border-color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+ol.check{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:65ch}
+.btn{font:inherit;font-weight:500;background:var(--strong);color:#111;border:0;border-radius:8px;padding:10px 18px;cursor:pointer}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line)}
+.btn:focus-visible,nav button:focus-visible,input:focus-visible,.sw:focus-visible{outline:2px solid var(--strong);outline-offset:2px}
+input[type=text]{font:inherit;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.part{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px}
+.part b{font-family:var(--mono);font-weight:500;color:var(--muted);font-size:12px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px}
+.stagehead{width:100%;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.bar{width:100%;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--muted);width:0}
+canvas.field{width:min(480px,100%);aspect-ratio:1;max-width:100%;display:block}
+.pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,48px);gap:6px}
+.pad button{font:inherit;font-size:20px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.pad .up{grid-column:2}.pad .lf{grid-column:1;grid-row:2}.pad .dn{grid-column:2;grid-row:2}.pad .rt{grid-column:3;grid-row:2}
+.feedback{min-height:1.5em;font-size:13px}
+input[type=range]{width:min(420px,100%)}
+.swatches{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding:30px;background:#5a5a5a;border-radius:10px}
+.sw{width:96px;height:96px;border-radius:12px;border:0;cursor:pointer}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.chip{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.chip .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.chip .v{font-family:var(--display);font-size:18px;color:var(--strong)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500}
+.pairgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pair{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.pair .sws{display:flex;height:40px;border-radius:6px;overflow:hidden}
+.pair .sws span{flex:1}
+.tag{font-family:var(--mono);font-size:12px}
+.tag.ok{color:var(--good)}.tag.mid{color:var(--warn)}.tag.no{color:var(--bad)}
+svg text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.hist button{font:inherit;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);color:var(--fg);padding:8px 0;width:100%;cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sim{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 12px;align-items:center;font-size:13px}
+.sim span.s{height:36px;border-radius:6px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Карта цветозрения</h1>
+    <nav>
+      <button id="navTest" aria-current="true">Пройти</button>
+      <button id="navRes">Результаты</button>
+    </nav>
+  </header>
+
+  <!-- INTRO -->
+  <section id="scrIntro" class="stack">
+    <p>Три замера, около 20 минут. Первый рисует форму твоего различения цветов по всем направлениям, второй меряет, насколько тёмным тебе кажется красный, третий проверяет пары цветов из реальной работы. В конце твой результат ляжет рядом с моим.</p>
+    <div class="parts">
+      <div class="part"><b>1 · ~10 мин</b><span>Кольцо в точках. Куда смотрит разрыв?</span></div>
+      <div class="part"><b>2 · ~4 мин</b><span>Мерцающее пятно. Ползунком гасишь мерцание.</span></div>
+      <div class="part"><b>3 · ~4 мин</b><span>Три квадрата. Какой отличается?</span></div>
+    </div>
+    <div class="panel">
+      <h3>Перед стартом</h3>
+      <ol class="check">
+        <li>Выключи Dark Reader для этой страницы и Night Light в Windows. Если включён HDR, тоже выключи.</li>
+        <li>Проходи на одном и том же мониторе. Яркость обычная, ничего не крути во время теста.</li>
+        <li>Сядь на привычное расстояние, примерно на вытянутую руку. Свет в комнате как обычно, без солнца в экран.</li>
+        <li>Не угадывай долго. Если не видишь, жми «Не вижу», это тоже честный ответ.</li>
+      </ol>
+      <label for="device">Экран (чтобы потом сравнивать прогоны)
+        <input id="device" type="text" placeholder="например, ноутбук или телефон">
+      </label>
+      <div class="row">
+        <button class="btn" id="startAll">Начать</button>
+        <button class="btn ghost" id="p3Only">Только замер 3</button>
+        <button class="btn ghost" id="fsBtn">Во весь экран</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 1 -->
+  <section id="scr1" class="stage" hidden>
+    <div class="stagehead"><h2 id="p1title">Замер 1 · тренировка</h2><span class="mono muted" id="p1count"></span></div>
+    <div class="bar"><i id="p1bar"></i></div>
+    <canvas class="field" id="field"></canvas>
+    <div class="pad">
+      <button class="up" data-a="0" aria-label="Разрыв сверху">↑</button>
+      <button class="lf" data-a="3" aria-label="Разрыв слева">←</button>
+      <button class="dn" data-a="2" aria-label="Разрыв снизу">↓</button>
+      <button class="rt" data-a="1" aria-label="Разрыв справа">→</button>
+    </div>
+    <div class="row"><button class="btn ghost" id="noSee">Не вижу (пробел)</button></div>
+    <p class="feedback muted" id="p1fb">Где разрыв в кольце? Стрелки на клавиатуре или кнопки.</p>
+  </section>
+
+  <!-- PART 2 -->
+  <section id="scr2" class="stage" hidden>
+    <div class="stagehead"><h2>Замер 2 · яркость красного</h2><span class="mono muted" id="p2count"></span></div>
+    <div class="bar"><i id="p2bar"></i></div>
+    <p class="muted" id="p2warn">Пятно будет быстро мерцать. Если у тебя светочувствительная эпилепсия, пропусти этот замер.</p>
+    <canvas id="flick" style="width:220px;height:220px;max-width:100%"></canvas>
+    <input type="range" id="flickSlider" min="0" max="1000" value="500" aria-label="Яркость цвета в пятне">
+    <p class="muted" style="text-align:center">Двигай ползунок, пока мерцание не станет самым слабым. Совсем оно может не пропасть. Стрелки на клавиатуре двигают точнее.</p>
+    <div class="row"><button class="btn" id="flickDone">Здесь меньше всего</button><button class="btn ghost" id="flickSkip">Пропустить замер</button></div>
+  </section>
+
+  <!-- PART 3 -->
+  <section id="scr3" class="stage" hidden>
+    <div class="stagehead"><h2>Замер 3 · пары цветов</h2><span class="mono muted" id="p3count"></span></div>
+    <div class="bar"><i id="p3bar"></i></div>
+    <p class="muted">Один квадрат отличается от двух других по оттенку. Светлота у всех трёх специально немного скачет, на неё не смотри. Если не видишь разницы, выбери наугад.</p>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="scrRes" class="stack" hidden>
+    <div class="row" style="justify-content:space-between"><h2 id="resTitle">Результат</h2><span class="muted mono" id="saveState"></span></div>
+    <div id="resEmpty" class="panel"><p>Прогонов пока нет. Пройди тест, и здесь появится карта.</p></div>
+    <div id="resBody" class="stack" hidden>
+      <div class="chips" id="chips"></div>
+      <p id="verdict"></p>
+      <div class="panel" id="cmpPanel" hidden>
+        <h3>Ты и sero</h3>
+        <div id="cmp"></div>
+      </div>
+      <div class="panel">
+        <h3>Форма различения</h3>
+        <p class="muted">Каждая точка показывает, насколько далеко от серого должен уйти цвет в этом направлении, чтобы ты увидел кольцо. Чем дальше точка от центра, тем хуже различение. Линии показывают, по каким направлениям путают цвета протаны, дейтаны и тританы.</p>
+        <div style="overflow-x:auto"><svg id="plot" viewBox="0 0 420 420" width="420" height="420" style="max-width:100%;height:auto"></svg></div>
+        <div class="tablewrap"><table id="dirTable"></table></div>
+      </div>
+      <div class="panel" id="flickPanel">
+        <h3>Яркость красного</h3>
+        <div id="flickRes"></div>
+      </div>
+      <div class="panel" id="pairsPanel">
+        <h3>Пары цветов</h3>
+        
+        <div id="pairsRes" class="stack"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Проверить свою пару</h3>
+      <p class="muted">Вставь два HEX из палитры. Справа то, как пара выглядит при протанопии, с регулировкой силы.</p>
+      <div class="row">
+        <input id="hexA" type="text" value="#8a3b2a" aria-label="Первый цвет" style="width:110px">
+        <input id="hexB" type="text" value="#4f5f22" aria-label="Второй цвет" style="width:110px">
+        <label for="sev" style="flex-direction:row;align-items:center">Сила <input type="range" id="sev" min="0" max="100" value="60" style="width:140px"> <span class="mono" id="sevV">60%</span></label>
+      </div>
+      <div class="sim" id="simOut"></div>
+    </div>
+    <div class="panel">
+      <h3>Прогоны</h3>
+      <p class="muted">Первый прогон sero, остальные твои. Они хранятся только в этом браузере.</p>
+      <div id="hist" class="hist"><p class="muted">Загружаю…</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- colour maths: sRGB D65, CIE 1976 u'v' ---------- */
+const BG_U=0.19783, BG_V=0.46834;           // sRGB white point
+const YLO=0.08, YHI=0.20;                   // luminance noise range of dots
+const s2l=c=>c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+const l2s=c=>c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;
+function uvY2lin(u,v,Y){
+  const den=6*u-16*v+12, x=9*u/den, y=4*v/den;
+  const X=Y*x/y, Z=Y*(1-x-y)/y;
+  return [3.2406*X-1.5372*Y-0.4986*Z, -0.9689*X+1.8758*Y+0.0415*Z, 0.0557*X-0.2040*Y+1.0570*Z];
+}
+function lin2uvY(r,g,b){
+  const X=0.4124*r+0.3576*g+0.1805*b, Y=0.2126*r+0.7152*g+0.0722*b, Z=0.0193*r+0.1192*g+0.9505*b;
+  const d=X+15*Y+3*Z; return d?[4*X/d,9*Y/d,Y]:[BG_U,BG_V,0];
+}
+const inG=c=>c.every(v=>v>=-1e-6&&v<=1+1e-6);
+const css=c=>'rgb('+c.map(v=>Math.round(255*l2s(Math.min(1,Math.max(0,v))))).join(',')+')';
+const hex2lin=h=>{h=h.trim().replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');if(!/^[0-9a-f]{6}$/i.test(h))return null;return [0,2,4].map(i=>s2l(parseInt(h.slice(i,i+2),16)/255));};
+const lin2hex=c=>'#'+c.map(v=>Math.round(255*l2s(Math.min(1,Math.max(0,v)))).toString(16).padStart(2,'0')).join('');
+
+const CP={P:[0.678,0.501],D:[-1.217,0.782],T:[0.257,0.0]};
+const ang=(p)=>Math.atan2(p[1]-BG_V,p[0]-BG_U);
+const AX={P:ang(CP.P),D:ang(CP.D),T:ang(CP.T)};
+const deg=r=>r*180/Math.PI;
+const DIRS=[
+  {id:'P+',name:'протан, к красному',a:AX.P},
+  {id:'P−',name:'протан, к бирюзовому',a:AX.P+Math.PI},
+  {id:'D+',name:'дейтан, к зелёному',a:AX.D},
+  {id:'D−',name:'дейтан, к пурпурному',a:AX.D+Math.PI},
+  {id:'T+',name:'тритан, к синему',a:AX.T},
+  {id:'T−',name:'тритан, к жёлто-зелёному',a:AX.T+Math.PI},
+  {id:'45°',name:'диагональ 45°',a:Math.PI/4},
+  {id:'135°',name:'диагональ 135°',a:3*Math.PI/4},
+  {id:'225°',name:'диагональ 225°',a:5*Math.PI/4},
+  {id:'315°',name:'диагональ 315°',a:7*Math.PI/4},
+];
+function dmaxFor(a){
+  const c=Math.cos(a),s=Math.sin(a);let ok=0;
+  for(let d=0.0005;d<0.15;d+=0.0005){
+    const u=BG_U+d*c,v=BG_V+d*s;
+    if(inG(uvY2lin(u,v,YLO))&&inG(uvY2lin(u,v,YHI)))ok=d;else break;
+  }
+  return ok*0.98;
+}
+
+/* ---------- state ---------- */
+let run=null;           // current run being built
+let shown=null;         // run shown on results
+const $=id=>document.getElementById(id);
+function show(id){['scrIntro','scr1','scr2','scr3','scrRes'].forEach(s=>$(s).hidden=s!==id);
+  $('navTest').setAttribute('aria-current',id!=='scrRes');$('navRes').setAttribute('aria-current',id==='scrRes');}
+$('navTest').onclick=()=>{stopFlicker();show('scrIntro')};
+$('navRes').onclick=()=>{stopFlicker();if(run&&!run.saved&&run.dirs)renderResults(run);show('scrRes')};
+$('fsBtn').onclick=()=>{document.documentElement.requestFullscreen?.().catch(()=>{})};
+
+/* ---------- part 1: dot field + Landolt C, interleaved staircases ---------- */
+const field=$('field'),fctx=field.getContext('2d');
+let S=480;
+function sizeField(){const dpr=window.devicePixelRatio||1;S=Math.round(Math.min(480,field.clientWidth||480));field.width=S*dpr;field.height=S*dpr;fctx.setTransform(dpr,0,0,dpr,0,0);}
+function makeDots(){
+  const dots=[],cell=S*0.05,grid=new Map(),cx=S/2,R=S*0.48;
+  const key=(i,j)=>i+','+j;
+  for(let n=0;n<6000&&dots.length<900;n++){
+    const r=S*(0.007+Math.random()*0.016),x=Math.random()*S,y=Math.random()*S;
+    if(Math.hypot(x-cx,y-cx)>R-r)continue;
+    const gi=Math.floor(x/cell),gj=Math.floor(y/cell);let hit=false;
+    for(let i=gi-2;i<=gi+2&&!hit;i++)for(let j=gj-2;j<=gj+2&&!hit;j++){
+      const b=grid.get(key(i,j));if(b)for(const d of b){if(Math.hypot(d.x-x,d.y-y)<d.r+r+1){hit=true;break;}}
+    }
+    if(hit)continue;const d={x,y,r};dots.push(d);
+    const k=key(gi,gj);(grid.get(k)||grid.set(k,[]).get(k)).push(d);
+  }
+  return dots;
+}
+function inC(x,y,gap){
+  const cx=S/2,Ro=S*0.40,Ri=S*0.25,gw=(Ro-Ri)*1.15;
+  let dx=x-cx,dy=y-cx;const rr=Math.hypot(dx,dy);if(rr<Ri||rr>Ro)return false;
+  for(let k=0;k<gap;k++){const t=dx;dx=dy;dy=-t;}     // rotate so gap faces up in local frame
+  return !(dy<0&&Math.abs(dx)<gw/2);
+}
+function drawTrial(dir,d,gap){
+  fctx.fillStyle=css([0.012,0.012,0.012]);fctx.fillRect(0,0,S,S);
+  const c=Math.cos(dir.a),s=Math.sin(dir.a),u=BG_U+d*c,v=BG_V+d*s;
+  for(const p of makeDots()){
+    const Y=YLO+Math.random()*(YHI-YLO);
+    const col=inC(p.x,p.y,gap)?uvY2lin(u,v,Y):[Y,Y,Y];
+    fctx.fillStyle=css(col);fctx.beginPath();fctx.arc(p.x,p.y,p.r,0,7);fctx.fill();
+  }
+}
+function blank(){fctx.fillStyle=css([0.012,0.012,0.012]);fctx.fillRect(0,0,S,S);}
+function newStair(dir){const dm=dmaxFor(dir.a);return {...dir,dmax:dm,d:Math.min(0.05,dm),n:0,rev:[],last:null,wrongAtMax:0,done:false,capped:false};}
+function stairStep(st,ok){
+  st.n++;
+  if(st.last!==null&&ok!==st.last)st.rev.push(st.d);
+  st.last=ok;
+  const early=st.rev.length===0;
+  if(!ok&&st.d>=st.dmax*0.999){st.wrongAtMax++;if(st.wrongAtMax>=3){st.done=true;st.capped=true;return;}}
+  st.d*=ok?(early?0.6:0.8):(early?1.6:1.4);
+  st.d=Math.max(0.0015,Math.min(st.dmax,st.d));
+  if(st.rev.length>=6||st.n>=22)st.done=true;
+}
+function stairThr(st){
+  if(st.capped)return st.dmax;
+  const r=st.rev.slice(-4);if(!r.length)return st.d;
+  return Math.exp(r.reduce((a,b)=>a+Math.log(b),0)/r.length);
+}
+let p1={stairs:[],cur:null,gap:0,practice:0,lock:false};
+const PRACTICE=4;
+function startP1(){
+  sizeField();
+  p1={stairs:DIRS.map(newStair),cur:null,gap:0,practice:PRACTICE,lock:false,prev:null};
+  show('scr1');nextP1();
+}
+function nextP1(){
+  if(p1.practice>0){
+    $('p1title').textContent='Замер 1 · тренировка';
+    $('p1count').textContent=(PRACTICE-p1.practice+1)+' / '+PRACTICE;
+    const st=p1.stairs[4+((p1.practice)%2)];p1.cur={...st,d:st.dmax*0.9};
+  }else{
+    $('p1title').textContent='Замер 1 · кольцо';
+    let open=p1.stairs.filter(s=>!s.done);
+    if(!open.length)return finishP1();
+    if(open.length>1)open=open.filter(s=>s!==p1.prev);
+    p1.cur=open[Math.floor(Math.random()*open.length)];p1.prev=p1.cur;
+    const total=p1.stairs.reduce((a,s)=>a+(s.done?s.n:Math.max(s.n,14)),0);
+    const done=p1.stairs.reduce((a,s)=>a+s.n,0);
+    $('p1bar').style.width=Math.min(100,100*done/total)+'%';
+    $('p1count').textContent=p1.stairs.filter(s=>s.done).length+' из '+p1.stairs.length+' направлений';
+  }
+  p1.gap=Math.floor(Math.random()*4);
+  drawTrial(p1.cur,p1.cur.d,p1.gap);p1.lock=false;
+}
+function answerP1(a){
+  if(p1.lock||$('scr1').hidden)return;p1.lock=true;
+  const ok=a===p1.gap;
+  if(p1.practice>0){
+    p1.practice--;$('p1fb').textContent=ok?'Верно.':'Мимо, разрыв был '+['сверху','справа','снизу','слева'][p1.gap]+'.';
+    if(p1.practice===0)$('p1fb').textContent+=' Тренировка закончилась, дальше без подсказок.';
+  }else{stairStep(p1.cur,ok);$('p1fb').textContent=' ';}
+  blank();setTimeout(nextP1,180);
+}
+document.querySelectorAll('.pad button').forEach(b=>b.onclick=()=>answerP1(+b.dataset.a));
+$('noSee').onclick=()=>answerP1(-1);
+document.addEventListener('keydown',e=>{
+  if(!$('scr1').hidden){
+    const m={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3,' ':-1}[e.key];
+    if(m!==undefined){e.preventDefault();answerP1(m);}
+  }
+});
+function finishP1(){
+  run.dirs=p1.stairs.map(s=>({id:s.id,name:s.name,a:s.a,thr:stairThr(s),dmax:s.dmax,capped:s.capped,n:s.n}));
+  startP2();
+}
+
+/* ---------- part 2: flicker photometry, red and green against grey ---------- */
+const G_REF=0.06;                         // linear grey of the reference half-cycle
+const FL={R:{lo:0.04,hi:1,w:0.2126},G:{lo:0.015,hi:0.5,w:0.7152}};
+const flick=$('flick'),kctx=flick.getContext('2d');
+let p2={seq:[],i:0,res:{R:[],G:[]},raf:0,frame:0,period:2,stamps:[]};
+const sliderVal=(ch)=>{const f=FL[ch],t=$('flickSlider').value/1000;return f.lo*Math.pow(f.hi/f.lo,t);};
+function startP2(){
+  show('scr2');
+  const dpr=window.devicePixelRatio||1;flick.width=220*dpr;flick.height=220*dpr;kctx.setTransform(dpr,0,0,dpr,0,0);
+  p2={seq:['R','G','R','G','R','G'],i:0,res:{R:[],G:[]},raf:0,frame:0,period:2,stamps:[]};
+  setupFlickTrial();loopFlicker();
+}
+function setupFlickTrial(){
+  $('flickSlider').value=150+Math.floor(Math.random()*700);
+  $('p2count').textContent=(p2.i+1)+' / '+p2.seq.length;
+  $('p2bar').style.width=(100*p2.i/p2.seq.length)+'%';
+  $('flickSlider').focus();
+}
+function loopFlicker(t){
+  if(t!==undefined&&p2.stamps.length<40){p2.stamps.push(t);
+    if(p2.stamps.length===40){const dt=(p2.stamps[39]-p2.stamps[0])/39;p2.period=Math.max(1,Math.round((1000/dt)/30));}}
+  const ch=p2.seq[p2.i];
+  const phase=Math.floor(p2.frame/p2.period)%2;p2.frame++;
+  kctx.fillStyle=css([0.03,0.03,0.03]);kctx.fillRect(0,0,220,220);
+  const v=sliderVal(ch);
+  const col=phase?[G_REF,G_REF,G_REF]:(ch==='R'?[v,0,0]:[0,v,0]);
+  kctx.fillStyle=css(col);kctx.beginPath();kctx.arc(110,110,80,0,7);kctx.fill();
+  p2.raf=requestAnimationFrame(loopFlicker);
+}
+function stopFlicker(){cancelAnimationFrame(p2.raf);p2.raf=0;}
+$('flickDone').onclick=()=>{
+  const ch=p2.seq[p2.i];p2.res[ch].push(FL[ch].w*sliderVal(ch)/G_REF);
+  p2.i++;if(p2.i>=p2.seq.length){stopFlicker();run.flicker=p2.res;startP3();}else setupFlickTrial();
+};
+$('flickSkip').onclick=()=>{stopFlicker();run.flicker=null;startP3();};
+
+/* ---------- part 3: odd one out, protan pairs vs tritan controls ---------- */
+const ANCHORS=[['красный','#b83a2e'],['тёмно-красный','#6e1c1c'],['оранжевый','#d27a2c'],['коричневый','#7a4a2a'],
+  ['оливковый','#6b6b2a'],['зелёный','#3f8f3f'],['тёмно-зелёный','#24492b'],['бирюзовый','#2f8f8a'],
+  ['синий','#3456b0'],['фиолетовый','#6a3f9a'],['розовый','#d58aa0'],['телесный','#d9a888']];
+/* Pairs are made isoluminant for THIS viewer: luminance weights come from the flicker match (part 2),
+   then every swatch gets random brightness jitter so lightness carries no information. Only hue is left. */
+const JIT=0.12;
+let W=[0.2126,0.7152,0.0722];
+const Lw=c=>W[0]*c[0]+W[1]*c[1]+W[2]*c[2];
+function setWeights(fl){
+  const gm=a=>Math.exp(a.reduce((s,x)=>s+Math.log(x),0)/a.length);
+  W=fl&&fl.R&&fl.R.length&&fl.G&&fl.G.length?[0.2126/gm(fl.R),0.7152/gm(fl.G),0.0722]:[0.2126,0.7152,0.0722];
+}
+function partnerLin(A,axis,sign,d){
+  const [u,v,Y]=lin2uvY(...A),a=AX[axis];
+  const B=uvY2lin(u+sign*d*Math.cos(a),v+sign*d*Math.sin(a),Y);
+  if(!B.every(x=>x>=0))return null;
+  const k=Lw(A)/Lw(B);return B.map(x=>x*k);
+}
+const fits=c=>c&&inG(c.map(x=>x*(1+JIT)));
+function itemFor(name,hex,axis){
+  const A=hex2lin(hex);let best=null;
+  for(const sign of [1,-1]){let ok=0;for(let d=0.002;d<0.16;d+=0.002){if(fits(partnerLin(A,axis,sign,d)))ok=d;else break;}
+    if(!best||ok>best.dmax)best={sign,dmax:ok};}
+  if(best.dmax<0.01)return null;
+  const P=axis==='P';
+  return {name,hex,axis,sign:best.sign,dmax:best.dmax,d:Math.min(P?0.08:0.03,best.dmax),n:0,max:P?7:4,hist:[]};
+}
+let p3={items:[],cur:null,prev:null,total:0,done:0};
+function startP3(){
+  setWeights(run.flicker);
+  const items=[];
+  for(const [name,hex] of ANCHORS)for(const ax of ['P','T']){const it=itemFor(name,hex,ax);if(it)items.push(it);}
+  p3={items,cur:null,prev:null,total:items.reduce((s,i)=>s+i.max,0),done:0};
+  show('scr3');nextP3();
+}
+function nextP3(){
+  let open=p3.items.filter(i=>i.n<i.max);
+  if(!open.length)return finishP3();
+  if(open.length>1)open=open.filter(i=>i!==p3.prev);
+  const it=open[Math.floor(Math.random()*open.length)];p3.cur=it;p3.prev=it;
+  $('p3count').textContent=(p3.done+1)+' / '+p3.total;$('p3bar').style.width=(100*p3.done/p3.total)+'%';
+  const A=hex2lin(it.hex),B=partnerLin(A,it.axis,it.sign,it.d);
+  const flip=Math.random()<0.5,base=flip?B:A,diff=flip?A:B,odd=Math.floor(Math.random()*3);
+  const box=$('swatches');box.innerHTML='';
+  for(let k=0;k<3;k++){
+    const j=1+JIT*(Math.random()*2-1),c=(k===odd?diff:base).map(x=>Math.min(1,x*j));
+    const b=document.createElement('button');b.className='sw';b.style.background=css(c);b.setAttribute('aria-label','Квадрат '+(k+1));
+    b.onclick=()=>{const ok=k===odd;it.hist.push({d:it.d,ok});it.n++;p3.done++;
+      it.d=Math.max(0.002,Math.min(it.dmax,it.d*(ok?0.7:1.5)));box.innerHTML='';setTimeout(nextP3,200);};
+    box.appendChild(b);
+  }
+}
+function finishP3(){
+  const gm=a=>Math.exp(a.reduce((s,x)=>s+Math.log(x),0)/a.length);
+  run.pairs=p3.items.map(it=>{const tail=it.hist.slice(2).map(h=>h.d);
+    const atMaxWrong=it.hist.filter(h=>!h.ok&&h.d>=it.dmax*0.999).length;
+    return {name:it.name,hex:it.hex,axis:it.axis,sign:it.sign,dmax:it.dmax,thr:atMaxWrong>=2?it.dmax:gm(tail.length?tail:[it.d]),capped:atMaxWrong>=2,
+      ok:it.hist.filter(h=>h.ok).length,n:it.n};});
+  run.w=W;run.p3v=2;run.ts=Date.now();
+  renderResults(run);show('scrRes');saveRun(run);
+}
+async function startP3Only(){
+  const prev=loadRuns()[0];
+  run={device:$('device').value.trim(),dirs:prev&&prev.dirs,flicker:prev&&prev.flicker};
+  startP3();
+}
+
+/* ---------- analysis ---------- */
+function fitEllipse(dirs){
+  // least squares A x² + B xy + C y² = 1
+  const M=[[0,0,0],[0,0,0],[0,0,0]],r=[0,0,0];
+  for(const d of dirs){const x=d.thr*Math.cos(d.a),y=d.thr*Math.sin(d.a),f=[x*x,x*y,y*y];
+    for(let i=0;i<3;i++){r[i]+=f[i];for(let j=0;j<3;j++)M[i][j]+=f[i]*f[j];}}
+  const det=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  const D=det(M);if(Math.abs(D)<1e-30)return null;
+  const sol=[0,1,2].map(k=>det(M.map((row,i)=>row.map((v,j)=>j===k?r[i]:v)))/D);
+  const [A,B,C]=sol;let best={r:0},worst={r:Infinity};
+  for(let t=0;t<180;t+=0.5){const a=t*Math.PI/180,c=Math.cos(a),s=Math.sin(a),q=A*c*c+B*c*s+C*s*s;
+    if(q<=0)return null;const rr=1/Math.sqrt(q);if(rr>best.r)best={r:rr,t};if(rr<worst.r)worst={r:rr,t};}
+  return {A,B,C,major:best.r,minor:worst.r,phi:best.t};
+}
+const lineDist=(a,b)=>{let d=Math.abs(((a-b)%180+180)%180);return Math.min(d,180-d);};
+function analyse(r){
+  const out={};
+  const by=id=>r.dirs.find(d=>d.id===id);
+  out.e=fitEllipse(r.dirs);
+  const P=(by('P+').thr+by('P−').thr)/2,D=(by('D+').thr+by('D−').thr)/2,T=(by('T+').thr+by('T−').thr)/2;
+  out.P=P;out.D=D;out.T=T;out.rg=Math.max(P,D)/T;
+  out.capped=r.dirs.filter(d=>d.capped).map(d=>d.id);
+  if(out.e){
+    const dists={P:lineDist(out.e.phi,deg(AX.P)),D:lineDist(out.e.phi,deg(AX.D)),T:lineDist(out.e.phi,deg(AX.T))};
+    out.axis=Object.entries(dists).sort((a,b)=>a[1]-b[1])[0][0];out.dists=dists;out.elong=out.e.major/out.e.minor;
+  }
+  if(r.flicker&&r.flicker.R.length&&r.flicker.G.length){
+    const gm=a=>Math.exp(a.reduce((s,x)=>s+Math.log(x),0)/a.length);
+    out.fr=gm(r.flicker.R);out.fg=gm(r.flicker.G);out.fratio=out.fr/out.fg;
+  }
+  return out;
+}
+const AXNAME={P:'протан',D:'дейтан',T:'тритан'};
+const f4=x=>(x*1000).toFixed(1);
+
+/* ---------- results ---------- */
+function renderResults(r){
+  shown=r;
+  if(!r||!r.dirs){$('resEmpty').hidden=false;$('resBody').hidden=true;return;}
+  $('resEmpty').hidden=true;$('resBody').hidden=false;
+  const a=analyse(r);
+  $('resTitle').textContent='Результат от '+new Date(r.ts||Date.now()).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+  const chips=[];
+  chips.push(['Ось провала',a.e&&a.elong>1.6?AXNAME[a.axis]:'не выражена','вытянутость эллипса '+(a.e?a.elong.toFixed(1)+'×':'не посчиталась')]);
+  chips.push(['Красно-зелёная ось',a.rg.toFixed(1)+'× хуже синей','порог '+f4(Math.max(a.P,a.D))+' против '+f4(a.T)+' (×10⁻³ u′v′)']);
+  if(a.fratio)chips.push(['Яркость красного',(1/a.fratio).toFixed(2)+' от зелёного','1.00 значит красный кажется таким же светлым, как ожидается']);
+  if(a.capped.length)chips.push(['Не увидел даже на максимуме',a.capped.join(', '),'монитор не может показать цвет насыщеннее']);
+  $('chips').innerHTML=chips.map(c=>`<div class="chip"><span class="k">${c[0]}</span><span class="v">${c[1]}</span><span class="muted" style="font-size:12px">${c[2]}</span></div>`).join('');
+  const parts=[];
+  if(a.e&&a.elong>1.6){
+    parts.push(`Эллипс вытянут в ${a.elong.toFixed(1)} раза, и длинная ось ближе всего к линии ${AXNAME[a.axis]}ов (расхождение ${a.dists[a.axis].toFixed(0)}°).`);
+    if(a.axis!=='T')parts.push(`Линии протанов и дейтанов идут почти параллельно (разница около 16°), поэтому по одной форме их легко спутать. Решает второй замер.`);
+  }else parts.push('Эллипс почти круглый, провала по одной оси не видно.');
+  if(a.fratio){
+    if(a.fratio>1.25)parts.push(`Красный тебе нужно делать в ${a.fratio.toFixed(2)} раза ярче, чем зелёный, относительно ожидаемого. Красный для тебя темнее, это типично для протанов и не бывает у дейтанов.`);
+    else if(a.fratio<0.85)parts.push(`Красный кажется тебе даже светлее ожидаемого (${a.fratio.toFixed(2)}). Для протана это нетипично, похоже на дейтана или на особенность монитора.`);
+    else parts.push(`Яркость красного близка к ожидаемой (${a.fratio.toFixed(2)}). Для протана это необычно, а для дейтана нормально.`);
+  }
+  parts.push('Монитор не откалиброван, так что абсолютные числа примерные. Сравнивать прогоны между собой на одном экране можно.');
+  $('verdict').textContent=parts.join(' ');
+  drawPlot(r,a);
+  renderCompare(r,a);
+  $('dirTable').innerHTML='<tr><th>Направление</th><th>Порог ×10⁻³</th><th>Предел экрана</th><th>Попыток</th></tr>'+
+    r.dirs.map(d=>`<tr><td>${d.id} · ${d.name}</td><td class="mono">${d.capped?'&gt; ':''}${f4(d.thr)}</td><td class="mono">${f4(d.dmax)}</td><td class="mono">${d.n}</td></tr>`).join('');
+  if(r.flicker&&a.fratio){
+    $('flickPanel').hidden=false;
+    $('flickRes').innerHTML=`<p>Множитель яркости, при котором мерцание пропадало (1.00 значит как в стандарте sRGB):</p>
+    <div class="tablewrap"><table><tr><th>Цвет</th><th>Попытки</th><th>Среднее</th></tr>
+    <tr><td>Красный</td><td class="mono">${r.flicker.R.map(x=>x.toFixed(2)).join('  ')}</td><td class="mono">${a.fr.toFixed(2)}</td></tr>
+    <tr><td>Зелёный</td><td class="mono">${r.flicker.G.map(x=>x.toFixed(2)).join('  ')}</td><td class="mono">${a.fg.toFixed(2)}</td></tr>
+    <tr><td>Красный / зелёный</td><td></td><td class="mono">${a.fratio.toFixed(2)}</td></tr></table></div>
+    <p class="muted">Отношение убирает особенности монитора и общей чувствительности глаза. Если попытки сильно разъехались, замер шумный, его стоит повторить.</p>`;
+  }else $('flickPanel').hidden=true;
+  if(r.pairs&&r.pairs.length){
+    $('pairsPanel').hidden=false;
+    const card=p=>{const cls=p.ok===p.n?'ok':p.ok===0?'no':'mid';const lbl=p.ok===p.n?'различаешь':p.ok===0?'сливается':'на грани';
+      return `<div class="pair"><div class="sws"><span style="background:${p.a}"></span><span style="background:${p.b}"></span></div><span>${p.name}</span><span class="tag ${cls}">${lbl} · ${p.ok}/${p.n}</span><span class="mono muted" style="font-size:11px">${p.a} ${p.b}</span></div>`;};
+    if(r.p3v===2){
+      if(r.w)W=r.w;
+      const names=[...new Set(r.pairs.map(p=>p.name))];
+      const rows=names.map(n=>{const P=r.pairs.find(p=>p.name===n&&p.axis==='P'),T=r.pairs.find(p=>p.name===n&&p.axis==='T');
+        return {n,P,T,ratio:P&&T?P.thr/T.thr:null};}).sort((a,b)=>(b.ratio||0)-(a.ratio||0));
+      const sw=p=>{if(!p)return '';const A=hex2lin(p.hex),B=partnerLin(A,p.axis,p.sign,p.thr);
+        return `<div class="sws" style="height:28px;width:90px"><span style="background:${css(A)}"></span><span style="background:${B?css(B):'transparent'}"></span></div>`;};
+      $('pairsRes').innerHTML=`<p class="muted">Пары подобраны одинаковыми по светлоте для твоего глаза (по замеру 2), светлота каждого квадрата ещё и скакала. Пары на картинке показывают, где цвет для тебя начинает сливаться. «Хуже в» значит во сколько раз порог по оси протанов больше, чем по синей.</p>
+      <div class="tablewrap"><table><tr><th>Цвет</th><th>На пороге, протан</th><th>Протан ×10⁻³</th><th>Синяя ×10⁻³</th><th>Хуже в</th></tr>
+      ${rows.map(x=>`<tr><td>${x.n}</td><td>${sw(x.P)}</td><td class="mono">${x.P?(x.P.capped?'&gt; ':'')+f4(x.P.thr):'нет'}</td><td class="mono">${x.T?(x.T.capped?'&gt; ':'')+f4(x.T.thr):'нет'}</td><td class="mono">${x.ratio?x.ratio.toFixed(1)+'×':''}</td></tr>`).join('')}</table></div>`;
+    }else
+    $('pairsRes').innerHTML=`<div class="pairgrid">${r.pairs.filter(p=>p.axis==='P').map(card).join('')}</div><div class="pairgrid">${r.pairs.filter(p=>p.axis==='T').map(card).join('')}</div>`;
+  }else $('pairsPanel').hidden=true;
+}
+function renderCompare(r,a){
+  if(r===SERO){$('cmpPanel').hidden=true;return;}
+  $('cmpPanel').hidden=false;
+  const s=analyse(SERO),near=a.rg>=s.rg*0.7;
+  const row=(k,y,o)=>`<tr><td>${k}</td><td class="mono">${y}</td><td class="mono">${o}</td></tr>`;
+  const red=x=>x.fratio?(1/x.fratio).toFixed(2):'не мерил';
+  const axis=x=>x.e&&x.elong>1.6?AXNAME[x.axis]:'не выражена';
+  $('cmp').innerHTML=`<p>${near?'Красно-зелёная ось у тебя проседает так же сильно, как у sero.':a.rg>=s.rg*0.4?'Красно-зелёная ось у тебя проседает, но слабее, чем у sero.':'Красно-зелёная ось у тебя заметно лучше, чем у sero.'}</p>
+  <div class="tablewrap"><table><tr><th></th><th>Ты</th><th>sero</th></tr>
+  ${row('Ось провала',axis(a),axis(s))}
+  ${row('Красно-зелёная хуже синей',a.rg.toFixed(1)+'×',s.rg.toFixed(1)+'×')}
+  ${row('Яркость красного',red(a),red(s))}</table></div>
+  <p class="muted">На графике выше пунктиром его эллипс. Его замер снят на 2K-мониторе, твой на твоём экране, поэтому сравнение примерное.</p>`;
+}
+function drawPlot(r,a){
+  const cmp=r!==SERO,sa=cmp?analyse(SERO):null;
+  const W=420,c=W/2,maxR=Math.max(...r.dirs.map(d=>d.thr),...(cmp?SERO.dirs.map(d=>d.thr):[]),0.01)*1.15,k=(c-30)/maxR;
+  const P=(x,y)=>[c+x*k,c-y*k];
+  let s='';
+  for(const g of [0.25,0.5,0.75,1]){const rr=g*maxR*k;s+=`<circle cx="${c}" cy="${c}" r="${rr}" fill="none" stroke="var(--line)"/><text x="${c+rr+3}" y="${c-3}">${f4(g*maxR)}</text>`;}
+  for(const [key,col] of [['P','#c98a7d'],['D','#8fb98a'],['T','#8a9fd0']]){
+    const an=AX[key],x2=Math.cos(an)*(c-20),y2=Math.sin(an)*(c-20);
+    s+=`<line x1="${c-x2}" y1="${c+y2}" x2="${c+x2}" y2="${c-y2}" stroke="${col}" stroke-dasharray="4 4" stroke-width="1"/>`;
+    s+=`<text x="${c+x2*0.92}" y="${c-y2*0.92-6}" style="fill:${col}">${AXNAME[key]}</text>`;
+  }
+  const norm=0.007*k;s+=`<circle cx="${c}" cy="${c}" r="${norm}" fill="none" stroke="var(--muted)" stroke-dasharray="1 3"/>`;
+  if(a.e){let pts=[];for(let t=0;t<=360;t+=3){const an=t*Math.PI/180,q=a.e.A*Math.cos(an)**2+a.e.B*Math.cos(an)*Math.sin(an)+a.e.C*Math.sin(an)**2;const rr=1/Math.sqrt(q);pts.push(P(rr*Math.cos(an),rr*Math.sin(an)).join(','));}
+    s+=`<polygon points="${pts.join(' ')}" fill="rgba(255,255,255,0.06)" stroke="var(--strong)" stroke-width="1.5"/>`;}
+  if(sa&&sa.e){let pts=[];for(let t=0;t<=360;t+=3){const an=t*Math.PI/180,q=sa.e.A*Math.cos(an)**2+sa.e.B*Math.cos(an)*Math.sin(an)+sa.e.C*Math.sin(an)**2;const rr=1/Math.sqrt(q);pts.push(P(rr*Math.cos(an),rr*Math.sin(an)).join(','));}
+    s+=`<polygon points="${pts.join(' ')}" fill="none" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="6 4"/><text x="8" y="16" style="fill:var(--warn)">пунктир: sero</text>`;}
+  for(const d of r.dirs){const [x,y]=P(d.thr*Math.cos(d.a),d.thr*Math.sin(d.a));
+    s+=d.capped?`<polygon points="${x},${y-6} ${x+6},${y+5} ${x-6},${y+5}" fill="var(--bad)"/>`:`<circle cx="${x}" cy="${y}" r="4" fill="var(--strong)"/>`;}
+  s+=`<circle cx="${c}" cy="${c}" r="2" fill="var(--muted)"/>`;
+  s+=`<text x="8" y="${W-8}">точки: порог ×10⁻³ u′v′ · треугольник: не увидел на пределе экрана · пунктирный круг: примерная норма</text>`;
+  $('plot').innerHTML=s;
+}
+
+/* ---------- own pair checker: Viénot 1999 protanope in linear RGB, lerp for partial severity ---------- */
+const PROT=[[0.11238,0.88762,0],[0.11238,0.88762,0],[0.00401,-0.00401,1]];
+const simP=(c,s)=>PROT.map((row,i)=>(1-s)*c[i]+s*(row[0]*c[0]+row[1]*c[1]+row[2]*c[2]));
+function renderSim(){
+  const s=$('sev').value/100;$('sevV').textContent=$('sev').value+'%';
+  const A=hex2lin($('hexA').value),B=hex2lin($('hexB').value);
+  if(!A||!B){$('simOut').innerHTML='<span class="muted" style="grid-column:1/-1">Нужен HEX вида #8a3b2a.</span>';return;}
+  const ua=lin2uvY(...A),ub=lin2uvY(...B),dist=Math.hypot(ua[0]-ub[0],ua[1]-ub[1]);
+  const sa=simP(A,s),sb=simP(B,s),usa=lin2uvY(...sa),usb=lin2uvY(...sb),sdist=Math.hypot(usa[0]-usb[0],usa[1]-usb[1]);
+  $('simOut').innerHTML=`<span></span><span class="muted">Как есть</span><span class="muted">Протанопия ${$('sev').value}%</span>
+  <span class="muted">A</span><span class="s" style="background:${css(A)}"></span><span class="s" style="background:${css(sa)}"></span>
+  <span class="muted">B</span><span class="s" style="background:${css(B)}"></span><span class="s" style="background:${css(sb)}"></span>
+  <span class="muted">Разница</span><span class="mono">${f4(dist)} цвет · ${(Math.abs(ua[2]-ub[2])*100).toFixed(1)}% светлота</span><span class="mono">${f4(sdist)} цвет</span>`;
+}
+['hexA','hexB','sev'].forEach(id=>$(id).addEventListener('input',renderSim));renderSim();
+
+/* ---------- storage: visitor runs in localStorage, sero's run embedded for comparison ---------- */
+const SERO={"ts":1790827932925,"device":"sero · 2K монитор","dirs":[{"id":"P+","name":"протан, к красному","a":0.06791297534789599,"thr":0.04114030322888456,"dmax":0.1465100000000001,"capped":false,"n":13},{"id":"P−","name":"протан, к бирюзовому","a":3.209505628937689,"thr":0.059290000000000044,"dmax":0.059290000000000044,"capped":true,"n":4},{"id":"D+","name":"дейтан, к зелёному","a":2.9234266719442643,"thr":0.01320382681616892,"dmax":0.06272000000000004,"capped":false,"n":14},{"id":"D−","name":"дейтан, к пурпурному","a":6.065019325534058,"thr":0.018999879765508605,"dmax":0.1465100000000001,"capped":false,"n":13},{"id":"T+","name":"тритан, к синему","a":-1.4451223248441465,"thr":0.0065028095999999985,"dmax":0.1465100000000001,"capped":false,"n":12},{"id":"T−","name":"тритан, к жёлто-зелёному","a":1.6964703287456466,"thr":0.0030475111996089354,"dmax":0.08526000000000006,"capped":false,"n":22},{"id":"45°","name":"диагональ 45°","a":0.7853981633974483,"thr":0.0086024085124017,"dmax":0.10535000000000008,"capped":false,"n":14},{"id":"135°","name":"диагональ 135°","a":2.356194490192345,"thr":0.005030502063832614,"dmax":0.09653000000000007,"capped":false,"n":16},{"id":"225°","name":"диагональ 225°","a":3.9269908169872414,"thr":0.00843561552116809,"dmax":0.07497000000000005,"capped":false,"n":13},{"id":"315°","name":"диагональ 315°","a":5.497787143782138,"thr":0.008128511999999997,"dmax":0.1465100000000001,"capped":false,"n":11}],"flicker":{"R":[1.8976304829877093,1.8493883948682643,1.9098863645928041],"G":[0.6706451704527671,0.6079280699134738,0.6385170507278121]},"pairs":[{"name":"красный","hex":"#b83a2e","axis":"P","sign":-1,"dmax":0.1580000000000001,"thr":0.019207999999999992,"capped":false,"ok":6,"n":7},{"name":"красный","hex":"#b83a2e","axis":"T","sign":1,"dmax":0.08200000000000006,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"тёмно-красный","hex":"#6e1c1c","axis":"P","sign":-1,"dmax":0.1580000000000001,"thr":0.030344366732532477,"capped":false,"ok":4,"n":7},{"name":"тёмно-красный","hex":"#6e1c1c","axis":"T","sign":1,"dmax":0.07200000000000005,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"оранжевый","hex":"#d27a2c","axis":"P","sign":-1,"dmax":0.1580000000000001,"thr":0.026054301510678363,"capped":false,"ok":6,"n":7},{"name":"оранжевый","hex":"#d27a2c","axis":"T","sign":1,"dmax":0.08600000000000006,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"коричневый","hex":"#7a4a2a","axis":"P","sign":-1,"dmax":0.1420000000000001,"thr":0.022370762691895644,"capped":false,"ok":6,"n":7},{"name":"коричневый","hex":"#7a4a2a","axis":"T","sign":1,"dmax":0.1580000000000001,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"оливковый","hex":"#6b6b2a","axis":"P","sign":1,"dmax":0.08600000000000006,"thr":0.030344366732532477,"capped":false,"ok":6,"n":7},{"name":"оливковый","hex":"#6b6b2a","axis":"T","sign":1,"dmax":0.1580000000000001,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"зелёный","hex":"#3f8f3f","axis":"P","sign":1,"dmax":0.1220000000000001,"thr":0.026054301510678363,"capped":false,"ok":5,"n":7},{"name":"зелёный","hex":"#3f8f3f","axis":"T","sign":1,"dmax":0.1580000000000001,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"тёмно-зелёный","hex":"#24492b","axis":"P","sign":1,"dmax":0.1580000000000001,"thr":0.026054301510678363,"capped":false,"ok":5,"n":7},{"name":"тёмно-зелёный","hex":"#24492b","axis":"T","sign":1,"dmax":0.1580000000000001,"thr":0.018003749609456363,"capped":false,"ok":3,"n":4},{"name":"бирюзовый","hex":"#2f8f8a","axis":"P","sign":1,"dmax":0.1520000000000001,"thr":0.030344366732532477,"capped":false,"ok":4,"n":7},{"name":"бирюзовый","hex":"#2f8f8a","axis":"T","sign":1,"dmax":0.1300000000000001,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"синий","hex":"#3456b0","axis":"P","sign":1,"dmax":0.1340000000000001,"thr":0.035340828155421534,"capped":false,"ok":5,"n":7},{"name":"синий","hex":"#3456b0","axis":"T","sign":-1,"dmax":0.1580000000000001,"thr":0.05647455179105009,"capped":false,"ok":2,"n":4},{"name":"фиолетовый","hex":"#6a3f9a","axis":"P","sign":1,"dmax":0.08800000000000006,"thr":0.035340828155421534,"capped":false,"ok":5,"n":7},{"name":"фиолетовый","hex":"#6a3f9a","axis":"T","sign":-1,"dmax":0.1580000000000001,"thr":0.02635479083582338,"capped":false,"ok":3,"n":4},{"name":"розовый","hex":"#d58aa0","axis":"P","sign":-1,"dmax":0.11400000000000009,"thr":0.026054301510678363,"capped":false,"ok":6,"n":7},{"name":"розовый","hex":"#d58aa0","axis":"T","sign":-1,"dmax":0.08600000000000006,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4},{"name":"телесный","hex":"#d9a888","axis":"P","sign":-1,"dmax":0.10000000000000007,"thr":0.022370762691895644,"capped":false,"ok":5,"n":7},{"name":"телесный","hex":"#d9a888","axis":"T","sign":1,"dmax":0.07400000000000005,"thr":0.012298902390050902,"capped":false,"ok":4,"n":4}],"w":[0.11275803321780685,1.1200953822372965,0.0722],"p3v":2};
+const KEY='cv-karta-runs';
+const loadRuns=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[];}catch(e){return [];}};
+function saveRun(r){
+  const doc={ts:r.ts,device:r.device,dirs:r.dirs,flicker:r.flicker||null,pairs:r.pairs||[],w:r.w||null,p3v:r.p3v||1};
+  try{const runs=loadRuns();runs.unshift(doc);localStorage.setItem(KEY,JSON.stringify(runs.slice(0,20)));$('saveState').textContent='Сохранено в этом браузере';}
+  catch(e){$('saveState').textContent='Не сохранилось: браузер не дал';}
+  loadHistory();
+}
+function loadHistory(){
+  $('hist').innerHTML='';
+  for(const r of [SERO,...loadRuns()]){const a=analyse(r);const b=document.createElement('button');
+    const who=r===SERO?'<b>sero</b> · '+new Date(r.ts).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):new Date(r.ts).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' · '+(r.device||'');
+    b.innerHTML=`<span>${who}</span><span class="mono muted">ось ${a.e&&a.elong>1.6?AXNAME[a.axis]:'нет'} · кр-зел ${a.rg.toFixed(1)}×${a.fratio?' · красный '+(1/a.fratio).toFixed(2):''}</span>`;
+    b.onclick=()=>{renderResults(r);window.scrollTo({top:0,behavior:'smooth'});};$('hist').appendChild(b);}
+  if(!shown){const own=loadRuns()[0];renderResults(own||SERO);}
+}
+loadHistory();
+
+$('p3Only').onclick=startP3Only;
+$('startAll').onclick=()=>{run={device:$('device').value.trim()};startP1();};
+renderResults(null);
+</script>

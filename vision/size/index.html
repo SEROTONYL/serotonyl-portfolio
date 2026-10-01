@@ -1,0 +1,126 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Размер пятна</title>
+<style>
+:root{--bg:#2a2a2a;--fg:#eee;--mut:#aaa;--card:#333;--acc:#9fd0ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+[hidden]{display:none!important}
+.wrap{max-width:820px;margin:0 auto;padding:24px 16px}
+h1{font-size:24px;margin:0 0 12px}
+p{margin:8px 0}
+.mut{color:var(--mut)}
+.btn{font:inherit;padding:10px 18px;border-radius:6px;border:0;background:var(--acc);color:#111;cursor:pointer;margin-top:12px}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#cv{display:block;cursor:pointer}
+#hud{position:fixed;left:16px;top:12px;color:#666;font-size:13px}
+#hint{position:fixed;bottom:16px;left:0;right:0;text-align:center;color:#666;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{padding:6px 8px;border-bottom:1px solid #444;text-align:left}
+.chip{display:inline-block;width:26px;height:18px;vertical-align:middle}
+.verdict{background:var(--card);padding:12px 16px;border-radius:6px;margin:12px 0}
+</style>
+
+<div class="wrap" id="scrIntro">
+  <h1>Размер пятна</h1>
+  <p>Три квадратика, один другого цвета. Кликни по нему или жми 1, 2, 3 на клавиатуре. Квадратики будут то крупнее, то совсем мелкие, до одного пикселя. Не видишь, выбирай наугад.</p>
+  <p class="mut">Сиди как обычно, когда рисуешь. Ответ быстрый, долго не всматривайся. Около 5 минут, 128 показов. Масштаб браузера 100% (Ctrl+0).</p>
+  <button class="btn" id="go">Начать</button>
+</div>
+
+<div id="stage" hidden>
+  <div id="hud"></div>
+  <canvas id="cv"></canvas>
+  <div id="hint">Какой отличается? Клик или 1 / 2 / 3. Не видно, наугад.</div>
+</div>
+
+<div class="wrap" id="scrRes" hidden>
+  <h1>Результат</h1>
+  <div class="verdict" id="verdict"></div>
+  <table id="tbl"></table>
+  <p class="mut">Размер в настоящих пикселях твоего экрана. Меньше этого размера пара для тебя сливается. Пары «линия протана» сдвинуты по линии, вдоль которой путает цвета sero, «синяя ось» сдвинута на столько же поперёк, «яркость» отличается только светлотой. Для обычного глаза пары на «твоей линии» видны уже с 1–2 px.</p>
+  <h2>Ты и sero</h2>
+  <div class="verdict" id="cmpV"></div>
+  <table id="cmp"></table>
+</div>
+
+<script>
+const BG_U=0.19783,BG_V=0.46834;
+const s2l=c=>c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+const l2s=c=>c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;
+function uvY2lin(u,v,Y){const den=6*u-16*v+12,x=9*u/den,y=4*v/den,X=Y*x/y,Z=Y*(1-x-y)/y;
+  return [3.2406*X-1.5372*Y-0.4986*Z,-0.9689*X+1.8758*Y+0.0415*Z,0.0557*X-0.2040*Y+1.0570*Z];}
+function lin2uvY(r,g,b){const X=0.4124*r+0.3576*g+0.1805*b,Y=0.2126*r+0.7152*g+0.0722*b,Z=0.0193*r+0.1192*g+0.9505*b,d=X+15*Y+3*Z;return d?[4*X/d,9*Y/d,Y]:[BG_U,BG_V,0];}
+const hex2lin=h=>[1,3,5].map(i=>s2l(parseInt(h.slice(i,i+2),16)/255));
+const lin2hex=c=>'#'+c.map(v=>Math.round(255*l2s(Math.min(1,Math.max(0,v)))).toString(16).padStart(2,'0')).join('');
+const inG=c=>c.every(v=>v>=0&&v<=1);
+const CP={P:[0.678,0.501],T:[0.257,0.0]};
+const D=0.035;
+// partner: shift along the colour's own confusion line (towards/away from the copunctal point), standard Y kept
+function partner(hex,axis){
+  const A=hex2lin(hex),[u,v,Y]=lin2uvY(...A);
+  if(axis==='L'){for(const k of [1.25,0.8]){const B=A.map(x=>x*k);if(inG(B))return lin2hex(B);}return null;}
+  let dx=CP[axis][0]-u,dy=CP[axis][1]-v;const n=Math.hypot(dx,dy);
+  if(axis==='T'){[dx,dy]=[-dy,dx];}   // perpendicular to the protan line ~ blue-yellow
+  const ux=(axis==='T'?CP.P[1]-v:dx),uy=(axis==='T'?-(CP.P[0]-u):dy),m=Math.hypot(ux,uy);
+  for(const s of [1,-1]){const B=uvY2lin(u+s*D*ux/m,v+s*D*uy/m,Y);if(inG(B))return lin2hex(B);}
+  return null;
+}
+const PAIRS=[['тёмно-красный','#6e1c1c','P'],['коричневый','#7a4a2a','P'],['оливковый','#6b6b2a','P'],
+  ['бирюзовый','#2f8f8a','P'],['розовый','#d58aa0','P'],['оливковый','#6b6b2a','T'],['бирюзовый','#2f8f8a','T'],['серый','#707070','L']];
+const SIZES=[1,2,3,4,6,8,12,16,24,32];
+const N=16;
+const AXN={P:'линия протана',T:'синяя ось',L:'яркость'};
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d');
+let conds=[],trials=[],ti=0,lock=false,cur=null;
+function build(){
+  conds=PAIRS.map(([name,a,axis])=>({name,a,b:partner(a,axis),axis,idx:7,run:0,hist:[]})).filter(c=>c.b);
+  trials=[];for(const c of conds)for(let i=0;i<N;i++)trials.push(c);
+  for(let i=trials.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[trials[i],trials[j]]=[trials[j],trials[i]];}
+  for(let i=1;i<trials.length;i++)if(trials[i]===trials[i-1]){const j=trials.findIndex((t,q)=>q>i&&t!==trials[i]);if(j>0)[trials[i],trials[j]]=[trials[j],trials[i]];}
+}
+function show(){
+  if(ti>=trials.length)return finish();
+  const c=trials[ti],dpr=window.devicePixelRatio||1,s=SIZES[c.idx],gap=Math.max(24,s*3);
+  const W=3*s+2*gap+80,H=s+80;
+  cv.width=W;cv.height=H;cv.style.width=W/dpr+'px';cv.style.height=H/dpr+'px';
+  ctx.fillStyle='#2a2a2a';ctx.fillRect(0,0,W,H);
+  const flip=Math.random()<0.5,base=flip?c.b:c.a,diff=flip?c.a:c.b,odd=Math.floor(Math.random()*3);
+  for(let q=0;q<3;q++){ctx.fillStyle=q===odd?diff:base;ctx.fillRect(40+q*(s+gap),40,s,s);}
+  cur={c,odd,s,gap,dpr};$('hud').textContent=(ti+1)+' / '+trials.length;lock=false;
+}
+function answer(q){
+  if(lock||!cur)return;lock=true;const {c,odd}=cur,ok=q===odd;
+  c.hist.push({s:SIZES[c.idx],ok});
+  if(ok){c.run++;if(c.run>=2){c.idx=Math.max(0,c.idx-1);c.run=0;}}else{c.idx=Math.min(SIZES.length-1,c.idx+1);c.run=0;}
+  ctx.fillStyle='#2a2a2a';ctx.fillRect(0,0,cv.width,cv.height);ti++;setTimeout(show,250);
+}
+cv.onclick=e=>{if(!cur)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*cur.dpr-40,q=Math.floor(x/(cur.s+cur.gap));
+  answer(Math.max(0,Math.min(2,q)));};
+document.addEventListener('keydown',e=>{if($('stage').hidden)return;if(['1','2','3'].includes(e.key))answer(+e.key-1);});
+const gm=a=>Math.exp(a.reduce((x,v)=>x+Math.log(v),0)/a.length);
+function finish(){
+  $('stage').hidden=true;$('scrRes').hidden=false;
+  const res=conds.map(c=>({name:c.name,a:c.a,b:c.b,axis:c.axis,thr:gm(c.hist.slice(6).map(h=>h.s)),hist:c.hist}));
+  let t='<tr><th>Пара</th><th></th><th>Ось</th><th>Сливается мельче</th></tr>';
+  for(const r of res)t+='<tr><td>'+r.name+'</td><td><span class="chip" style="background:'+r.a+'"></span><span class="chip" style="background:'+r.b+'"></span> '+r.a+' / '+r.b+
+    '</td><td>'+AXN[r.axis]+'</td><td>'+r.thr.toFixed(1)+' px</td></tr>';
+  $('tbl').innerHTML=t;
+  const P=res.filter(r=>r.axis==='P'),T=res.filter(r=>r.axis==='T'),L=res.find(r=>r.axis==='L');
+  const pm=gm(P.map(r=>r.thr)),tm=gm(T.map(r=>r.thr));
+  $('verdict').innerHTML='Пары на линии протана сливаются мельче '+pm.toFixed(1)+' px, на синей оси мельче '+tm.toFixed(1)+' px, по яркости мельче '+(L?L.thr.toFixed(1):'?')+' px.'+
+    '<br>Значит, в пиксель-арте пиксели мельче '+Math.ceil(pm)+' px экрана в таких парах ты различаешь плохо. Смотри работу в масштабе, где пиксель крупнее.';
+  // sero, 01.10.2026, 2K monitor, dpr 1.25: threshold in physical px per pair
+  const SERO={'тёмно-красныйP':26.6,'коричневыйP':12.6,'оливковыйP':11.7,'бирюзовыйP':19.0,'розовыйP':24.8,'оливковыйT':3.6,'бирюзовыйT':3.4,'серыйL':8.0};
+  let c='<tr><th>Пара</th><th>Ось</th><th>Ты</th><th>sero</th></tr>';
+  for(const r of res)c+='<tr><td>'+r.name+'</td><td>'+AXN[r.axis]+'</td><td>'+r.thr.toFixed(1)+' px</td><td>'+SERO[r.name+r.axis].toFixed(1)+' px</td></tr>';
+  $('cmp').innerHTML=c;
+  const hp=gm(Object.entries(SERO).filter(([k])=>k.endsWith('P')).map(([,v])=>v));
+  $('cmpV').innerHTML='Красно-зелёные пары у тебя сливаются мельче '+pm.toFixed(1)+' px, у sero мельче '+hp.toFixed(1)+' px. '+
+    (pm>=hp*0.7?'Тут ты видишь так же, как он.':pm>=tm*2?'Ты видишь лучше sero, но красно-зелёные пары всё равно сливаются раньше синих.':'Ты различаешь их почти так же, как синие, у sero разрыв в несколько раз.')+
+    '<br><span class="mut">Пиксели настоящие, экранные, так что на другом мониторе числа сдвинутся. sero мерился на 2K-мониторе.</span>';
+}
+$('go').onclick=()=>{build();ti=0;$('scrIntro').hidden=true;$('stage').hidden=false;show();};
+</script>

@@ -32,12 +32,22 @@ canvas.pix{image-rendering:pixelated}
 #splitTop{position:absolute;left:0;top:0;overflow:hidden;height:100%}
 #splitTop canvas{max-width:none}
 #splitLine{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px #000}
+.tests{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:14px 0 4px}
+.tests a{display:flex;flex-direction:column;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--fg);text-decoration:none}
+.tests a:hover{border-color:var(--acc)}
+.tests span{color:var(--mut);font-size:14px}
 @media (max-width:700px){.views{grid-template-columns:1fr}}
 </style>
 
 <div class="wrap">
   <h1>Как вижу я</h1>
   <p class="mut">Загрузи картинку и посмотри, какие цвета на ней для меня сливаются.</p>
+  <div class="tests">
+    <a href="karta/"><b>Карта цветозрения</b><span>~20 мин. Форма различения по всем направлениям, яркость красного, пары цветов.</span></a>
+    <a href="protan/"><b>Протаноп или протаномал</b><span>~8 мин. Есть ли у тебя сигнал от красных колбочек.</span></a>
+    <a href="size/"><b>Размер пятна</b><span>~5 мин. С какого размера красное и зелёное сливаются.</span></a>
+  </div>
+  <p class="mut">Пройди тесты, и в конце каждого твой результат встанет рядом с моим.</p>
 
   <details class="about">
     <summary>Что тут показано</summary>

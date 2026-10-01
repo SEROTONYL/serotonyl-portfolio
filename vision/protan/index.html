@@ -1,0 +1,163 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Протаноп или протаномал</title>
+<style>
+:root{--bg:#595959;--fg:#eee;--mut:#c8c8c8;--card:#4d4d4d;--acc:#9fd0ff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px}
+h1{font-size:24px;margin:0 0 12px}
+p{margin:8px 0}
+.mut{color:var(--mut)}
+label{display:block;margin:10px 0}
+input{font:inherit;width:90px;padding:4px 6px;background:#333;color:var(--fg);border:1px solid #777;border-radius:4px}
+.btn{font:inherit;padding:10px 18px;border-radius:6px;border:0;background:var(--acc);color:#111;cursor:pointer;margin-top:12px}
+#stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#row{display:flex;align-items:center;justify-content:center}
+.sw{border:0;padding:0;cursor:pointer;border-radius:2px}
+#hud{position:fixed;left:16px;top:12px;color:var(--mut);font-size:14px}
+#hint{position:fixed;bottom:16px;left:0;right:0;text-align:center;color:var(--mut);font-size:14px}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+td,th{padding:6px 8px;border-bottom:1px solid #6a6a6a;text-align:left}
+.verdict{background:var(--card);padding:12px 16px;border-radius:6px;margin:12px 0}
+</style>
+
+<div class="wrap" id="scrIntro">
+  <h1>Протаноп или протаномал</h1>
+  <p>Из трёх квадратов один отличается цветом. Нажми на него. Квадраты бывают маленькие и большие, иногда разница огромная, иногда незаметная. Если не видишь разницы, всё равно выбирай наугад, это нормально и нужно для теста.</p>
+  <p>Яркость квадратов специально немного скачет. На неё не смотри, ищи отличие в цвете.</p>
+  <p class="mut">Сядь как обычно, расстояние до экрана держи примерно одинаковым весь тест. Около 8 минут, 150 показов. Масштаб браузера 100% (Ctrl+0).</p>
+  <label>Диагональ монитора, дюймов <input id="diag" type="number" step="0.1" value="27"></label>
+  <label>Расстояние до экрана, см <input id="dist" type="number" value="60"></label>
+  <p class="mut" id="ppd"></p>
+  <button class="btn" id="go">Начать</button>
+</div>
+
+<div id="stage" hidden>
+  <div id="hud"></div>
+  <div id="row"></div>
+  <div id="hint">Нажми на квадрат, который отличается цветом. Не видишь разницы? Выбери наугад.</div>
+</div>
+
+<div class="wrap" id="scrRes" hidden>
+  <h1>Результат</h1>
+  <div class="verdict" id="verdict"></div>
+  <table id="tbl"></table>
+  <p class="mut">Порог: насколько нужно изменить сигнал красных колбочек (в процентах), чтобы ты замечал отличие. У нормального глаза это 1–3%. «На максимуме»: сколько из 8 показов с самой большой разницей, какую даёт монитор, ты угадал. Наугад выходит около 3 из 8.</p>
+  <h2>Ты и sero</h2>
+  <div class="verdict" id="cmpV"></div>
+  <table id="cmp"></table>
+</div>
+
+<script>
+/* Silent substitution: the odd square differs ONLY in L-cone excitation (M and S held constant),
+   so for a protanope it is a physical metamer of the others. Cone fundamentals: Viénot/Brettel (Smith-Pokorny). */
+const s2l=c=>c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+const l2s=c=>c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;
+const css=c=>'rgb('+c.map(v=>Math.round(255*l2s(Math.min(1,Math.max(0,v))))).join(',')+')';
+const LMS=[[17.8824,43.5161,4.11935],[3.45565,27.1554,3.86714],[0.0299566,0.184309,1.46709]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const iso=i=>{const o=[0,1,2].filter(k=>k!==i);return cross(LMS[o[0]],LMS[o[1]]);};
+const JIT=0.10;
+const shift=(base,cone,sign,c)=>{const v=iso(cone),k=sign*c*dot(LMS[cone],base)/dot(LMS[cone],v);return base.map((x,i)=>x+v[i]*k);};
+function cmax(base,cone,sign){const v=iso(cone),k=sign*dot(LMS[cone],base)/dot(LMS[cone],v);let m=9;
+  for(let ch=0;ch<3;ch++){const dv=v[ch]*k;if(Math.abs(dv)<1e-12)continue;m=Math.min(m,dv>0?(1/(1+JIT)-base[ch])/dv:-base[ch]/dv);}
+  return 0.98*m;}
+const BASES={grey:{name:'серый',c:[.18,.18,.18]},warm:{name:'тёплый',c:[.45,.13,.13]},teal:{name:'бирюзовый',c:[.08,.28,.24]}};
+const L_CONDS=[['grey',1],['warm',-1],['teal',1]];
+const SIZES={small:1,large:8};   // degrees
+const STAIR_N=12,MAX_N=8;
+
+const $=id=>document.getElementById(id);
+let ppd=45;
+function calcPPD(){
+  const dpr=window.devicePixelRatio||1,w=screen.width*dpr,h=screen.height*dpr,diag=+$('diag').value||27,dist=+$('dist').value||60;
+  const ppcm=Math.hypot(w,h)/diag/2.54/dpr;ppd=ppcm*dist*Math.tan(Math.PI/180);
+  $('ppd').textContent='Экран '+Math.round(w)+'×'+Math.round(h)+', 1° ≈ '+Math.round(ppd)+' px. Маленький квадрат 1°, большой 8°.';
+}
+['diag','dist'].forEach(id=>$(id).oninput=calcPPD);calcPPD();
+
+let conds=[],trials=[],ti=0,log=[],lock=false;
+function build(){
+  conds=[];
+  for(const size of Object.keys(SIZES)){
+    for(const [b,sign] of L_CONDS){const mx=cmax(BASES[b].c,0,sign);
+      conds.push({id:'L-'+b+'-'+size,cone:0,base:b,sign,size,max:mx,c:mx*0.5,stair:[],atMax:[]});}
+    const mx=Math.min(0.5,cmax(BASES.grey.c,2,1));
+    conds.push({id:'S-grey-'+size,cone:2,base:'grey',sign:1,size,max:mx,c:mx*0.6,stair:[],atMax:[]});
+  }
+  trials=[];
+  for(const c of conds){for(let i=0;i<STAIR_N;i++)trials.push({k:c,mode:'stair'});
+    if(c.cone===0)for(let i=0;i<MAX_N;i++)trials.push({k:c,mode:'max'});}
+  for(let i=trials.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[trials[i],trials[j]]=[trials[j],trials[i]];}
+  // no same condition twice in a row where avoidable
+  for(let i=1;i<trials.length;i++)if(trials[i].k===trials[i-1].k){const j=trials.findIndex((t,q)=>q>i&&t.k!==trials[i].k);if(j>0)[trials[i],trials[j]]=[trials[j],trials[i]];}
+  const pr=Math.min(0.5,cmax(BASES.grey.c,2,1));
+  const prac=[0,1,2].map(()=>({k:{id:'practice',cone:2,base:'grey',sign:1,size:'large',max:pr,c:pr,stair:[],atMax:[]},mode:'practice'}));
+  trials=prac.concat(trials);
+}
+function show(){
+  if(ti>=trials.length)return finish();
+  const t=trials[ti],k=t.k,c=t.mode==='stair'?k.c:k.max;
+  const base=BASES[k.base].c,odd=Math.floor(Math.random()*3),px=Math.round(ppd*SIZES[k.size]),gap=Math.round(ppd*(k.size==='small'?1.5:1));
+  const diff=shift(base,k.cone,k.sign,c);
+  const row=$('row');row.innerHTML='';row.style.gap=gap+'px';
+  $('hud').textContent=(t.mode==='practice'?'Пробные ':'')+(ti+1)+' / '+trials.length;
+  for(let q=0;q<3;q++){
+    const j=1+JIT*(Math.random()*2-1),col=(q===odd?diff:base).map(x=>x*j);
+    const b=document.createElement('button');b.className='sw';b.style.width=b.style.height=px+'px';b.style.background=css(col);
+    b.onclick=()=>answer(t,c,q===odd);row.appendChild(b);
+  }
+  lock=false;
+}
+function answer(t,c,ok){
+  if(lock)return;lock=true;const k=t.k;
+  log.push({id:k.id,mode:t.mode,c,ok});
+  if(t.mode==='stair'){k.stair.push({c,ok});k.c=Math.min(k.max,k.c*(ok?0.8:1.6));}
+  if(t.mode==='max')k.atMax.push(ok);
+  $('row').innerHTML='';ti++;setTimeout(show,300);
+}
+const gm=a=>Math.exp(a.reduce((s,x)=>s+Math.log(x),0)/a.length);
+// P(X>=k) for Binomial(n,1/3)
+function pChance(k,n){let s=0;const C=(n,r)=>{let v=1;for(let i=1;i<=r;i++)v=v*(n-r+i)/i;return v;};
+  for(let r=k;r<=n;r++)s+=C(n,r)*Math.pow(1/3,r)*Math.pow(2/3,n-r);return s;}
+function summarize(k){
+  const tail=k.stair.slice(4).map(h=>h.c),wrongMax=k.stair.filter(h=>!h.ok&&h.c>=k.max*0.999).length;
+  const capped=wrongMax>=2,thr=capped?null:gm(tail.length?tail:[k.c]);
+  const hit=k.atMax.filter(Boolean).length,n=k.atMax.length;
+  return {id:k.id,cone:k.cone===0?'L':'S',base:k.base,sign:k.sign,size:k.size,max:k.max,thr,capped,hit,n,p:n?pChance(hit,n):null,
+    stair:k.stair};
+}
+function finish(){
+  $('stage').hidden=true;$('scrRes').hidden=false;
+  const res=conds.map(summarize);
+  const pct=x=>(100*x).toFixed(1)+'%';
+  let h='<tr><th>Колбочки</th><th>Фон</th><th>Размер</th><th>Порог</th><th>На максимуме</th><th>Максимум</th></tr>';
+  for(const r of res)h+='<tr><td>'+(r.cone==='L'?'красные':'синие (контроль)')+'</td><td>'+BASES[r.base].name+'</td><td>'+(r.size==='small'?'1°':'8°')+'</td><td>'+
+    (r.capped?'не нашёлся':pct(r.thr))+'</td><td>'+(r.n?r.hit+' / '+r.n:'')+'</td><td>'+pct(r.max)+'</td></tr>';
+  $('tbl').innerHTML=h;
+  const L=res.filter(r=>r.cone==='L'),sm=L.filter(r=>r.size==='small'),lg=L.filter(r=>r.size==='large');
+  const seen=a=>{const hit=a.reduce((s,r)=>s+r.hit,0),n=a.reduce((s,r)=>s+r.n,0);return {hit,n,p:pChance(hit,n)};};
+  const S=seen(sm),G=seen(lg);
+  let v='Маленькие: '+S.hit+' из '+S.n+' на максимуме. Большие: '+G.hit+' из '+G.n+'. Наугад было бы около '+Math.round(S.n/3)+'.<br>';
+  const sOk=S.p<0.01,gOk=G.p<0.01;
+  if(!sOk&&!gOk)v+='Ни на каких квадратах отличие по красным колбочкам ты не видишь. Это похоже на протанопию.';
+  else if(!sOk&&gOk)v+='На маленьких ты выбираешь наугад, на больших видишь. Похоже на протанопию, а на больших помогают палочки.';
+  else v+='На маленьких тоже видишь, значит сигнал от красных колбочек у тебя есть. Похоже на протаномалию.';
+  v+='<br><span class="mut">Это подсказка, а не диагноз. Монитор не откалиброван, поэтому небольшая утечка в другие колбочки возможна.</span>';
+  $('verdict').innerHTML=v;
+  // sero, 01.10.2026, 2K monitor: L-cone thresholds per condition
+  const SERO={'L-grey-small':.091,'L-warm-small':.072,'L-teal-small':.217,'L-grey-large':.083,'L-warm-large':.055,'L-teal-large':.167};
+  const Lr=L.filter(r=>!r.capped),mine=Lr.length?gm(Lr.map(r=>r.thr)):null,his=gm(Object.values(SERO));
+  let c='<tr><th>Красные колбочки</th><th>Ты</th><th>sero</th></tr>';
+  for(const r of L)c+='<tr><td>'+BASES[r.base].name+', '+(r.size==='small'?'1°':'8°')+'</td><td>'+(r.capped?'не нашёлся':pct(r.thr))+'</td><td>'+pct(SERO[r.id])+'</td></tr>';
+  $('cmp').innerHTML=c;
+  $('cmpV').innerHTML='В среднем порог у тебя '+(mine?pct(mine):'не нашёлся')+', у sero '+pct(his)+'. '+
+    (!mine||mine>=his*0.7?'Красный сигнал у тебя такой же слабый, как у него или слабее.':mine>=0.04?'Красный сигнал у тебя ослаблен, но меньше, чем у sero.':'Красный сигнал у тебя близок к обычному глазу, sero видит отличие только при разнице в несколько раз больше.')+
+    '<br><span class="mut">sero на маленьких квадратах угадал 24 из 24 на максимуме, у него протаномалия. Его замер сделан на 2K-мониторе.</span>';
+}
+$('go').onclick=()=>{calcPPD();build();ti=0;log=[];$('scrIntro').hidden=true;$('stage').hidden=false;show();};
+</script>
