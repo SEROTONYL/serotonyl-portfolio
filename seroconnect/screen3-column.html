@@ -1,0 +1,185 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Экран 3 — столбик</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- ЭКРАН 3 · СТОЛБИК. Набросок 04.10.2026, левая часть.
+
+     Слева четыре устройства столбиком, своё выбрано сразу по определению
+     (та же функция, что в screen3-devices.html). Метки реза, знак сайта
+     для «сюда жмут», не стоят на месте, а переезжают к выбранному.
+     Справа пока заготовка: три шага, не инструкция. Данные шагов лежат в
+     ШАГИ, приложение у каждой платформы своё поле, чтобы потом можно
+     было развести Happ и другие. Ключ в адресе: ?устройство=ios|android|mac|win -->
+<script>
+(function(){
+  function определить(){
+    var uad = navigator.userAgentData;
+    var p = (uad && uad.platform || '').toLowerCase();
+    if (p){
+      if (p.indexOf('android') >= 0) return 'android';
+      if (p.indexOf('windows') >= 0) return 'win';
+      if (p.indexOf('macos')   >= 0) return 'mac';
+    }
+    var u = navigator.userAgent || '';
+    if (/Android/i.test(u))               return 'android';
+    if (/iPhone|iPad|iPod/i.test(u))      return 'ios';
+    if (/Windows NT/i.test(u))            return 'win';
+    if (/Macintosh|Mac OS X/i.test(u))    return 'mac';
+    return 'ios';
+  }
+  var знаю = {ios:1, android:1, mac:1, win:1};
+  var ключ = new URLSearchParams(location.search).get('устройство');
+  document.documentElement.setAttribute('data-ос', знаю[ключ] ? ключ : определить());
+})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#110a0a;color:#8a8079;
+  font-family:"Onest","Inter",system-ui,sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased}
+
+.сцена{display:grid;grid-template-columns:auto 1fr;gap:0 88px;
+  width:100%;max-width:980px;padding:0 48px;align-items:center}
+
+/* ── СТОЛБИК ─────────────────────────────────────────── */
+.столб{position:relative;display:flex;flex-direction:column;
+  padding-left:28px}
+/* Рельс: тонкая линия во всю высоту, по ней едет янтарный отрезок. */
+.столб::before{content:"";position:absolute;left:0;top:6px;bottom:6px;
+  width:1px;background:#2a2220}
+.бегунок{position:absolute;left:0;width:1px;background:#d4a574;
+  box-shadow:0 0 10px rgba(212,165,116,.45);
+  transition:transform .55s cubic-bezier(.65,0,.2,1),height .55s cubic-bezier(.65,0,.2,1)}
+
+.ус{position:relative;display:flex;align-items:baseline;gap:16px;
+  background:none;border:0;cursor:pointer;text-align:left;
+  font:inherit;font-size:40px;letter-spacing:-.02em;line-height:1;
+  padding:14px 0;color:#3f3733;
+  transition:color .4s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.65,0,.2,1)}
+.ус:hover{color:#6f645c}
+.ус:focus-visible{outline:0;color:#8a8079}
+.ус .ном{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.08em;color:#3a322e;transition:color .4s;width:18px}
+.ус .что{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.06em;color:#d4a574;opacity:0;margin-left:8px;transform:translateX(-6px);
+  transition:opacity .35s .15s,transform .45s .15s cubic-bezier(.2,0,0,1)}
+.ус[aria-selected="true"]{color:#ece7dd;transform:translateX(10px)}
+.ус[aria-selected="true"] .ном{color:#d4a574}
+.ус[aria-selected="true"] .что{opacity:.75;transform:none}
+
+/* Метки реза. Один набор на весь столбик, переезжает к выбранному. */
+.рез{position:absolute;left:0;top:0;pointer-events:none;
+  transition:transform .55s cubic-bezier(.65,0,.2,1),width .55s cubic-bezier(.65,0,.2,1)}
+.рез i{position:absolute;width:9px;height:9px;border-color:#a8917a;border-style:solid}
+.рез i:nth-child(1){left:0;top:0;border-width:1px 0 0 1px}
+.рез i:nth-child(2){right:0;top:0;border-width:1px 1px 0 0}
+.рез i:nth-child(3){left:0;bottom:0;border-width:0 0 1px 1px}
+.рез i:nth-child(4){right:0;bottom:0;border-width:0 1px 1px 0}
+
+/* ── ПРАВАЯ ЧАСТЬ, заготовка ───────────────────────────── */
+.шаги{list-style:none;display:flex;flex-direction:column;gap:22px;
+  border-left:1px dashed #2a2220;padding-left:40px;min-height:220px;
+  justify-content:center}
+.шаги li{display:flex;gap:16px;align-items:baseline;font-size:17px;
+  line-height:1.35;color:#8a8079}
+.шаги li b{font-weight:400;color:#cdc3b8}
+.шаги li span.н{font-family:"Geist Mono",ui-monospace,monospace;
+  font-size:11px;color:#4f4741;width:14px;flex:none}
+.шаги.уход li{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
+.шаги li{transition:opacity .35s,transform .45s cubic-bezier(.2,0,0,1)}
+.шаги.приход li{opacity:0;transform:translateY(8px);transition:none}
+.дальше{font-size:13px;letter-spacing:.04em;color:#6f645c;text-decoration:none;
+  margin-top:6px}
+.дальше:hover{color:#a8917a}
+
+.подпись{position:fixed;bottom:22px;left:0;right:0;text-align:center;
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.06em;color:#3a322e}
+
+@media (max-width:720px){
+  .сцена{grid-template-columns:1fr;gap:44px;padding:0 24px}
+  .ус{font-size:32px;padding:11px 0}
+  .шаги{border-left:0;padding-left:0;min-height:0}
+}
+</style>
+
+<div class="сцена">
+  <div class="столб" role="tablist" aria-label="Устройство">
+    <span class="бегунок"></span>
+    <span class="рез"><i></i><i></i><i></i><i></i></span>
+    <button class="ус" role="tab" data-ос="ios"><span class="ном">01</span><span class="имя">iPhone</span><span class="что">iOS</span></button>
+    <button class="ус" role="tab" data-ос="android"><span class="ном">02</span><span class="имя">Android</span><span class="что">телефон</span></button>
+    <button class="ус" role="tab" data-ос="mac"><span class="ном">03</span><span class="имя">Mac</span><span class="что">macOS</span></button>
+    <button class="ус" role="tab" data-ос="win"><span class="ном">04</span><span class="имя">Windows</span><span class="что">ПК</span></button>
+  </div>
+  <ol class="шаги" aria-live="polite"></ol>
+</div>
+<div class="подпись">↑ ↓ или клик · ?устройство=ios|android|mac|win</div>
+
+<script>
+/* Приложение у каждой платформы своё поле: сейчас везде Happ, но так
+   его можно поменять для одной, не трогая остальные. */
+var ШАГИ = {
+  ios:     {прил:'Happ', где:'из App Store'},
+  android: {прил:'Happ', где:'из Google Play'},
+  mac:     {прил:'Happ', где:'из App Store'},
+  win:     {прил:'Happ', где:'с сайта Happ'}
+};
+var столб = document.querySelector('.столб'),
+    кнопки = [].slice.call(document.querySelectorAll('.ус')),
+    рез = document.querySelector('.рез'),
+    бег = document.querySelector('.бегунок'),
+    шаги = document.querySelector('.шаги');
+
+function шагиДля(ос){
+  var s = ШАГИ[ос];
+  return '<li><span class="н">1</span><span>Скачайте <b>'+s.прил+'</b> из '+s.где+'</span></li>'+
+         '<li><span class="н">2</span><span>Скопируйте ключ из <b>личного кабинета</b> или письма</span></li>'+
+         '<li><span class="н">3</span><span>Вставьте его в '+s.прил+' и нажмите <b>подключить</b></span></li>'+
+         '<a class="дальше" href="#">подробная инструкция →</a>';
+}
+
+function поставить(ос, сразу){
+  кнопки.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.ос === ос); b.tabIndex = b.dataset.ос === ос ? 0 : -1; });
+  document.documentElement.setAttribute('data-ос', ос);
+  var b = кнопки.filter(function(x){ return x.dataset.ос === ос; })[0];
+  /* Меряем после сдвига кнопки, поэтому через кадр. */
+  requestAnimationFrame(function(){
+    var top = b.offsetTop, h = b.offsetHeight;
+    var имя = b.querySelector('.имя');
+    var x = b.offsetLeft + имя.offsetLeft, w = имя.offsetWidth;
+    if (сразу){ рез.style.transition = бег.style.transition = 'none'; }
+    рез.style.width = (w + 20) + 'px';
+    рез.style.height = (h - 10) + 'px';
+    /* Кнопка сдвинута на 10px трансформом, offsetLeft его не видит. */
+    рез.style.transform = 'translate(' + (x + 10 - 10) + 'px,' + (top + 5) + 'px)';
+    бег.style.height = h + 'px';
+    бег.style.transform = 'translateY(' + top + 'px)';
+    if (сразу){ рез.offsetWidth; рез.style.transition = бег.style.transition = ''; }
+  });
+  if (сразу){ шаги.innerHTML = шагиДля(ос); return; }
+  шаги.classList.add('уход');
+  setTimeout(function(){
+    шаги.innerHTML = шагиДля(ос);
+    шаги.classList.remove('уход'); шаги.classList.add('приход');
+    [].forEach.call(шаги.children, function(li, i){ li.style.transitionDelay = (i*0.06)+'s'; });
+    шаги.offsetWidth; шаги.classList.remove('приход');
+  }, 180);
+}
+
+кнопки.forEach(function(b){ b.addEventListener('click', function(){ поставить(b.dataset.ос); }); });
+столб.addEventListener('keydown', function(e){
+  var i = кнопки.indexOf(document.activeElement);
+  if (i < 0) return;
+  var d = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+  if (!d) return;
+  e.preventDefault();
+  var n = кнопки[(i + d + кнопки.length) % кнопки.length];
+  n.focus(); поставить(n.dataset.ос);
+});
+поставить(document.documentElement.getAttribute('data-ос'), true);
+window.addEventListener('resize', function(){ поставить(document.documentElement.getAttribute('data-ос'), true); });
+</script>
