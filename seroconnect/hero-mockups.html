@@ -838,9 +838,9 @@ const PHRASES = [
 ];
 
 const CAPTIONS = [
-  '1 · прейскурант — две жёсткие колонки, рекомендуемый срок помечен только цветом',
+  '1. прейскурант — две жёсткие колонки, рекомендуемый срок помечен только цветом',
   '',
-  '2 · плашка (как было) — точка отсчёта',
+  '2. плашка (как было) — точка отсчёта',
 ];
 
 // Цены НЕ из текущего каталога: сегодня там 99/249/399 за три тарифа,
@@ -1255,13 +1255,13 @@ function runCounter(target){
 
 function setCaption(){
   if (!caption) return;
-  caption.textContent = CAPTIONS[variant] + '   ·   J: ' + COPY_NOTE[copyIx]
-    + '   ·   D: лента ' + (tapeUp ? 'ВВЕРХ' : 'ВНИЗ')
-    + '   ·   F: ' + MOVE_NOTE[moveIx]
-    + '   ·   N: ' + LIVE.paying
-    + '   ·   S: метка — ' + MARKS[markIx].note
-    + '   ·   A: шаг — ' + ROLL[rollIx].note
-    + '   ·   R: повтор';
+  caption.textContent = CAPTIONS[variant] + ',   J: ' + COPY_NOTE[copyIx]
+    + ',   D: лента ' + (tapeUp ? 'ВВЕРХ' : 'ВНИЗ')
+    + ',   F: ' + MOVE_NOTE[moveIx]
+    + ',   N: ' + LIVE.paying
+    + ',   S: метка — ' + MARKS[markIx].note
+    + ',   A: шаг — ' + ROLL[rollIx].note
+    + ',   R: повтор';
 }
 
 /* Фон закрыт 17 августа: его нет. Двенадцать полей собрано, двенадцать
