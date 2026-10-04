@@ -37,21 +37,20 @@ h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
 .ответ{margin-top:16px;font-size:17px;line-height:1.4;color:#6f645c;max-width:560px}
 .ответ b{font-weight:400;color:#a59a89}
 
-/* Действие одно. Голая ссылка с метками реза, знак «сюда жмут». */
-.написать{position:relative;margin-top:44px;padding:12px 16px;
-  font-size:20px;color:#cdc3b8;text-decoration:none;letter-spacing:-.01em;
-  transition:color .2s}
+/* Действие одно. Метки реза остались только у «оформить» в четвёртой,
+   здесь строка ввода: начинаешь писать человеку. Моно рифмуется с
+   фактами ниже. При наведении каретка перестаёт мигать и горит. */
+.написать{margin-top:44px;padding:12px 4px;display:inline-flex;align-items:center;
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:17px;letter-spacing:.01em;
+  color:#cdc3b8;text-decoration:none;transition:color .2s}
+.написать .п{color:#a8917a;margin-right:.7em;transition:transform .3s cubic-bezier(.2,0,0,1)}
+.написать .к{display:inline-block;width:.55em;height:1.15em;margin-left:.25em;
+  background:#a8917a;animation:миг 1.1s steps(1) infinite}
 .написать:hover,.написать:focus-visible{color:#ece7dd;outline:0}
-.написать i{position:absolute;width:9px;height:9px;border:solid #a8917a;
-  transition:transform .3s cubic-bezier(.2,0,0,1)}
-.написать i:nth-child(1){left:0;top:0;border-width:1px 0 0 1px}
-.написать i:nth-child(2){right:0;top:0;border-width:1px 1px 0 0}
-.написать i:nth-child(3){left:0;bottom:0;border-width:0 0 1px 1px}
-.написать i:nth-child(4){right:0;bottom:0;border-width:0 1px 1px 0}
-.написать:hover i:nth-child(1){transform:translate(-3px,-3px)}
-.написать:hover i:nth-child(2){transform:translate(3px,-3px)}
-.написать:hover i:nth-child(3){transform:translate(-3px,3px)}
-.написать:hover i:nth-child(4){transform:translate(3px,3px)}
+.написать:hover .п,.написать:focus-visible .п{transform:translateX(3px)}
+.написать:hover .к,.написать:focus-visible .к{animation:none;background:#e2b98e}
+@keyframes миг{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.написать .к{animation:none}}
 
 /* Факт моно: это показывает система, а не говорим мы. */
 .факт{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 28px;
@@ -65,7 +64,7 @@ h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
   .рама{padding:0 24px}
   h2{font-size:36px}
   .ответ{font-size:15px}
-  .написать{margin-top:32px;font-size:18px}
+  .написать{margin-top:32px;font-size:15px}
   .факт{margin-top:28px;flex-direction:column;align-items:center}
   body{padding-top:40px}
 }
@@ -75,7 +74,7 @@ h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
   <h2>А если сломается?</h2>
   <p class="ответ">Напишите. Не работает, не нашли своё устройство, что-то
     непонятно, <b>отвечает человек, а не бот</b>.</p>
-  <a class="написать" href="#" onclick="return false"><i></i><i></i><i></i><i></i>написать в поддержку</a>
+  <a class="написать" href="#" onclick="return false"><span class="п" aria-hidden="true">&gt;</span>написать в поддержку<span class="к" aria-hidden="true"></span></a>
   <div class="факт">
     <span><b>65</b> обращений с марта</span>
     <span>ответ обычно за <b>~20 мин</b></span>
