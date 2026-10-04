@@ -30,7 +30,10 @@
   }
   var знаю = {ios:1, android:1, mac:1, win:1};
   var ключ = new URLSearchParams(location.search).get('устройство');
-  document.documentElement.setAttribute('data-ос', знаю[ключ] ? ключ : определить());
+  var найдено = знаю[ключ] ? ключ : определить();
+  document.documentElement.setAttribute('data-ос', найдено);
+  document.documentElement.setAttribute('data-найдено', найдено);
+  if (new URLSearchParams(location.search).get('v') === 'preview') document.documentElement.classList.add('превью');
 })();
 </script>
 <style>
@@ -54,7 +57,7 @@ body{background:#110a0a;color:#8a8079;
   box-shadow:0 0 10px rgba(212,165,116,.45);
   transition:transform .55s cubic-bezier(.65,0,.2,1),height .55s cubic-bezier(.65,0,.2,1)}
 
-.ус{position:relative;display:flex;align-items:baseline;gap:16px;
+.ус{position:relative;display:flex;align-items:center;gap:16px;
   background:none;border:0;cursor:pointer;text-align:left;
   font:inherit;font-size:40px;letter-spacing:-.02em;line-height:1;
   padding:14px 0;color:#3f3733;
@@ -67,6 +70,16 @@ body{background:#110a0a;color:#8a8079;
   letter-spacing:.06em;color:#d4a574;opacity:0;margin-left:8px;transform:translateX(-6px);
   transition:opacity .35s .15s,transform .45s .15s cubic-bezier(.2,0,0,1)}
 .ус[aria-selected="true"]{color:#ece7dd;transform:translateX(10px)}
+/* Автоопределение видно всегда: точка на рельсе стоит у найденного
+   устройства, даже когда выбрано другое. Подпись говорит про
+   инструкцию, а не про человека, как решено 17.09. */
+.ус .авто{display:none;font-family:"Geist Mono",ui-monospace,monospace;font-size:10px;
+  letter-spacing:.08em;color:#6f5a45;margin-left:4px;white-space:nowrap}
+.ус.найдено .авто{display:inline}
+.ус.найдено::before{content:"";position:absolute;left:-31px;top:50%;width:7px;height:7px;
+  margin-top:-3.5px;border-radius:50%;background:#110a0a;border:1px solid #d4a574}
+.ус.найдено[aria-selected="true"]::before{left:-41px}
+:root.превью .подпись{display:none}
 .ус[aria-selected="true"] .ном{color:#d4a574}
 .ус[aria-selected="true"] .что{opacity:.75;transform:none}
 
@@ -110,10 +123,10 @@ body{background:#110a0a;color:#8a8079;
   <div class="столб" role="tablist" aria-label="Устройство">
     <span class="бегунок"></span>
     <span class="рез"><i></i><i></i><i></i><i></i></span>
-    <button class="ус" role="tab" data-ос="ios"><span class="ном">01</span><span class="имя">iPhone</span><span class="что">iOS</span></button>
-    <button class="ус" role="tab" data-ос="android"><span class="ном">02</span><span class="имя">Android</span><span class="что">телефон</span></button>
-    <button class="ус" role="tab" data-ос="mac"><span class="ном">03</span><span class="имя">Mac</span><span class="что">macOS</span></button>
-    <button class="ус" role="tab" data-ос="win"><span class="ном">04</span><span class="имя">Windows</span><span class="что">ПК</span></button>
+    <button class="ус" role="tab" data-ос="ios"><span class="ном">01</span><span class="имя">iPhone</span><span class="что">iOS</span><span class="авто">определено</span></button>
+    <button class="ус" role="tab" data-ос="android"><span class="ном">02</span><span class="имя">Android</span><span class="что">телефон</span><span class="авто">определено</span></button>
+    <button class="ус" role="tab" data-ос="mac"><span class="ном">03</span><span class="имя">Mac</span><span class="что">macOS</span><span class="авто">определено</span></button>
+    <button class="ус" role="tab" data-ос="win"><span class="ном">04</span><span class="имя">Windows</span><span class="что">ПК</span><span class="авто">определено</span></button>
   </div>
   <ol class="шаги" aria-live="polite"></ol>
 </div>
@@ -136,7 +149,7 @@ var столб = document.querySelector('.столб'),
 
 function шагиДля(ос){
   var s = ШАГИ[ос];
-  return '<li><span class="н">1</span><span>Скачайте <b>'+s.прил+'</b> из '+s.где+'</span></li>'+
+  return '<li><span class="н">1</span><span>Скачайте <b>'+s.прил+'</b> '+s.где+'</span></li>'+
          '<li><span class="н">2</span><span>Скопируйте ключ из <b>личного кабинета</b> или письма</span></li>'+
          '<li><span class="н">3</span><span>Вставьте его в '+s.прил+' и нажмите <b>подключить</b></span></li>'+
          '<a class="дальше" href="#">подробная инструкция →</a>';
@@ -170,6 +183,8 @@ function поставить(ос, сразу){
   }, 180);
 }
 
+var найдено = document.documentElement.getAttribute('data-найдено');
+кнопки.forEach(function(b){ if (b.dataset.ос === найдено) b.classList.add('найдено'); });
 кнопки.forEach(function(b){ b.addEventListener('click', function(){ поставить(b.dataset.ос); }); });
 столб.addEventListener('keydown', function(e){
   var i = кнопки.indexOf(document.activeElement);
