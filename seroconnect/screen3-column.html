@@ -138,10 +138,13 @@ body{background:#110a0a;color:#8a8079;
 .pxarr2{display:flex;flex-direction:column}
 
 @media (max-width:720px){
-  .рама{padding:0 24px;gap:40px}
+  .рама{padding:0 24px;gap:32px}
   .верх h2{font-size:36px}
   .верх p{font-size:15px}
-  .smark{padding:0 24px;bottom:4%}
+  /* На телефоне метка идёт потоком под шагами, а не прибита ко дну:
+     высота экрана с полосами браузера гуляет, и прибитая наезжала. */
+  .smark{position:static;padding:0;margin:-8px 0 0}
+  .ус{padding:9px 0}
   .сцена{grid-template-columns:1fr;gap:44px;padding:0 24px}
   .ус{font-size:32px;padding:11px 0}
   .шаги{border-left:0;padding-left:0;min-height:0}
@@ -165,8 +168,8 @@ body{background:#110a0a;color:#8a8079;
   </div>
   <ol class="шаги" aria-live="polite"></ol>
 </div>
-</div>
 <div class="smark"><a class="mwin" href="#" onclick="return false" aria-label="Ниже — продолжение страницы"><span class="mlane"><span class="mcell"><span class="pxarr2" aria-hidden="true"><span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span><span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span></span><span class="mtxt">ниже</span></span><span class="mcell" aria-hidden="true"><span class="pxarr2" aria-hidden="true"><span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span><span class="pxarr"><i class="r0"></i><i class="r1"></i><i class="r2"></i></span></span><span class="mtxt">ниже</span></span></span></a></div>
+</div>
 <div class="подпись">↑ ↓ или клик · ?устройство=ios|android|mac|win</div>
 
 <script>
