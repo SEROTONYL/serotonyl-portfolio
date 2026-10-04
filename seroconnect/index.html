@@ -51,6 +51,31 @@ body{scroll-snap-type:y proximity}
 /* ── ТРЕТИЙ ЭКРАН ───────────────────────────────────────────────
    Заглушка «Думаю…» стояла здесь с 19 августа и снята 17 сентября:
    секция устройств собрана и въехала своим кадром, как остальные три. */
+
+/* ── ПОДВАЛ ─────────────────────────────────────────────────────
+   Набросок 04.10.2026. Не кадр, а продолжение пятой: тот же фон,
+   тише её строки «где». Обязательное для ЮKassa (оферта, данные,
+   реквизиты) плюс кабинет и бот. Реквизиты за ссылкой, по решению
+   04.10. Ссылки на serotonyl.dev нет, сервис живёт сам по себе.
+   Оферта и политика пока заглушки, страниц ещё нет. */
+.подвал{position:relative;background:#110a0a;padding:28px 24px 36px;
+  scroll-snap-align:end;text-align:center;
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.06em;color:#3a322e}
+.подвал::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:rgba(255,255,255,.05)}
+.подвал nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 28px}
+.подвал a,.подвал button{color:#5a504a;text-decoration:none;cursor:pointer;
+  font:inherit;letter-spacing:inherit;background:none;border:0;padding:0;
+  transition:color .2s}
+.подвал a:hover,.подвал a:focus-visible,
+.подвал button:hover,.подвал button:focus-visible,
+.подвал button[aria-expanded="true"]{color:#a8917a;outline:0}
+.подвал .рекв{margin:12px 0 0;line-height:1.8}
+.подвал .год{margin:14px 0 0}
+@media (max-width:720px){
+  .подвал nav{flex-direction:column;align-items:center}
+}
 </style>
 
 <div class="sec"><iframe id="s1" src="hero-mockups.html?v=preview" title="первый экран"></iframe></div>
@@ -58,6 +83,18 @@ body{scroll-snap-type:y proximity}
 <div class="sec"><iframe id="s3" src="screen3-column.html?v=preview" title="третий экран"></iframe></div>
 <div class="sec"><iframe id="s4" src="screen4-ryad.html?v=preview" title="четвёртый экран"></iframe></div>
 <div class="sec"><iframe id="s5" src="screen5-support.html?v=preview" title="пятый экран: поддержка"></iframe></div>
+<footer class="подвал">
+  <nav>
+    <a href="#" onclick="return false">оферта</a>
+    <a href="#" onclick="return false">данные</a>
+    <a href="#" onclick="return false">кабинет</a>
+    <a href="#" onclick="return false">бот</a>
+    <button type="button" aria-expanded="false" aria-controls="рекв"
+      onclick="const o=this.getAttribute('aria-expanded')!=='true';this.setAttribute('aria-expanded',o);document.getElementById('рекв').hidden=!o">реквизиты</button>
+  </nav>
+  <p class="рекв" id="рекв" hidden>самозанятый ФИО · ИНН 000000000000<br>почта@seroconnect</p>
+  <p class="год">seroconnect · 2026</p>
+</footer>
 
 <script>
 /* ── Служебные подсказки о клавишах прячутся ────────────────────
