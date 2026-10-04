@@ -71,13 +71,17 @@ for (const id of ['s1','s2','s3','s4']){
    знает, сколько ему нужно, чтобы показать список целиком, — склейка
    спрашивает и выдаёт, но не меньше видимой высоты окна.
    На широком кадре экран отвечает нулём: там список и так помещается. */
-function fitSecond(){
-  const f = document.getElementById('s2'), sec = f.parentElement;
+function fitOne(id){
+  const f = document.getElementById(id), sec = f.parentElement;
   let need = 0;
   try { need = f.contentWindow.__needed ? f.contentWindow.__needed() : 0; } catch (err) {}
   sec.style.height = need > innerHeight ? need + 'px' : '';
 }
-document.getElementById('s2').addEventListener('load', () => setTimeout(fitSecond, 60));
+/* Третий экран отвечает на тот же вопрос: на телефоне с адресной
+   строкой столбик с шагами выше окна. */
+function fitSecond(){ fitOne('s2'); fitOne('s3'); }
+for (const id of ['s2','s3'])
+  document.getElementById(id).addEventListener('load', () => setTimeout(fitSecond, 60));
 addEventListener('resize', () => setTimeout(fitSecond, 60));
 setTimeout(fitSecond, 300);
 

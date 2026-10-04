@@ -38,10 +38,13 @@
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+html,body{min-height:100%}
+/* Не height, а min-height с полями: если содержимое выше окна, центровка
+   не должна срезать верх с заголовком. */
+body{padding:40px 0}
 body{background:#110a0a;color:#8a8079;
   font-family:"Onest","Inter",system-ui,sans-serif;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
   -webkit-font-smoothing:antialiased}
 
 .сцена{display:grid;grid-template-columns:auto 1fr;gap:0 88px;
@@ -251,4 +254,12 @@ window.addEventListener('resize', function(){ поставить(document.docume
   function roll(){ lane.classList.remove('roll'); void lane.offsetWidth; lane.classList.add('roll'); }
   setTimeout(function(){ roll(); setInterval(roll, 7000); }, 2200);
 })();
+
+/* Склейка спрашивает, сколько секции нужно по высоте (как у второго
+   экрана). Ноль значит «хватает окна». */
+window.__needed = function(){
+  /* Отдаём всегда: сравнивает склейка со своим окном. Своё окно айфрейма
+     после роста равно ответу, и сравнение здесь качало бы высоту. */
+  return document.querySelector('.рама').offsetHeight + 80;
+};
 </script>
