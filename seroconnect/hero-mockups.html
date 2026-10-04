@@ -67,6 +67,11 @@
   }
 
   :root{
+    /* СЕТКА, 04.10.2026. Шаг 8 px, все отступы кратны ему; поле
+       телефона 20 px — то же, что было у числа, шапки и прейскуранта.
+       С этого экрана начинается, остальные переводятся на те же токены. */
+    --g-m:20px;                 /* поле по краям, телефон */
+    --g-1:8px; --g-2:16px; --g-3:24px; --g-4:32px; --g-6:48px;
     /* Без этого Chrome на Android считает страницу светлой и в «тёмной теме»
        выворачивает уже тёмную вёрстку — фон уезжает в грязно-серый. */
     color-scheme:dark;
@@ -735,6 +740,38 @@
   /* в вариантах с прейскурантом кнопки нет вовсе — он ею и является */
   .stage.narrow .hero:has(.plist) .btn{ display:none }
 
+  /* ══ ТЕЛЕФОН ПО СЕТКЕ, 04.10.2026 ══════════════════════════
+     Раньше каждый блок стоял абсолютно и место ему досчитывал JS по
+     соседу. Стоило одному вырасти (открылся ответ «как считается?»,
+     перенеслась фраза), и он ложился на следующий. Теперь это одна
+     колонка в потоке: блок толкает соседа, а не накрывает.
+     Две группы. Верхняя — число, дата, фраза — от шапки. Нижняя —
+     подпись, прейскурант, метка — прижата к низу через `margin-top:auto`
+     у подписи. Свободное место между группами и есть резерв: ответ на
+     вопрос раскрывается в него. */
+  .stage.narrow .hero{
+    display:flex; flex-direction:column;
+    padding:calc(56px + var(--g-6)) var(--g-m) var(--g-3);
+  }
+  .stage.narrow .stat{ display:contents; }
+  .stage.narrow .hero > *, .stage.narrow .numlink, .stage.narrow .say{
+    position:static; left:auto; right:auto; top:auto; bottom:auto; margin:0;
+  }
+  .stage.narrow .numlink{ order:1; align-self:flex-start; }
+  .stage.narrow .asof   { order:2; }          /* margin-top от базы числа — в JS */
+  .stage.narrow .say    { order:3; margin-top:var(--g-3); font-size:15px; line-height:1.5; }
+  .stage.narrow .join   { order:4; margin-top:auto; padding-top:var(--g-3); }
+  .stage.narrow .plist  { order:5; margin-top:var(--g-2); }
+  .stage.narrow .smark  { order:6; margin-top:var(--g-3); align-self:flex-start; }
+  .stage.narrow .join:empty{ display:none }
+  .stage.narrow .hero:not(:has(.join:not(:empty))) .plist{ margin-top:auto; padding-top:var(--g-3); }
+  .stage.narrow .hero.tight .smark{ display:none }
+  .stage.narrow .plist-cap{ position:static; white-space:normal; margin:0 0 var(--g-2) }
+  /* Ответ в потоке: раскрылся — фраза уехала вниз, а не легла под него. */
+  .stage.narrow .howa{
+    position:static; width:auto; max-width:none; margin-top:var(--g-1);
+  }
+
 </style>
 </head>
 <body>
@@ -976,7 +1013,6 @@ let fitHeight = () => {};         // подгонка по высоте, ста�
 // Разрыв перед репликой. Больше, чем между своими строками: это чужая
 // речь. На низких кадрах он — последнее, что можно отдать после кегля
 // числа, и отдаётся не ниже 20 px, иначе чужая речь склеится со своей.
-let probeGap = 34;
 const timers = new Set();
 
 function setVBlur(p, b){
@@ -1301,7 +1337,6 @@ function build(){
     `<p class="asof"><span class="asof-line">на ${LIVE.asOf}\u2002\u2002` +
       `<button type="button" class="howq" aria-expanded="false">как считается?</button></span>` +
       `<span class="howa" hidden>${HOWTO}</span></p>` +
-    `<div class="probe" aria-hidden="true"></div>` +
     (variant === 2
       ? `<a class="strip" href="#" onclick="return false" aria-label="Выбрать тариф"></a>` +
         `<a class="striplabel" href="#" onclick="return false">выбрать тариф →</a>` +
@@ -1375,37 +1410,18 @@ function build(){
       // и паддинг под размытие — 0,183 кегля ниже настоящей базы.
       const base = nb.bottom - F * .183;
       if (narrow){
-        as.style.left = '';
-        as.style.top = Math.round(base - fb.top + 14) + 'px';
-        // Фраза уходит ПОД дату: на телефоне порядок стал
-        // число → дата → фраза. Отступ считается, а не назначается —
-        // высота даты зависит от кегля.
-        if (sayEl){
-          const ah = as.getBoundingClientRect().height || 14;
-          sayEl.style.marginTop = Math.round(14 + ah + 18 - (nb.bottom - base)) + 'px';
-        }
-        // Реплика — за фразой, той же цепочкой. Разрыв больше, чем
-        // между своими строками: это чужая речь.
-        const pr = hero.querySelector('.probe'), sb2 = sayEl && sayEl.getBoundingClientRect();
-        if (pr && sb2 && sb2.height) pr.style.top = Math.round(sb2.bottom - fb.top + probeGap) + 'px';
-
-        /* Подпись к сделке цепляется за ПРЕЙСКУРАНТ, а не за проценты
-           кадра. Стояла на 50 % высоты, и это сходилось только на
-           высоком телефоне: замер по пяти высотам показал, что уже на
-           750 она оказывается ВНУТРИ прейскуранта, а на 650 — на 76 px
-           внутри. Смысл строки — подпись к тому, что под ней, значит и
-           место у неё от того, что под ней. */
-        const jn = hero.querySelector('.join'), pls = hero.querySelector('.plist');
-        if (jn && pls){
-          const pt = pls.getBoundingClientRect().top - fb.top;
-          jn.style.top = Math.round(pt - (jn.getBoundingClientRect().height || 14) - 22) + 'px';
-        }
+        // Колонка в потоке (см. «ТЕЛЕФОН ПО СЕТКЕ»), JS только снимает
+        // хвост бокса под базой числа: дата стоит на шаг сетки от глифов.
+        as.style.left = ''; as.style.top = '';
+        as.style.marginTop = Math.round(16 - (nb.bottom - base)) + 'px';
+        if (sayEl) sayEl.style.marginTop = '';
       }
       else {
         // Отсчёт идёт от ПАДДИНГ-бокса предка, поэтому отступы .hero сюда
         // не входят — вычитать их было ошибкой, дата уезжала влево на 106 px.
         if (nb.width) as.style.left = Math.max(0, Math.round(
           nb.left - fb.left + nb.width / 2 - as.getBoundingClientRect().width / 2)) + 'px';
+        as.style.marginTop = '';
         as.style.top = Math.round(base - fb.top + 24) + 'px';
       }
     }
@@ -1426,26 +1442,16 @@ function build(){
   fitHeight = function(){
     const num = hero.querySelector('.num'), pl = hero.querySelector('.plist');
     if (!num) return;
-    probeGap = 34;
     if (!narrow || !pl){ num.style.fontSize = ''; relayout(); return; }
     num.style.fontSize = '';
     relayout();
-    const tail = () => {
-      const els = ['.say', '.probe'].map(s => hero.querySelector(s)).filter(Boolean);
-      return els.length ? Math.max(...els.map(e => e.getBoundingClientRect().bottom)) : 0;
-    };
-    const GAP = 22, MIN = 96, GAP_MIN = 20;
-    const тесно = () => tail() > pl.getBoundingClientRect().top - GAP;
+    // В потоке наложения нет, есть переполнение: колонка выше кадра.
+    const MIN = 96;
+    const тесно = () => hero.scrollHeight > hero.clientHeight + 1;
     let size = parseFloat(getComputedStyle(num).fontSize) || 0, guard = 0;
     while (guard++ < 30 && size > MIN && тесно()){
       size = Math.max(MIN, size - 6);
       num.style.fontSize = size + 'px';
-      relayout();
-    }
-    // Кегль на полу, а всё ещё тесно — отдаёт разрыв перед репликой.
-    guard = 0;
-    while (guard++ < 10 && probeGap > GAP_MIN && тесно()){
-      probeGap = Math.max(GAP_MIN, probeGap - 2);
       relayout();
     }
   }
@@ -1643,6 +1649,10 @@ function bindHow(root){
     a.hidden = false;
     a.classList.remove('in'); void a.offsetWidth; a.classList.add('in');
     q.setAttribute('aria-expanded', 'true');
+    // На низком телефоне открытый ответ выталкивает метку «ниже» за
+    // край кадра. Пока ответ открыт, метка уступает место.
+    const h = root.closest('.hero');
+    if (h) h.classList.toggle('tight', h.scrollHeight > h.clientHeight + 1);
   };
   let shut = 0;
   const hideSoon = () => { clearTimeout(shut); shut = setTimeout(hide, 140); };
@@ -1653,20 +1663,27 @@ function bindHow(root){
     a.hidden = true;
     a.classList.remove('in');
     q.setAttribute('aria-expanded', 'false');
+    const h = root.closest('.hero');
+    if (h) h.classList.remove('tight');
   };
-  q.addEventListener('pointerenter', show);
+  // На касании `pointerenter` и `focus` приходят вместе с нажатием, и
+  // следом `click` тут же закрывал только что открытое. Поэтому
+  // наведение слушается только у мыши, фокус только клавиатурный, а
+  // на телефоне ответ живёт по нажатию и закрывается нажатием мимо.
+  const mouse = e => e.pointerType === 'mouse';
+  q.addEventListener('pointerenter', e => { if (mouse(e)) show(); });
   // Уход закрывает не сразу: провал в 140 мс переживает дрожание руки
   // на границе зоны, иначе ответ мигает.
-  q.addEventListener('pointerleave', hideSoon);
-  q.addEventListener('focus', show);
+  q.addEventListener('pointerleave', e => { if (mouse(e)) hideSoon(); });
+  q.addEventListener('focus', () => { if (q.matches(':focus-visible')) show(); });
   q.addEventListener('blur', hideSoon);
   q.addEventListener('click', e => { e.preventDefault(); on ? hide() : show(); });
+  document.addEventListener('pointerdown', e => { if (on && !q.contains(e.target)) hide(); });
 }
 
 function wake(){
   if (touched || reduce) return;
   touched = true;
-  runProbe(hero.querySelector('.probe'));
 }
 ['pointerdown','touchstart','wheel','keydown'].forEach(ev =>
   frame.addEventListener(ev, wake, {passive:true}));
