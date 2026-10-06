@@ -36,6 +36,8 @@
   if (new URLSearchParams(location.search).get('v') === 'preview') document.documentElement.classList.add('превью');
 })();
 </script>
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
@@ -48,7 +50,7 @@ body{background:#110a0a;color:#8a8079;
   -webkit-font-smoothing:antialiased}
 
 .сцена{display:grid;grid-template-columns:auto 1fr;gap:0 88px;
-  width:100%;max-width:980px;padding:0 48px;align-items:center}
+  width:100%;padding:0 var(--поле-п) 0 var(--поле-л);align-items:center}
 
 /* ── СТОЛБИК ─────────────────────────────────────────── */
 .столб{position:relative;display:flex;flex-direction:column;
@@ -114,8 +116,8 @@ body{background:#110a0a;color:#8a8079;
    Содержание секции назначено 19.08 как ответ на «а на моём
    заработает?». Вопрос задан голосом клиента, ответ снимает его до
    столбика, столбик показывает как. */
-.рама{display:flex;flex-direction:column;gap:64px;width:100%;max-width:980px;
-  padding:0 48px}
+.рама{display:flex;flex-direction:column;gap:64px;width:100%;
+  padding:0 var(--поле-п) 0 var(--поле-л)}
 .рама .сцена{padding:0;max-width:none}
 .верх h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
   color:#a59a89}
@@ -124,7 +126,7 @@ body{background:#110a0a;color:#8a8079;
 
 /* ── НИЗ: метка «ниже», дословно со второго экрана ─────────── */
 .smark{position:absolute;bottom:7%;left:0;right:0;margin:0 auto;
-  max-width:980px;padding:0 48px;--cell:48px}
+  padding:0 var(--поле-п) 0 var(--поле-л);--cell:48px}
 .mwin{display:block;width:max-content;overflow:hidden;height:var(--cell);
   text-decoration:none;color:#8a8073}
 .mwin:hover{color:#ece7dd}
@@ -140,15 +142,15 @@ body{background:#110a0a;color:#8a8079;
 .pxarr i.r2{left:8px;top:8px}
 .pxarr2{display:flex;flex-direction:column}
 
-@media (max-width:720px){
-  .рама{padding:0 24px;gap:32px}
+@media (max-width:760px){
+  .рама{gap:32px}
   .верх h2{font-size:36px}
   .верх p{font-size:15px}
   /* На телефоне метка идёт потоком под шагами, а не прибита ко дну:
      высота экрана с полосами браузера гуляет, и прибитая наезжала. */
   .smark{position:static;padding:0;margin:-8px 0 0}
   .ус{padding:9px 0}
-  .сцена{grid-template-columns:1fr;gap:44px;padding:0 24px}
+  .сцена{grid-template-columns:1fr;gap:48px}
   .ус{font-size:32px;padding:11px 0}
   .шаги{border-left:0;padding-left:0;min-height:0}
 }

@@ -2,6 +2,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>SEROCONNECT — четыре экрана подряд</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    СКЛЕЙКА. Четыре секции по высоте окна: два готовых экрана, заглушка на
@@ -40,7 +42,7 @@ body{scroll-snap-type:y proximity}
 /* На узком кадре заголовок пятой мельче (36 px против 56) и в 96 px
    влезает целиком: тогда это не обрез, а просто строка. 64 px режут
    буквы примерно посередине. */
-@media (max-width:720px){
+@media (max-width:760px){
   .sec:has(> #s4){height:calc(100vh - 64px);height:calc(100svh - 64px)}
 }
 .sec:has(> #s5){height:max(520px, 75svh)}
@@ -58,13 +60,13 @@ body{scroll-snap-type:y proximity}
    реквизиты) плюс кабинет и бот. Реквизиты за ссылкой, по решению
    04.10. Ссылки на serotonyl.dev нет, сервис живёт сам по себе.
    Оферта и политика пока заглушки, страниц ещё нет. */
-.подвал{position:relative;background:#110a0a;padding:28px 24px 36px;
+.подвал{position:relative;background:#110a0a;padding:24px var(--g-m) 32px;
   scroll-snap-align:end;text-align:center;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
   letter-spacing:.06em;color:#3a322e}
 .подвал::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
   background:rgba(255,255,255,.05)}
-.подвал nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 28px}
+.подвал nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 32px}
 .подвал a,.подвал button{color:#5a504a;text-decoration:none;cursor:pointer;
   font:inherit;letter-spacing:inherit;background:none;border:0;padding:0;
   transition:color .2s}
@@ -72,9 +74,9 @@ body{scroll-snap-type:y proximity}
 .подвал button:hover,.подвал button:focus-visible,
 .подвал button[aria-expanded="true"]{color:#a8917a;outline:0}
 .подвал .рекв{margin:12px 0 0;line-height:1.8}
-.подвал .год{margin:14px 0 0}
-@media (max-width:720px){
-  .подвал nav{gap:8px 18px}
+.подвал .год{margin:16px 0 0}
+@media (max-width:760px){
+  .подвал nav{gap:8px 16px}
 }
 </style>
 

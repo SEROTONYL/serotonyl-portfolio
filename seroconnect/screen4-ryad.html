@@ -47,6 +47,8 @@
 
      1 2 3 — срок · H — наведение · R — вернуть рубль герою
      ══════════════════════════════════════════════════════════════════ -->
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
 <style>
 @font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
   font-display:swap;src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2) format("woff2");
@@ -63,7 +65,7 @@ body{background:#110a0a;color:#a2a2a2;
   font-family:"Geist Mono Variable",ui-monospace,monospace;
   display:flex;align-items:center;justify-content:center;
   -webkit-font-smoothing:antialiased}
-.col{display:flex;flex-direction:column;align-items:center;gap:30px}
+.col{display:flex;flex-direction:column;align-items:center;gap:32px}
 
 /* Орган управления и прибор стоят ближе друг к другу, чем к герою:
    расстояние говорит о принадлежности раньше любой линии. */
@@ -234,7 +236,7 @@ body.рубль .sum i{display:inline}
   .act{font-size:12px;letter-spacing:.18em;margin-right:-.18em}
   .buy{padding:16px 24px 20px;gap:10px}
   .mark{width:11px;height:11px}
-  .col{gap:22px}
+  .col{gap:24px}
   .rnum{font-size:27px}
   .terms{gap:4px}
   .terms button{font-size:16px;padding:11px 10px;line-height:22px}

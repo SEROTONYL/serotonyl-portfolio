@@ -16,6 +16,8 @@
      ЧИСЛА — ЗАГЛУШКИ. 65 обращений сняты с прода 09.08.2026 и устарели,
      время ответа не замерялось вовсе. До выхода в прод пересчитать по
      базе: число обращений и медиану до первого ответа. -->
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
@@ -26,7 +28,7 @@ body{background:#110a0a;color:#8a8079;padding:48px 0 40px;min-height:100vh;
   display:flex;align-items:flex-start;justify-content:center;
   -webkit-font-smoothing:antialiased}
 
-.рама{width:100%;max-width:980px;padding:0 48px;display:flex;
+.рама{width:100%;padding:0 var(--поле-л);display:flex;
   flex-direction:column;align-items:center;text-align:center}
 /* По центру, как четвёртая: 4 и 5 это кульминация и послесловие одной
    оси. Третья остаётся слева, она часть объяснения. */
@@ -40,7 +42,7 @@ h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
 /* Действие одно. Метки реза остались только у «оформить» в четвёртой,
    здесь строка ввода: начинаешь писать человеку. Моно рифмуется с
    фактами ниже. При наведении каретка перестаёт мигать и горит. */
-.написать{margin-top:44px;padding:12px 4px;display:inline-flex;align-items:center;
+.написать{margin-top:48px;padding:12px 4px;display:inline-flex;align-items:center;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:17px;letter-spacing:.01em;
   color:#cdc3b8;text-decoration:none;transition:color .2s}
 .написать .п{color:#a8917a;margin-right:.7em;transition:transform .3s cubic-bezier(.2,0,0,1)}
@@ -53,19 +55,18 @@ h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
 @media (prefers-reduced-motion:reduce){.написать .к{animation:none}}
 
 /* Факт моно: это показывает система, а не говорим мы. */
-.факт{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 28px;
+.факт{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 32px;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:12px;
   letter-spacing:.06em;color:#4f4741}
 .факт span b{font-weight:400;color:#8a8073}
-.где{margin-top:14px;font-family:"Geist Mono",ui-monospace,monospace;
+.где{margin-top:16px;font-family:"Geist Mono",ui-monospace,monospace;
   font-size:11px;letter-spacing:.06em;color:#3a322e}
 
-@media (max-width:720px){
-  .рама{padding:0 24px}
+@media (max-width:760px){
   h2{font-size:36px}
   .ответ{font-size:15px}
   .написать{margin-top:32px;font-size:15px}
-  .факт{margin-top:28px;flex-direction:column;align-items:center}
+  .факт{margin-top:24px;flex-direction:column;align-items:center}
   body{padding-top:40px}
 }
 </style>
