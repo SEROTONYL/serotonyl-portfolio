@@ -5,6 +5,9 @@
 <link rel="stylesheet" href="grid.css">
 <script src="grid.js" defer></script>
 <style>
+/* 07.10.2026 по просьбе владельца: над обычным текстом курсор не
+   превращается в текстовую палочку. Ссылки и кнопки держат свою руку. */
+html{cursor:default}
 /* ══════════════════════════════════════════════════════════════
    ЭКРАН 2 · «Одна ссылка — восемь путей»
 
@@ -116,7 +119,9 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 .seg b.on{background:linear-gradient(#d68fd0,#c47bbe);color:#2a2427}
 .steps{margin-top:45.7px;font-size:13px;color:var(--soft)}
 .steps b{color:#f2eef0;font-weight:700}
-.steps i{font-style:normal;color:#746c70;padding:0 6px}
+/* 07.10.2026 стрелка между шагами снята владельцем: порядок держат
+   номера, на месте стрелки остаётся просвет. */
+.steps i{display:inline-block;width:20px}
 .field{position:relative;display:flex;align-items:center;height:50px;margin-top:18px;
   border-radius:13px;background:#121011;border:1px solid rgba(255,255,255,.12);padding:0 16px}
 .field .url{font-family:var(--mono);font-size:14px;color:var(--soft);white-space:nowrap}
@@ -143,9 +148,13 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 /* Поправка в −3 px снята вместе с полосой: она компенсировала ровно
    её. Без полосы видимое поле совпадает с боксом, и центр честный. */
 .cbtn{margin-top:18px}
-.cbtn2{height:48px;margin-top:6px;border-radius:10px;
-  background:linear-gradient(#1f1b1d,#191617);box-shadow:inset 0 -3px 0 #0b0a0a;
-  display:flex;align-items:center;justify-content:center;font-size:12px;color:#aeacaa}
+/* 07.10.2026 вторая плита стала ссылкой: подсказка, а не второе
+   действие, и соперничать с подключением ей незачем. Стрелка снята,
+   ссылку обозначает подчёркивание. Высота коробки прежняя, чтобы
+   раскладка сцены не поехала: лишнее идёт в воздух над строкой. */
+.cbtn2{height:48px;margin-top:6px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#aeacaa;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:#5a5256}
 
 /* ── приложение ─────────────────────────────────────────────── */
 /* Окно списка. Высоту ему назначает раскладка — и на телефоне, и на
@@ -537,14 +546,14 @@ frame.innerHTML =
     `<div class="cab" id="cab">` +
       `<div class="ctop"><span class="t">Подключить устройство</span>` +
         `<span class="seg"><b class="on">ссылка</b><b>QR-код</b></span></div>` +
-      `<div class="steps"><b>1.</b> скопируй ссылку <i>→</i> <b>2.</b> вставь в приложение</div>` +
+      `<div class="steps"><b>1.</b> скопируй ссылку <i></i> <b>2.</b> вставь в приложение</div>` +
       `<div class="field"><span class="url" id="url">` +
           `<i id="uhead">${URL_HEAD}</i><i id="umask">${MASK}</i></span>` +
         `</div>` +
       `<div class="brick cbtn" id="btn">` +
         `<span class="t" id="lbl1">Скопировать ссылку подписки</span>` +
         `<span class="t" id="lbl2">Скопировано</span></div>` +
-      `<div class="cbtn2">Какое приложение? →</div>` +
+      `<div class="cbtn2">Какое приложение?</div>` +
     `</div>` +
     `<div class="app" id="app">` +
       `<div class="grp" id="grp"><i id="ghead">${GRP_HEAD}</i><i id="gmask">${MASK}</i></div>` +

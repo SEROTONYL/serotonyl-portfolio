@@ -39,6 +39,9 @@
 <link rel="stylesheet" href="grid.css">
 <script src="grid.js" defer></script>
 <style>
+/* 07.10.2026 по просьбе владельца: над обычным текстом курсор не
+   превращается в текстовую палочку. Ссылки и кнопки держат свою руку. */
+html{cursor:default}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%}
 /* Не height, а min-height с полями: если содержимое выше окна, центровка
@@ -103,8 +106,9 @@ body{background:#161314;color:#8a8286;
 .шаги.уход li{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
 .шаги li{transition:opacity .35s,transform .45s cubic-bezier(.2,0,0,1)}
 .шаги.приход li{opacity:0;transform:translateY(8px);transition:none}
-.дальше{font-size:13px;letter-spacing:.04em;color:#6f676b;text-decoration:none;
-  margin-top:6px}
+/* 07.10.2026 стрелка снята владельцем, ссылку обозначает подчёркивание. */
+.дальше{font-size:13px;letter-spacing:.04em;color:#6f676b;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
+  text-decoration-color:#3e373a;margin-top:6px}
 .дальше:hover{color:#a3869f}
 
 .подпись{position:fixed;bottom:22px;left:0;right:0;text-align:center;
@@ -197,7 +201,7 @@ function шагиДля(ос){
   return '<li><span class="н">1</span><span>Скачайте <b>'+s.прил+'</b> '+s.где+'</span></li>'+
          '<li><span class="н">2</span><span>Скопируйте ключ из <b>личного кабинета</b> или письма</span></li>'+
          '<li><span class="н">3</span><span>Вставьте его в '+s.прил+' и нажмите <b>подключить</b></span></li>'+
-         '<a class="дальше" href="#">подробная инструкция →</a>';
+         '<a class="дальше" href="#">подробная инструкция</a>';
 }
 
 function поставить(ос, сразу){
