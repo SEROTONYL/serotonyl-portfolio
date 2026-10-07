@@ -1,0 +1,719 @@
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Оплата</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- ══════════════════════════════════════════════════════════════════
+     ОПЛАТА. Макет 07.10.2026, вариант Б.
+
+     Тарифы и оплата одной страницей. Начинается с блока цены четвёртого
+     экрана (метки сроков, ставка, барабан), и большая кнопка с суммой
+     САМА становится оплатой через СБП: нажимаешь ровно на ту сумму,
+     которую видишь. Карта тихой строкой под ней.
+
+     Между ставкой и кнопкой стоит только то, без чего оплата не идёт или
+     что нельзя спрятать: вход по почте (только для невошедшего), код
+     друга свёрнутой строкой, автопродление переключателем.
+
+     Вход висит на той же кнопке: почта, нажатие на сумму шлёт код, код
+     проверяется сам по последней цифре, дальше сразу ЮKassa. Подпись на
+     кнопке до входа честная: «получить код и оплатить».
+
+     После оплаты страницы ожидания нет, человека кидает в кабинет, и
+     подготовку ссылки показывает уже он.
+
+     Здесь всё имитация: код из письма любой, кроме 000000.
+     1 2 3 срок · L вошёл/не вошёл · ?вошёл в адресе
+     ══════════════════════════════════════════════════════════════════ -->
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
+<style>
+html{cursor:default}
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-cyrillic-wght-normal.BZdD_g9V.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Geist Mono Variable";font-style:normal;font-weight:100 900;
+  font-display:swap;src:url(fonts/geist-mono-latin-wght-normal.Cjtb1TV-.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+2000-206F,U+2212}
+@font-face{font-family:"Space Grotesk Variable";font-style:normal;font-weight:300 700;
+  font-display:swap;src:url(fonts/space-grotesk-latin-wght-normal.BhU9QXUp.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2212}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+:root{--mono:"Geist Mono Variable",ui-monospace,monospace;
+  --sans:"Space Grotesk Variable",system-ui,sans-serif}
+body{position:relative;background:#161314;color:#a2a2a2;font-family:var(--mono);
+  display:flex;flex-direction:column;min-height:100vh;
+  -webkit-font-smoothing:antialiased}
+main{flex:1;display:flex;align-items:center;justify-content:center;
+  padding:132px 20px 88px}
+.col{display:flex;flex-direction:column;align-items:center;gap:32px;width:100%}
+.left,.right{display:flex;flex-direction:column;align-items:center;gap:32px;width:100%}
+
+/* ── ШАПКА ──────────────────────────────────────────────────────────
+   Снята с первого экрана правилами как есть (обоснования там). Без
+   неё колонка висела в пустоте и страница не читалась частью сайта. */
+.brand .wm{font-family:var(--sans)}
+.sitehead{position:absolute; z-index:6; top:0; left:0; right:0; height:68px; display:flex; align-items:center; justify-content:space-between; padding-left:12.5%; padding-right:6%; background: radial-gradient(ellipse 58% 150% at 21% -10%, #ffffff07 0%, transparent 68%), linear-gradient(#2a2427 0%, #221e20 54%, #1b1719 100%); box-shadow: inset 0 1px 0 #ffffff10, 0 1px 0 #0d0b0c, 0 12px 34px -14px #000000a6;}
+.brand{display:flex; align-items:center; gap:11px; text-decoration:none}
+.brand svg{display:block; height:26px; width:auto}
+.brand .wm{font-size:19px; font-weight:600; letter-spacing:-.012em; color:#f5f5f5; white-space:nowrap;}
+.brand .wm em{font-style:normal; color:#c47bbe}
+.headcta{position:relative; display:inline-flex; align-items:center; height:38px; padding:0 17px; border-radius:8px; font-family:var(--mono); font-size:11.5px; font-weight:500; color:#ffffff; text-decoration:none; white-space:nowrap; word-spacing:-.3em; background:linear-gradient(#ffffff0a 0%, #ffffff00 100%); border:0; box-shadow: 0 3px 0 #00000080, 0 8px 14px -6px #00000099; transition:color .14s, transform .24s cubic-bezier(.4,0,.2,1), box-shadow .24s cubic-bezier(.4,0,.2,1);}
+.headcta:hover{color:#c47bbe}
+.headcta{box-shadow:0 3px 0 #00000080, 0 8px 14px -6px #00000099, inset 0 0 0 #00000000}
+.headcta.is-down{transform:translateY(3px); box-shadow: 0 0 0 #00000000, 0 2px 4px -3px #00000066, inset 0 2px 3px #00000080; transition:color .14s, transform 180ms cubic-bezier(.4,0,.2,1), box-shadow 180ms cubic-bezier(.4,0,.2,1);}
+
+
+
+/* ── БЛОК ЦЕНЫ ─────────────────────────────────────────────────────
+   Взят с четвёртого экрана без изменений: человек с лендинга должен
+   узнать тот же предмет. Пояснения к каждому решению там. */
+.pick{display:flex;flex-direction:column;align-items:center;gap:12px}
+.terms{display:flex;gap:8px}
+.terms button{background:none;border:0;font-family:inherit;font-size:19px;
+  letter-spacing:0;color:#6f676b;cursor:pointer;
+  padding:11px 12px;line-height:22px;
+  transition:color .15s cubic-bezier(.4,0,.2,1)}
+.terms button:not(.on):hover{color:#a3869f}
+.terms button.on{color:#f5f5f5}
+.тень{visibility:hidden}
+.rate{display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:#8a8286;font-size:12px;letter-spacing:.08em}
+.unit{white-space:nowrap;margin-right:-.08em}
+.rrow{display:flex;align-items:baseline;gap:6px}
+.rrow .unit{font-size:16px;letter-spacing:0;margin-right:0}
+.rnum{position:relative;display:inline-block;
+  font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em;
+  color:#cdc6ca;font-variant-numeric:tabular-nums}
+.rnum .rast{position:absolute;left:0;top:0;pointer-events:none;image-rendering:pixelated}
+.rnum.rasting{color:transparent}
+
+/* ── ФОРМА ──────────────────────────────────────────────────────────
+   Поля без заливки, одной нижней линией: залитых блоков на сайте нет
+   ни одного, и форма не повод их заводить. Ширина колонки 340 px, это
+   примерно ширина кнопки с суммой, поэтому всё стоит одним столбом. */
+.form{width:340px;max-width:100%;display:flex;flex-direction:column;gap:22px}
+.flbl{display:block;font-size:11px;letter-spacing:.08em;color:#6f676b;margin-bottom:2px}
+.field{width:100%;background:none;border:0;border-bottom:1px solid #3a3236;
+  font-family:inherit;font-size:15px;color:#f5f5f5;padding:10px 0;outline:none;
+  border-radius:0;transition:border-color .15s cubic-bezier(.4,0,.2,1)}
+.field::placeholder{color:#4d4549}
+.field:hover{border-bottom-color:#4d4549}
+.field:focus{border-bottom-color:#c47bbe}
+.field.bad{border-bottom-color:#b8606f}
+.field[readonly]{color:#8a8286;border-bottom-color:transparent}
+.code{letter-spacing:.5em;font-size:20px}
+.row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.note{font-size:11px;letter-spacing:.04em;line-height:1.6;color:#6f676b;margin-top:8px;min-height:1.6em}
+.note.bad{color:#c98a95}
+.note:empty{display:none}
+.note.ok{color:#a3869f}
+
+/* Раскрытие высотой через сетку 0fr → 1fr: высоту не надо знать
+   заранее, и текст внутри не прыгает. */
+.fold{display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .28s cubic-bezier(.23,1,.32,1)}
+.fold>div{overflow:hidden;min-height:0}
+.fold.open{grid-template-rows:1fr}
+
+/* Согласие автопродления длинное, и на телефоне занимает треть экрана:
+   быстрый выезд с резкой остановкой вываливал весь текст разом. На
+   телефоне раскрытие медленнее и тормозит мягко, текст проявляется
+   следом. Разгон быстрый, иначе между нажатием и движением возникает
+   пауза (на ПК с медленным стартом она ощущалась в полсекунды).
+   На ПК оставлено как было, там владельцу нравилось. */
+@media (max-width:760px){
+  #consfold.open{transition:grid-template-rows .7s cubic-bezier(.2,.6,.2,1)}
+  #consfold .consent{opacity:0;transition:opacity .15s linear}
+  #consfold.open .consent{opacity:1;transition:opacity .5s cubic-bezier(.4,0,.2,1) .08s}
+}
+@media (prefers-reduced-motion:reduce){
+  #consfold,#consfold .consent{transition:none!important}
+}
+
+/* Текстовые кнопки: голые слова, отклик медью, как метки сроков. */
+.txt{background:none;border:0;font-family:inherit;font-size:12px;letter-spacing:.04em;
+  color:#8a8286;cursor:pointer;padding:6px 0;text-align:left;
+  transition:color .15s cubic-bezier(.4,0,.2,1)}
+.txt:hover{color:#a3869f}
+.txt u{text-decoration:none;border-bottom:1px solid #3a3236;padding-bottom:1px}
+
+/* ── ПЕРЕКЛЮЧАТЕЛЬ АВТОПРОДЛЕНИЯ ────────────────────────────────────
+   Дорожка контуром, без заливки. Выключен по умолчанию и никогда не
+   включается сам: сохранённая карта это разрешение списывать снова. */
+.sw{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  width:100%;background:none;border:0;font-family:inherit;cursor:pointer;
+  padding:4px 0;text-align:left}
+.sw .t{font-size:13px;color:#a2a2a2;letter-spacing:.02em;transition:color .15s}
+.sw .s{display:block;font-size:11px;color:#6f676b;letter-spacing:.04em;margin-top:3px}
+.sw .tr{position:relative;flex:none;width:38px;height:22px;border:1px solid #4d4549;
+  border-radius:11px;transition:border-color .2s cubic-bezier(.4,0,.2,1)}
+.sw .kn{position:absolute;top:4px;left:4px;width:12px;height:12px;border-radius:50%;
+  background:#6f676b;
+  transition:transform .26s cubic-bezier(.23,1,.32,1),background .2s cubic-bezier(.4,0,.2,1)}
+.sw:hover .tr{border-color:#a3869f}
+.sw:hover .t{color:#cdc6ca}
+.sw[aria-checked="true"] .tr{border-color:#c47bbe}
+.sw[aria-checked="true"] .kn{transform:translateX(16px);background:#c47bbe}
+.sw[aria-checked="true"] .t{color:#f5f5f5}
+.consent{font-size:11px;line-height:1.7;letter-spacing:.02em;color:#8a8286;padding-top:12px}
+.consent p+p{margin-top:6px}
+.consent a{color:#a3869f;text-decoration:none;border-bottom:1px solid #4d4549}
+
+/* ── ГЕРОЙ ──────────────────────────────────────────────────────────
+   С четвёртого экрана. Меняется только подпись под числом: она
+   называет, что сейчас произойдёт по нажатию, и ведёт через
+   «шлём код», «проверяем», «переводим в ЮKassa». */
+.buy{position:relative;background:none;border:0;cursor:pointer;
+  padding:23px 40px 30px;font-family:inherit;color:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  transition:transform .12s cubic-bezier(.4,0,.2,1)}
+.buy.hv{transform:translateY(-2px);transition:transform .16s cubic-bezier(.23,1,.32,1)}
+.buy.press{transform:translateY(1px);transition:transform .09s cubic-bezier(.4,0,.2,1)}
+.buy.busy{cursor:progress}
+.sum{display:flex;align-items:baseline;
+  font-family:"Space Grotesk Variable",system-ui,sans-serif;
+  font-weight:600;font-size:132px;line-height:.92;letter-spacing:-.03em;
+  color:#f5f5f5;font-variant-numeric:tabular-nums;
+  transition:color .12s cubic-bezier(.4,0,.2,1)}
+.sum i{display:none}
+.reels{display:flex}
+.slot{overflow:hidden;line-height:inherit}
+.slot.off{width:0!important}
+.reel{display:flex;flex-direction:column;will-change:transform}
+.buy.hv .sum{color:#efc6eb;transition:color .16s cubic-bezier(.23,1,.32,1)}
+.buy.press .sum{color:#c47bbe;transition:color .06s linear}
+.act{font-size:15px;letter-spacing:.22em;margin-right:-.22em;text-transform:uppercase;
+  white-space:nowrap;color:#c47bbe;transition:color .25s cubic-bezier(.23,1,.32,1)}
+.buy.hv .act{color:#d68fd0}
+/* Пока идёт работа, подпись дышит: кнопка занята, а не сломана. */
+.buy.busy .act{animation:дышать 1.4s ease-in-out infinite}
+@keyframes дышать{50%{opacity:.45}}
+.mark{position:absolute;width:15px;height:15px;pointer-events:none;
+  border-color:#d4a57459;border-style:solid;border-width:0;
+  transition:transform .12s cubic-bezier(.4,0,.2,1),border-color .12s cubic-bezier(.4,0,.2,1)}
+.m-tl{top:0;left:0;border-top-width:1px;border-left-width:1px}
+.m-tr{top:0;right:0;border-top-width:1px;border-right-width:1px}
+.m-bl{bottom:0;left:0;border-bottom-width:1px;border-left-width:1px}
+.m-br{bottom:0;right:0;border-bottom-width:1px;border-right-width:1px}
+.buy.hv .mark{border-color:#c47bbe;
+  transition:transform .24s cubic-bezier(.23,1,.32,1),border-color .16s cubic-bezier(.23,1,.32,1)}
+.buy.hv .m-tl{transform:translate(5px,5px)}
+.buy.hv .m-tr{transform:translate(-5px,5px)}
+.buy.hv .m-bl{transform:translate(5px,-5px)}
+.buy.hv .m-br{transform:translate(-5px,-5px)}
+
+/* ── ПОД КНОПКОЙ ────────────────────────────────────────────────────
+   Карта, подпись ЮKassa и поддержка. Тише всего на странице. */
+.under{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:-14px}
+.under .txt{font-size:13px;text-align:center}
+.fine{font-size:11px;letter-spacing:.06em;color:#4d4549;text-align:center;line-height:1.8}
+.fine a{color:#6f676b;text-decoration:none;border-bottom:1px solid #3a3236;
+  transition:color .15s}
+.fine a:hover{color:#a3869f}
+.demo{font-size:11px;color:#a3869f;letter-spacing:.04em;min-height:1.8em;text-align:center}
+
+.hint{position:fixed;left:20px;right:20px;bottom:14px;font-size:10px;
+  letter-spacing:.08em;line-height:1.7;color:#4d4549;pointer-events:none}
+
+@media (max-width:760px){
+  main{padding:96px 20px 72px}
+  .sitehead{height:56px; padding-left:16px; padding-right:16px}
+  .brand svg{height:22px}
+  .brand .wm{font-size:16.5px}
+  .headcta{height:33px; padding:0 14px; font-size:12.5px}
+  .sum{font-size:74px}
+  .act{font-size:12px;letter-spacing:.18em;margin-right:-.18em}
+  .buy{padding:16px 24px 20px;gap:10px}
+  .mark{width:11px;height:11px;border-color:#d4a574a6}
+  .col{gap:24px}
+  .rnum{font-size:27px}
+  .terms{gap:4px}
+  .terms button{font-size:16px;padding:11px 10px;line-height:22px}
+  .under{margin-top:-8px}
+}
+/* ── СЕТКА ───────────────────────────────────────────────────────────
+   Обёртки .left и .right распущены (display:contents), и каждый
+   предмет садится в ячейку сам. Так обе колонки делят одни строки, и
+   ничего не торчит то сверху, то снизу:
+     строка 1  сроки           | ставка
+     строка 2  форма           | кнопка с суммой, под ней карта,
+                               | ЮKassa и поддержка одним блоком
+   Колонки те же, что у всего сайта (grid.css): поля 12,5% и 6%, 12
+   колонок, жёлоб 24. Сроки и форма встают на левую кромку сетки, ту же,
+   что у логотипа, форма занимает колонки 1–4 и кончается на их кромке.
+   Правый блок центруется в колонках 7–12. Растянутая на них рамка
+   была проверена 07.10.2026 и отвергнута: кнопка выглядела расплющенной.
+   Форма прибита к верху строки, кнопка тоже: раскрытие согласия
+   растит строку вниз и больше не двигает сумму. */
+.left,.right,.pay{display:contents}
+@media (min-width:960px){
+  main{padding:132px 0 88px}
+  .col{display:grid;grid-template-columns:repeat(var(--колонок),minmax(0,1fr));
+    column-gap:var(--жёлоб);row-gap:var(--g-4);
+    padding:0 var(--поле-п) 0 var(--поле-л);align-items:start}
+  .pick{grid-column:1/7;grid-row:1;align-self:center;align-items:flex-start}
+  .terms{margin-left:-12px}
+  .form{grid-column:1/5;grid-row:2;width:auto}
+  .rate{grid-column:7/13;grid-row:1}
+  .pay{grid-column:7/13;grid-row:2;display:flex;flex-direction:column;
+    align-items:center;gap:var(--g-4)}
+}
+/* На узком одна колонка, ставка под сроками, как была. */
+/* Ставка на узком мелкой строкой под сроками: между ней и суммой
+   стоит форма, и два крупных числа читались как две разные цены.
+   Крупное число на телефоне одно, сумма на кнопке. */
+@media (max-width:959px){
+  .rate{flex-direction:row;align-items:baseline;gap:6px}
+  .rrow{gap:4px}
+  .rrow .тень{display:none}
+  .rnum,.rrow .unit{font-family:var(--mono);font-size:12px;font-weight:400;
+    letter-spacing:.08em;color:#8a8286}
+  .pick{order:1;margin-bottom:-20px}
+  .rate{order:2}
+  .form{order:3}
+  .buy{order:4}
+  .under{order:5}
+}
+</style>
+
+<header class="sitehead">
+      <a class="brand" href="index.html" aria-label="SeroConnect — на главную">
+        <svg viewBox="0 0 330.89 414.59" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg1" x1="254.43" y1="206.97" x2="32.61" y2="51.65" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#efc6eb"/><stop offset="1" stop-color="#c47bbe"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="135.09" y1="356.68" x2="15.57" y2="300.94" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#b874b0"/><stop offset="1" stop-color="#8c5285"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="331.68" y1="322.92" x2="169.01" y2="279.34" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#6e3f68"/><stop offset="1" stop-color="#5a3355"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,191.56l164.22,95.33v-93.33l-82.11-48.44,83.56-48.67,83.66,48.44,81.56-47.11L165.44,0,0,98.22v93.33Z" fill="url(#lg1)"/>
+          <polygon points="0 240.37 144.96 325.7 144.96 414.59 0 329.93 0 240.37" fill="url(#lg2)"/>
+          <polygon points="186.52 327.48 186.52 414.59 330.89 329.26 330.89 192.15 253.41 237.7 252.96 288.59 186.52 327.48" fill="url(#lg3)"/>
+        </svg>
+        <span class="wm">Sero<em>Connect</em></span>
+      </a>
+      <a class="headcta" href="#"><span class="lbl">Личный кабинет</span></a>
+    </header>
+<main>
+<div class="col">
+<div class="left">
+  <div class="pick">
+    <div class="terms" id="terms"></div>
+
+  </div>
+
+  <div class="form">
+    <!-- Вход. Для вошедшего блока нет вовсе. -->
+    <div id="auth">
+      <label class="flbl" for="email">почта</label>
+      <div class="row">
+        <input class="field" id="email" type="email" inputmode="email" autocomplete="email"
+               placeholder="you@example.com" spellcheck="false">
+        <button class="txt" id="chmail" type="button" hidden><u>изменить</u></button>
+      </div>
+      <p class="note" id="mailnote"></p>
+      <div class="fold" id="codefold"><div>
+        <label class="flbl" for="code" style="margin-top:6px">код из письма</label>
+        <input class="field code" id="code" inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" placeholder="······">
+        <p class="note" id="codenote"></p>
+      </div></div>
+    </div>
+
+    <!-- Код друга, свёрнут строкой. -->
+    <div>
+      <button class="txt" id="refopen" type="button"><u>есть код друга?</u></button>
+      <div class="fold" id="reffold"><div>
+        <input class="field" id="ref" placeholder="код" spellcheck="false" autocomplete="off"
+               style="text-transform:uppercase;margin-top:4px">
+        <p class="note" id="refnote">другу +3 дня к подписке</p>
+      </div></div>
+    </div>
+
+    <!-- Автопродление. -->
+    <div>
+      <button class="sw" id="auto" type="button" role="switch" aria-checked="false">
+        <span><span class="t">продлевать автоматически</span>
+          <span class="s">без скрытых списаний</span></span>
+        <span class="tr"><span class="kn"></span></span>
+      </button>
+      <div class="fold" id="consfold"><div class="consent">
+        <p>Когда подписка подойдёт к концу, мы спишем <b id="c-sum">199</b>&nbsp;₽ с того способа
+          оплаты, которым вы платите сейчас, и продлим её. Дальше каждые <span id="c-days">30 дней</span>.</p>
+        <p>Сейчас списывается только оплата за выбранный срок. Сумму до списания видно
+          в кабинете, отключить можно там же в любой момент.
+          Подробнее в <a href="#">условиях оплаты</a>.</p>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<div class="right">
+  <p class="rate"><span class="rrow"><span class="unit тень" aria-hidden="true">₽</span
+    ><span class="rnum" id="rate">199</span><span class="unit">₽</span></span
+    ><span class="unit">в месяц</span></p>
+  <div class="pay">
+  <button class="buy" id="buy" type="button">
+    <span class="sum"><span class="reels" id="reels"></span></span>
+    <span class="act" id="act">оплатить через сбп</span>
+    <span class="mark m-tl"></span><span class="mark m-tr"></span>
+    <span class="mark m-bl"></span><span class="mark m-br"></span>
+  </button>
+
+  <div class="under">
+    <button class="txt" id="card" type="button"><u>или картой</u></button>
+    <p class="demo" id="demo"></p>
+    <p class="fine">оплата через ЮKassa<br><a href="#">проблема с оплатой?</a></p>
+  </div>
+  </div>
+</div>
+</div>
+</main>
+<p class="hint">1 2 3 срок, L вошёл / не вошёл. Код любой, кроме 000000</p>
+
+<script src="vendor/gsap.min.js"></script>
+<script>
+const TERMS = [
+  { t:'1 месяц',   мес: 1,  sum: 199,  дней: '30 дней'  },
+  { t:'6 месяцев', мес: 6,  sum: 950,  дней: '180 дней' },
+  { t:'год',       мес: 12, sum: 1690, дней: '365 дней' },
+].map(x => ({ ...x, ставка: Math.round(x.sum / x.мес) }));
+const ЗАДЕРЖКА_СТАВКИ = 70, ЗАДЕРЖКА_ЦЕНЫ = 160;
+
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const terms = $('terms'), rate = $('rate'), buy = $('buy'), reels = $('reels'), act = $('act');
+
+const кнопки = TERMS.map((x, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = x.t;
+  b.addEventListener('click', () => ставить(i));
+  terms.append(b); return b;
+});
+
+/* ── БАРАБАН ЦЕНЫ, с четвёртого экрана ─────────────────────────── */
+const РАЗРЯДОВ = 4, слоты = [];
+for (let i = 0; i < РАЗРЯДОВ; i++){
+  const s = document.createElement('span'); s.className = 'slot';
+  const r = document.createElement('span'); r.className = 'reel';
+  for (let n = 0; n < 20; n++){ const d = document.createElement('span'); d.textContent = n % 10; r.append(d); }
+  s.append(r); reels.append(s); слоты.push({s, r, цифра: 0});
+}
+let ЯЧЕЙКА = 0;
+/* Подписи, которые может принять кнопка. Ширина запирается по самой
+   длинной из них и по четырём разрядам разом, иначе рамка ездила бы
+   при каждой смене подписи. */
+const ПОДПИСИ = {
+  pay:    'оплатить через сбп',
+  paycard:'оплатить картой',
+  login:  'получить код и оплатить',
+  send:   'шлём код',
+  wait:   'введите код из письма',
+  check:  'проверяем код',
+  go:     'переводим в ЮKassa',
+};
+function мерить(){
+  ЯЧЕЙКА = слоты[0].r.firstChild.getBoundingClientRect().height;
+  слоты.forEach(x => { x.s.style.height = ЯЧЕЙКА + 'px'; });
+  const прятались = слоты.map(x => x.s.classList.contains('off'));
+  слоты.forEach(x => { x.s.classList.remove('off'); x.s.style.width = ''; });
+  const ш = слоты.map(x => Math.ceil(x.r.firstChild.getBoundingClientRect().width));
+  слоты.forEach((x, k) => { x.s.style.width = ш[k] + 'px'; gsap.set(x.r, {y: -x.цифра * ЯЧЕЙКА}); });
+  const было = act.textContent;
+  act.textContent = Object.values(ПОДПИСИ).sort((a, b) => b.length - a.length)[0];
+  buy.style.minWidth = '';
+  buy.style.minWidth = Math.ceil(buy.getBoundingClientRect().width) + 'px';
+  act.textContent = было;
+  слоты.forEach((x, k) => x.s.classList.toggle('off', прятались[k]));
+}
+function крутить(сумма, мгновенно){
+  const цель = String(сумма).padStart(РАЗРЯДОВ, ' ');
+  const вверх = крутить.было === undefined || сумма > крутить.было;
+  крутить.было = сумма;
+  слоты.forEach((x, k) => {
+    const c = цель[k];
+    x.s.classList.toggle('off', c === ' ');
+    if (c === ' ') return;
+    const было = x.цифра, стало = +c;
+    if (мгновенно || reduce){ gsap.set(x.r, {y: -стало * ЯЧЕЙКА}); x.цифра = стало; return; }
+    let старт = было, к = стало;
+    if (вверх && стало < было) к = стало + 10;
+    if (!вверх && стало > было) старт = было + 10;
+    gsap.fromTo(x.r, {y: -старт * ЯЧЕЙКА},
+      {y: -к * ЯЧЕЙКА, duration:.46, ease:'power3.out', delay: k * .045,
+       onComplete(){ gsap.set(x.r, {y: -стало * ЯЧЕЙКА}); }});
+    x.цифра = стало;
+  });
+}
+
+/* ── СТАВКА РАЗРЕШАЕТСЯ РАСТРОМ, с четвёртого экрана ───────────── */
+const ГРУБЕЕТ = [2, 3, 5, 8], РЕЗЧЕЕТ = [5, 3, 2], ШАГ_РАСТРА = 55;
+let растр_идёт = 0;
+function растворить(el, новое){
+  if (reduce){ el.textContent = новое; return; }
+  const мой = ++растр_идёт;
+  const box = el.getBoundingClientRect();
+  const W = Math.ceil(box.width), H = Math.ceil(box.height);
+  if (!W || !H){ el.textContent = новое; return; }
+  const dpr = Math.min(2, devicePixelRatio || 1), cs = getComputedStyle(el);
+  const full = document.createElement('canvas'), fg = full.getContext('2d');
+  const view = document.createElement('canvas'); view.className = 'rast';
+  const vg = view.getContext('2d');
+  const small = document.createElement('canvas'), sg = small.getContext('2d');
+  function эталон(текст){
+    full.width = Math.ceil(W * dpr); full.height = Math.ceil(H * dpr);
+    fg.setTransform(1,0,0,1,0,0); fg.scale(dpr, dpr); fg.clearRect(0, 0, W, H);
+    fg.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    if ('letterSpacing' in fg) fg.letterSpacing = cs.letterSpacing;
+    fg.fillStyle = '#cdc6ca'; fg.textBaseline = 'alphabetic';
+    const m = fg.measureText(текст);
+    const asc = m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * .72;
+    fg.fillText(текст, 0, (H + asc) / 2);
+    view.width = full.width; view.height = full.height;
+    view.style.width = W + 'px'; view.style.height = H + 'px';
+  }
+  const рисовать = k => {
+    const w = Math.max(1, Math.round(full.width / k)), h = Math.max(1, Math.round(full.height / k));
+    small.width = w; small.height = h;
+    sg.imageSmoothingEnabled = true; sg.clearRect(0, 0, w, h); sg.drawImage(full, 0, 0, w, h);
+    vg.imageSmoothingEnabled = false; vg.clearRect(0, 0, view.width, view.height);
+    vg.drawImage(small, 0, 0, w, h, 0, 0, view.width, view.height);
+  };
+  эталон(el.textContent); el.classList.add('rasting'); el.append(view);
+  const лестница = [...ГРУБЕЕТ, null, ...РЕЗЧЕЕТ];
+  let i = 0;
+  const шаг = () => {
+    if (мой !== растр_идёт){ view.remove(); return; }
+    if (i >= лестница.length){ el.classList.remove('rasting'); view.remove(); return; }
+    const k = лестница[i++];
+    if (k === null){ el.textContent = новое; el.append(view); эталон(новое); рисовать(ГРУБЕЕТ.at(-1)); }
+    else рисовать(k);
+    setTimeout(шаг, ШАГ_РАСТРА);
+  };
+  шаг();
+}
+
+let выбран = null;
+function ставить(i, мгновенно){
+  if (i === выбран || занят()) return;
+  выбран = i;
+  кнопки.forEach((b, j) => b.classList.toggle('on', j === i));
+  $('c-sum').textContent = TERMS[i].sum;
+  $('c-days').textContent = TERMS[i].дней;
+  if (мгновенно){ rate.textContent = TERMS[i].ставка; крутить(TERMS[i].sum, true); return; }
+  if (matchMedia('(max-width:959px)').matches) rate.textContent = TERMS[i].ставка;
+  else setTimeout(() => растворить(rate, String(TERMS[i].ставка)), ЗАДЕРЖКА_СТАВКИ);
+  setTimeout(() => крутить(TERMS[i].sum), ЗАДЕРЖКА_ЦЕНЫ);
+}
+
+/* ── СОСТОЯНИЯ ОПЛАТЫ ───────────────────────────────────────────────
+   вошёл:  pay, затем go.
+   не вошёл: login, send, wait, check, go.
+   Способ (сбп или карта) запоминается на нажатии и доезжает до go. */
+let вошёл = false, шаг = 'login', способ = 'sbp';
+const занят = () => ['send', 'check', 'go'].includes(шаг);
+const email = $('email'), code = $('code');
+
+function рисовать(){
+  $('auth').hidden = вошёл;
+  const п = вошёл && шаг === 'login' ? 'pay' : шаг;
+  act.textContent = ПОДПИСИ[п === 'pay' && способ === 'card' ? 'paycard' : п];
+  buy.classList.toggle('busy', занят());
+  $('codefold').classList.toggle('open', ['wait', 'check', 'go'].includes(шаг) && !вошёл);
+  email.readOnly = !вошёл && шаг !== 'login';
+  $('chmail').hidden = вошёл || шаг === 'login' || занят();
+  $('mailnote').hidden = !вошёл && шаг !== 'login';
+}
+
+function почтаВерна(){
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim());
+  email.classList.toggle('bad', !ok);
+  $('mailnote').textContent = ok ? '' : 'нужна почта, чтобы прислать код';
+  $('mailnote').classList.toggle('bad', !ok);
+  if (!ok) email.focus();
+  return ok;
+}
+
+function платить(как){
+  if (занят()) return;
+  способ = как;
+  if (вошёл){ шаг = 'go'; рисовать(); уйти(); return; }
+  if (шаг === 'wait'){ code.focus(); return; }
+  if (!почтаВерна()) return;
+  шаг = 'send'; рисовать();
+  setTimeout(() => {
+    шаг = 'wait'; рисовать();
+    $('codenote').className = 'note';
+    $('codenote').textContent = 'отправили на ' + email.value.trim();
+    setTimeout(() => code.focus(), 200);
+  }, 900);
+}
+
+/* Макет: вместо ЮKassa строка и возврат в начало. */
+function уйти(){
+  $('demo').textContent = '';
+  setTimeout(() => {
+    $('demo').textContent = 'здесь ЮKassa (' + (способ === 'sbp' ? 'СБП' : 'карта') +
+      ', ' + TERMS[выбран].sum + ' ₽), после оплаты сразу кабинет';
+    вошёл = true; шаг = 'login'; рисовать();
+  }, 1300);
+}
+
+code.addEventListener('input', () => {
+  code.value = code.value.replace(/\D/g, '').slice(0, 6);
+  code.classList.remove('bad');
+  $('codenote').className = 'note';
+  $('codenote').textContent = 'отправили на ' + email.value.trim();
+  if (code.value.length < 6 || шаг !== 'wait') return;
+  шаг = 'check'; рисовать(); code.readOnly = true;
+  setTimeout(() => {
+    code.readOnly = false;
+    if (code.value === '000000'){
+      шаг = 'wait'; рисовать();
+      code.classList.add('bad');
+      $('codenote').className = 'note bad';
+      $('codenote').textContent = 'код не подошёл, проверьте письмо';
+      code.select();
+      return;
+    }
+    шаг = 'go'; рисовать(); уйти();
+  }, 800);
+});
+
+$('chmail').addEventListener('click', () => {
+  шаг = 'login'; code.value = ''; рисовать(); email.focus(); email.select();
+});
+email.addEventListener('input', () => {
+  if (email.classList.contains('bad')) почтаВерна();
+});
+email.addEventListener('keydown', e => { if (e.key === 'Enter') платить(способ); });
+
+/* Код друга. Макет: принимается любой от четырёх знаков, кроме NONE. */
+$('refopen').addEventListener('click', () => {
+  const f = $('reffold'); f.classList.toggle('open');
+  if (f.classList.contains('open')) setTimeout(() => $('ref').focus(), 120);
+});
+let refT;
+$('ref').addEventListener('input', e => {
+  clearTimeout(refT);
+  const v = e.target.value.trim().toUpperCase(), n = $('refnote');
+  n.className = 'note';
+  if (v.length < 4){ n.textContent = 'другу +3 дня к подписке'; return; }
+  n.textContent = 'проверяем…';
+  refT = setTimeout(() => {
+    const ok = v !== 'NONE';
+    n.className = 'note ' + (ok ? 'ok' : 'bad');
+    n.textContent = ok ? 'код принят, +3 дня к подписке' : 'такого кода нет';
+  }, 500);
+});
+
+$('auto').addEventListener('click', e => {
+  const on = e.currentTarget.getAttribute('aria-checked') !== 'true';
+  e.currentTarget.setAttribute('aria-checked', on);
+  $('consfold').classList.toggle('open', on);
+});
+
+buy.addEventListener('click', () => платить('sbp'));
+$('card').addEventListener('click', () => платить('card'));
+
+const жать = () => { if (!занят()) buy.classList.add('press'); };
+const отжать = () => buy.classList.remove('press');
+buy.addEventListener('pointerenter', () => buy.classList.add('hv'));
+buy.addEventListener('pointerleave', () => { buy.classList.remove('hv'); отжать(); });
+buy.addEventListener('pointerdown', жать);
+buy.addEventListener('pointerup', отжать);
+buy.addEventListener('pointercancel', отжать);
+buy.addEventListener('focus', () => buy.classList.add('hv'));
+buy.addEventListener('blur', () => { buy.classList.remove('hv'); отжать(); });
+
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase();
+  if (k === '1') ставить(0);
+  if (k === '2') ставить(1);
+  if (k === '3') ставить(2);
+  if (k === 'l' || k === 'д'){
+    if (занят()) return;
+    вошёл = !вошёл; шаг = 'login'; способ = 'sbp'; $('demo').textContent = ''; рисовать();
+  }
+});
+
+{
+  const адрес = new URLSearchParams(location.search);
+  if (адрес.has('вошёл') || адрес.has('in')) вошёл = true;
+  if (адрес.get('v') === 'preview') document.querySelector('.hint').remove();
+  /* С лендинга приходят с выбранным сроком: ?срок=2 или ?t=2. */
+  const срок = +(адрес.get('срок') || адрес.get('t') || 1) - 1;
+  document.fonts.ready.then(() => { мерить(); ставить(TERMS[срок] ? срок : 0, true); рисовать(); });
+}
+addEventListener('resize', () => мерить());
+
+/* Нажатие кнопки кабинета, с первого экрана. */
+(() => {
+  const btn = document.querySelector('.headcta');
+  if (!btn) return;
+
+  /* ПОЛ ПО ВРЕМЕНИ. Без него глубина нажатия зависела от того, как
+     быстро убрали палец: замер семи нажатий дал 1,66 px при 30 мс
+     (55 % хода), 2,51 при 50 (84 %) и полные 3,00 только с 70. Быстрый
+     тап по телефону как раз укладывается в 50–100 мс, поэтому одно и
+     то же действие каждый раз ощущалось по-разному — разброс в 45 %.
+     Владелец поймал это рукой раньше, чем замер.
+
+     110 мс = 70 на реальный ход до дна + 40 на то, чтобы дно было
+     видно. Сорок — два-три кадра, меньше которых глаз не успевает
+     зафиксировать положение; без них кнопка не нажимается, а звякает.
+
+     Заодно записано: полный ход набирается к 70 мс, а НЕ к 90. Хвост
+     кривой .4,0,.2,1 плоский, последние двадцать миллисекунд уже
+     ничего не двигают. Та же природа, что у power3.out в барабане
+     секции 4, где заявленные 0,46 с кончались к 180 мс.
+
+     Пол висит на ВСЕХ способах снятия, включая отмену жеста
+     прокруткой: отмена, обрезанная на двадцатой миллисекунде, дала бы
+     ровно ту дёрганую мелочь, от которой уходим.
+
+     Клик не задерживается ни на миллисекунду — пол живёт только на
+     классе, переход по ссылке идёт своим чередом. */
+  // 07.10.2026 нажатие замедлено до 180 мс: дно к ~140, плюс те же 40.
+  const ПОЛ = 180;
+  let начало = 0, отложено = 0;
+
+  const down = () => {
+    // повторный тык во время отсчёта отменяет отложенное снятие,
+    // иначе частые тапы схлопнулись бы друг в друга
+    clearTimeout(отложено); отложено = 0;
+    начало = performance.now();
+    btn.classList.add('is-down');
+  };
+  const up = () => {
+    if (отложено) return;                      // отсчёт уже идёт
+    const остаток = ПОЛ - (performance.now() - начало);
+    if (остаток > 0){
+      отложено = setTimeout(() => {
+        отложено = 0;
+        btn.classList.remove('is-down');
+      }, остаток);
+    } else {
+      btn.classList.remove('is-down');
+    }
+  };
+
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('pointerleave', up);
+  // клавиатура: ссылка срабатывает по Enter, и отклик должен быть тот
+  // же — иначе с клавиатуры кнопка выглядит неживой. Автоповтор при
+  // удержании не мешает: down только продлевает вдавленность.
+  btn.addEventListener('keydown', e => { if (e.key === 'Enter') down(); });
+  btn.addEventListener('keyup',   e => { if (e.key === 'Enter') up();   });
+  btn.addEventListener('blur', up);
+})();
+</script>
