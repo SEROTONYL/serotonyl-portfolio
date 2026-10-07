@@ -127,20 +127,23 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 .field .ico.eye{right:62px} .field .ico.copy{right:16px}
 .field .ico svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:1.5}
 
-/* Брусок — замер живой кнопки кабинета: волосок #5f4a5c сверху и
-   заливка сверху вниз. Медная полоса снизу, которая была в замере,
+/* Брусок. 07.10.2026 светлый волосок сверху снят по жалобе владельца
+   («чистый свет сверху некрасив»), объём теперь даёт подъём тенью (Ж2
+   со стенда), тело почти ровное. Скругление 10 px. Раньше: замер живой
+   кнопки кабинета, волосок #5f4a5c сверху и заливка сверху вниз. Медная полоса снизу, которая была в замере,
    снята по решению владельца: сперва у кнопки подключения (там её
    место занял нагрев), следом и у кнопки копирования — ради одного
    языка у обеих. Это осознанное расхождение с оригиналом. */
-.brick{position:relative;height:50px;border-radius:14px;overflow:hidden;
-  background:linear-gradient(#2e282b,#151213);box-shadow:inset 0 1px 0 #5f4a5c;
+.brick{position:relative;height:50px;border-radius:10px;overflow:hidden;
+  background:linear-gradient(#2c2629,#211d1f);
+  box-shadow:0 1px 0 #0d0b0c,0 10px 22px -8px rgba(0,0,0,.85),0 3px 6px -2px rgba(0,0,0,.5);
   display:flex;align-items:center;justify-content:center}
 .brick span.t{position:absolute;font-family:var(--sans);font-size:14px;font-weight:700;
   color:var(--ink);white-space:nowrap}
 /* Поправка в −3 px снята вместе с полосой: она компенсировала ровно
    её. Без полосы видимое поле совпадает с боксом, и центр честный. */
 .cbtn{margin-top:18px}
-.cbtn2{height:48px;margin-top:6px;border-radius:13px;
+.cbtn2{height:48px;margin-top:6px;border-radius:10px;
   background:linear-gradient(#1f1b1d,#191617);box-shadow:inset 0 -3px 0 #0b0a0a;
   display:flex;align-items:center;justify-content:center;font-size:12px;color:#aeacaa}
 
@@ -200,15 +203,13 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    растягивается, а ЕДЕТ: значит мягкость не плывёт по ходу, а
    остаётся той же самой. Пройденная часть просто теплее.
 
-   Медный волосок сверху вшит в этот же слой — он разгорается
-   вместе с нагревом, и это то самое вторичное движение, по которому
-   движение читается живым. */
+   Медный волосок сверху, который разгорался вместе с нагревом,
+   снят 07.10.2026 вместе с волоском бруска: он двоил полосу. */
 .conn .heat{position:absolute;left:0;top:0;bottom:0;width:calc(100% + 60px);
   background:linear-gradient(90deg,
     rgba(196,123,190,.26) 0,
     rgba(196,123,190,.26) calc(100% - 60px),
     rgba(196,123,190,0) 100%);
-  box-shadow:inset 0 1px 0 rgba(214,143,208,.45);
   will-change:transform}
 .pw{width:19px;height:19px;fill:none;stroke-width:1.7;stroke:#8a8286}
 
@@ -339,7 +340,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
   .field .ico{width:30px;height:30px;margin-top:-15px;border-radius:8px}
   .field .ico.eye{right:54px}
   .field .ico svg{width:15px;height:15px}
-  .brick{height:46px;border-radius:12px}
+  .brick{height:46px;border-radius:10px}
   .brick span.t{font-size:13px}
   .cbtn{margin-top:14px}
   .cbtn2{height:44px;margin-top:6px;font-size:11px}
