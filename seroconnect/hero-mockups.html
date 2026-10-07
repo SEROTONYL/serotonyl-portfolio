@@ -77,22 +77,22 @@
     /* Без этого Chrome на Android считает страницу светлой и в «тёмной теме»
        выворачивает уже тёмную вёрстку — фон уезжает в грязно-серый. */
     color-scheme:dark;
-    --bg:#110a0a;
-    --ink:#f3eee4;
-    --soft:#a59a89;
-    --faint:#6f655a;
-    /* Акцент сведён с брендом 18 августа. Было `#c79a6b` — подобранный
-       в мокапе; стало `#d4a574` — `--color-accent-primary` из боевого CSS
+    --bg:#161314;
+    --ink:#f2eef0;
+    --soft:#aea8ab;
+    --faint:#746c70;
+    /* Акцент сведён с брендом 18 августа. Было `#c47bbe` — подобранный
+       в мокапе; стало `#c47bbe` — `--color-accent-primary` из боевого CSS
        продукта. Раньше знак в шапке и цена в прейскуранте были РАЗНОГО
        медного, хотя оба обязаны быть одним. */
-    --gold:#d4a574;
+    --gold:#c47bbe;
     --sans:"Space Grotesk Variable","Space Grotesk","Onest","Inter",system-ui,sans-serif;
     --mono:"Geist Mono Variable","Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; background:#0a0606; color:var(--soft);
+    margin:0; background:#100e0f; color:var(--soft);
     font-family:var(--sans); -webkit-font-smoothing:antialiased; overflow:hidden;
   }
 
@@ -128,18 +128,18 @@
         ширине яркость одна и та же);
      2. `inset 0 1px #ffffff0a` — белый волосок по ВЕРХНЕЙ кромке
         изнутри. Это и есть свет: на замере кнопки «На сайт» он виден
-        как `#3b312a` в одну строку над телом `#291f17`;
+        как `#3b3437` в одну строку над телом `#2e282b`;
      3. мягкая тень наружу вниз (`0 8px 40px #0006`).
 
-     Замер шапки кабинета: высота 68 px, сверху `#241b13`, снизу
-     `#150f09` — спад яркости 28,3 → 15,8, и под ним складка в один
-     пиксель `#060403`. То есть свет сверху, спад вниз, тёмная кромка
+     Замер шапки кабинета: высота 68 px, сверху `#2a2427`, снизу
+     `#1b1719` — спад яркости 28,3 → 15,8, и под ним складка в один
+     пиксель `#090808`. То есть свет сверху, спад вниз, тёмная кромка
      на стыке. Это ровно тот верхний свет, который мы весь день искали
      на числе, — и у тебя он уже есть, просто на предметах, а не в поле.
 
-     Поверхности взяты из его переменных: surface-0 `#110a0a` (это наш
-     фон, они совпадают), 1 `#1a1212`, 2 `#241818`, 3 `#2e1f1f`.
-     Акцент бренда — `#d4a574`. */
+     Поверхности взяты из его переменных: surface-0 `#161314` (это наш
+     фон, они совпадают), 1 `#1f1b1d`, 2 `#272224`, 3 `#362f32`.
+     Акцент бренда — `#c47bbe`. */
   .sitehead{
     position:absolute; z-index:6; top:0; left:0; right:0; height:68px;
     display:flex; align-items:center; justify-content:space-between;
@@ -160,10 +160,10 @@
        Крайние значения сняты с кабинета буквально: 28,3 → 15,8. */
     background:
       radial-gradient(ellipse 58% 150% at 21% -10%, #ffffff07 0%, transparent 68%),
-      linear-gradient(#241b13 0%, #1c150e 54%, #150f09 100%);
+      linear-gradient(#2a2427 0%, #221e20 54%, #1b1719 100%);
     box-shadow:
       inset 0 1px 0 #ffffff10,          /* верхний волосок — сам свет */
-      0 1px 0 #0a0605,                  /* складка на стыке с кадром */
+      0 1px 0 #0d0b0c,                  /* складка на стыке с кадром */
       0 12px 34px -14px #000000a6;      /* тень наружу */
   }
   .brand{ display:flex; align-items:center; gap:11px; text-decoration:none }
@@ -173,7 +173,7 @@
     color:#f5f5f5; white-space:nowrap;
   }
   /* «Sero» цветом текста, «Connect» акцентом — так на живом знаке */
-  .brand .wm em{ font-style:normal; color:#d4a574 }
+  .brand .wm em{ font-style:normal; color:#c47bbe }
 
   /* Кнопка переделана по референсу во второй заход. Первый был капсулой
      с медной стрелкой и плотным сансом — мимо по трём пунктам сразу,
@@ -212,21 +212,21 @@
     /* СВОЕЙ ЗАЛИВКИ У НЕЁ НЕТ — и это была главная ошибка обоих
        прошлых заходов. Кнопка это полупрозрачный белый налив поверх
        шапки, поэтому выпуклость у неё ОБЩАЯ с шапкой, а не своя.
-       Разностный замер: шапка на y=102 даёт `#201810`, кнопка
-       `#291f17` — белый примерно на 3,3%; к низу (y=138) разница
-       сходит в ноль (`#18110b` против `#191209`). Отсюда налив
+       Разностный замер: шапка на y=102 даёт `#262123`, кнопка
+       `#2e282b` — белый примерно на 3,3%; к низу (y=138) разница
+       сходит в ноль (`#1e1a1c` против `#1f1b1d`). Отсюда налив
        сверху вниз, гаснущий в прозрачность.
        Непрозрачный градиент, который я красил раньше, спорил со
        шапкой и потому читался наклейкой. */
     background:linear-gradient(#ffffff0a 0%, #ffffff00 100%);
     /* ОКАНТОВКИ ПО ЧЕТЫРЁМ СТОРОНАМ У НЕГО НЕТ — и это была третья
        ошибка подряд. Замер периметра:
-       · сверху волосок 1 px `#3b312a` при теле `#291f17` — белый на 8%;
+       · сверху волосок 1 px `#3b3437` при теле `#2e282b` — белый на 8%;
        · слева и справа кромки НЕТ вовсе: на y=120 переход идёт
          20,2 → 26,1 без единого светлого пикселя, тело просто светлее
          шапки;
-       · снизу жёсткая тёмная полоса в 3 px `#0a0705` при шапке
-         `#18110b` — чёрный на 57% и БЕЗ РАЗМЫТИЯ (значения ровные
+       · снизу жёсткая тёмная полоса в 3 px `#0d0b0c` при шапке
+         `#1e1a1c` — чёрный на 57% и БЕЗ РАЗМЫТИЯ (значения ровные
          7,5 / 7,5 / 7,5, а не спад), под ней короткий мягкий хвост.
        Это не рамка, а брусок: освещённая верхняя грань, тело и тёмное
        основание. Ровная рамка со всех сторон, которая стояла раньше,
@@ -248,7 +248,7 @@
      Плата названа честно: объём кнопке давали ТРИ вещи — освещённая
      верхняя грань, тело и жёсткое основание. Грань снята, значит
      объём теперь держится только на основании. */
-  .headcta:hover{ color:#d4a574 }
+  .headcta:hover{ color:#c47bbe }
 
   /* ── НАЖАТИЕ · КНОПКА УТОПАЕТ ──────────────────────────────
      Проворот на наведении снят 20 августа: он отвечал за курсор
@@ -322,7 +322,7 @@
        0.183 кегля ниже реальной базы глифов. Величина ставится из JS,
        потому что кегль плавает: прибитые 55 px были верны ровно на
        одной ширине экрана, а на телефоне промахивались на 31 px. */
-    color:#bdb3a4;
+    color:#bdb5b9;
   }
   .numlink{
     text-decoration:none; color:inherit;
@@ -409,7 +409,7 @@
     font:inherit; letter-spacing:inherit; color:inherit;
     background:none; border:0; padding:0;
     cursor:help; text-decoration:none;
-    border-bottom:1px solid rgba(163,150,135,.32);
+    border-bottom:1px solid rgba(164,154,159,.32);
     /* Перехода НЕТ намеренно. Цвет здесь НАСЛЕДУЕТСЯ от строки, и при
        снятии укрытия он менялся не мгновенно, а плавно за 140 мс: дата
        появлялась разом, а вопрос следом ещё раз дотягивался — это и
@@ -432,7 +432,7 @@
   .howq::after{
     content:""; position:absolute; inset:-10px -16px -18px -16px;
   }
-  .howq:hover, .howq:focus-visible{ color:#c3b8a8; border-bottom-color:rgba(195,184,168,.6) }
+  .howq:hover, .howq:focus-visible{ color:#c4bcc0; border-bottom-color:rgba(196,188,192,.6) }
   .howq:focus-visible{ outline:2px solid var(--gold); outline-offset:3px }
   /* Ответ стоит под строкой и НЕ участвует в раскладке: место даты
      чем-то занято по цепочке (реплика привязана к её низу), и всплытие
@@ -441,7 +441,7 @@
     position:absolute; left:0; top:calc(100% + 12px);
     display:block; width:max-content; max-width:min(38ch, 78vw);
     font-family:var(--mono); font-size:11px; line-height:1.65;
-    letter-spacing:.04em; color:#a59a89; pointer-events:none;
+    letter-spacing:.04em; color:#aea8ab; pointer-events:none;
   }
   .howa[hidden]{ display:none }
   /* Ответ раскрывается ЖЁСТКОЙ КРОМКОЙ, а не растром: растр у нас
@@ -469,7 +469,7 @@
 
   .asof{                                   /* сноска */
     position:absolute; margin:0;
-    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837a70;
+    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837b7f;
   }
   .lead{                                   /* что это */
     position:absolute; margin:0;
@@ -478,20 +478,20 @@
   .probe{                                  /* чужая речь — единственная бронзовая */
     position:absolute; white-space:nowrap;
     font-family:var(--mono); font-size:13px; letter-spacing:.06em;
-    color:rgba(212,165,116,.75); min-height:20px;  /* было .42 — контраст 2,2:1; медь сведена с брендом */
+    color:rgba(196,123,190,.75); min-height:20px;  /* было .42 — контраст 2,2:1; медь сведена с брендом */
   }
-  .probe .noise{color:rgba(111,101,90,.45); font-style:normal}
+  .probe .noise{color:rgba(116,108,112,.45); font-style:normal}
 
   /* Строка-действие, выведенная из живого числа: завтра «сорок первым» */
   .join{                                   /* призыв — ярчайшая из мелких,
                                               но на ступень тусклее числа */
-    position:absolute; margin:0; font-size:15px; font-weight:500; color:#e8e2d6;
+    position:absolute; margin:0; font-size:15px; font-weight:500; color:#e8e3e6;
   }
   /* Золото отдано прейскуранту: там оно метит рекомендуемый срок.
      Один акцент не может делать две работы. */
   .join a{
     color:var(--ink); text-decoration:none;
-    border-bottom:1px solid rgba(243,238,228,.35); padding-bottom:3px;
+    border-bottom:1px solid rgba(242,238,240,.35); padding-bottom:3px;
   }
   .join a:hover{ border-bottom-color:var(--ink) }
 
@@ -519,12 +519,12 @@
   .prow .amt{
     flex:0 0 auto; display:flex; align-items:baseline; gap:12px;
     font-family:var(--sans); font-weight:600; font-size:64px;
-    letter-spacing:-.02em; color:#e8e2d6;
+    letter-spacing:-.02em; color:#e8e3e6;
     font-variant-numeric:tabular-nums; white-space:nowrap;
   }
   .prow .amt b{ flex:0 0 auto; width:150px; text-align:right; font-weight:inherit }
   .prow .amt i{ flex:0 0 auto; width:.5em;
-    font-style:normal; font-size:.34em; color:#837a70; letter-spacing:.04em }
+    font-style:normal; font-size:.34em; color:#837b7f; letter-spacing:.04em }
   .prow:hover .term{ color:var(--ink) }
   .prow:hover .amt { color:var(--ink) }
   /* Рекомендуемый срок держится только на цвете. Ни сдвига, ни штриха,
@@ -539,7 +539,7 @@
   .plist-cap{
     position:absolute; left:0; right:0; bottom:100%; margin:0 0 30px;
     font-family:var(--sans); font-size:15px; font-weight:500;
-    color:#e8e2d6; white-space:nowrap;
+    color:#e8e3e6; white-space:nowrap;
   }
   .stage.narrow .plist-cap{ margin-bottom:20px; font-size:14px }
 
@@ -552,7 +552,7 @@
      Стиль оставлен: строка вернётся, если понадобится оговорка. */
   .plist-note{
     margin:22px 0 0; text-align:right;
-    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837a70;
+    font-family:var(--mono); font-size:11px; letter-spacing:.10em; color:#837b7f;
   }
 
   /* На телефоне прейскурант САМ является кнопкой — отдельная не нужна:
@@ -599,7 +599,7 @@
   .mwin{
     display:block; width:max-content; overflow:hidden;
     height:var(--cell);               /* ровно одна ячейка */
-    text-decoration:none; color:#8a8073;   /* 5,05:1 к фону */
+    text-decoration:none; color:#8a8286;   /* 5,05:1 к фону */
   }
   .mwin:hover{ color:var(--ink) }
   .mwin:focus-visible{ outline:2px solid var(--gold); outline-offset:6px }
@@ -733,7 +733,7 @@
   .btn{
     display:none; position:absolute; z-index:3;
     left:92px; right:20px; height:48px;
-    background:var(--gold); color:#1a1110;
+    background:var(--gold); color:#1e1a1c;
     font-family:var(--mono); font-size:14px; letter-spacing:.04em;
     text-decoration:none; align-items:center; justify-content:center;
     border-radius:2px;
@@ -797,13 +797,13 @@
         <svg viewBox="0 0 330.89 414.59" aria-hidden="true">
           <defs>
             <linearGradient id="lg1" x1="254.43" y1="206.97" x2="32.61" y2="51.65" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#f2d5a8"/><stop offset="1" stop-color="#d4a574"/>
+              <stop offset="0" stop-color="#efc6eb"/><stop offset="1" stop-color="#c47bbe"/>
             </linearGradient>
             <linearGradient id="lg2" x1="135.09" y1="356.68" x2="15.57" y2="300.94" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#c48f5c"/><stop offset="1" stop-color="#8c6340"/>
+              <stop offset="0" stop-color="#b874b0"/><stop offset="1" stop-color="#8c5285"/>
             </linearGradient>
             <linearGradient id="lg3" x1="331.68" y1="322.92" x2="169.01" y2="279.34" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#6e4f33"/><stop offset="1" stop-color="#5a3f2a"/>
+              <stop offset="0" stop-color="#6e3f68"/><stop offset="1" stop-color="#5a3355"/>
             </linearGradient>
           </defs>
           <path d="M0,191.56l164.22,95.33v-93.33l-82.11-48.44,83.56-48.67,83.66,48.44,81.56-47.11L165.44,0,0,98.22v93.33Z" fill="url(#lg1)"/>

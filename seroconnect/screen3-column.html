@@ -44,7 +44,7 @@ html,body{min-height:100%}
 /* Не height, а min-height с полями: если содержимое выше окна, центровка
    не должна срезать верх с заголовком. */
 body{padding:40px 0}
-body{background:#110a0a;color:#8a8079;
+body{background:#161314;color:#8a8286;
   font-family:"Onest","Inter",system-ui,sans-serif;
   display:flex;align-items:center;justify-content:center;min-height:100vh;
   -webkit-font-smoothing:antialiased}
@@ -57,35 +57,35 @@ body{background:#110a0a;color:#8a8079;
   padding-left:28px}
 /* Рельс: тонкая линия во всю высоту, по ней едет янтарный отрезок. */
 .столб::before{content:"";position:absolute;left:0;top:6px;bottom:6px;
-  width:1px;background:#2a2220}
-.бегунок{position:absolute;left:0;width:1px;background:#d4a574;
-  box-shadow:0 0 10px rgba(212,165,116,.45);
+  width:1px;background:#302a2d}
+.бегунок{position:absolute;left:0;width:1px;background:#c47bbe;
+  box-shadow:0 0 10px rgba(196,123,190,.45);
   transition:transform .55s cubic-bezier(.65,0,.2,1),height .55s cubic-bezier(.65,0,.2,1)}
 
 .ус{position:relative;display:flex;align-items:center;gap:16px;
   background:none;border:0;cursor:pointer;text-align:left;
   font:inherit;font-size:40px;letter-spacing:-.02em;line-height:1;
-  padding:14px 0;color:#3f3733;
+  padding:14px 0;color:#3f383b;
   transition:color .4s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.65,0,.2,1)}
-.ус:hover{color:#6f645c}
-.ус:focus-visible{outline:0;color:#8a8079}
+.ус:hover{color:#6f676b}
+.ус:focus-visible{outline:0;color:#8a8286}
 .ус .ном{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
-  letter-spacing:.08em;color:#3a322e;transition:color .4s;width:18px}
+  letter-spacing:.08em;color:#3a3336;transition:color .4s;width:18px}
 .ус .что{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
-  letter-spacing:.06em;color:#d4a574;opacity:0;margin-left:8px;transform:translateX(-6px);
+  letter-spacing:.06em;color:#c47bbe;opacity:0;margin-left:8px;transform:translateX(-6px);
   transition:opacity .35s .15s,transform .45s .15s cubic-bezier(.2,0,0,1)}
-.ус[aria-selected="true"]{color:#ece7dd;transform:translateX(10px)}
+.ус[aria-selected="true"]{color:#ece8ea;transform:translateX(10px)}
 /* Автоопределение: на рельсе у найденного устройства остаётся тусклый
    янтарный след. Бегунок уезжает к выбранному, след стоит на месте. */
-.след{position:absolute;left:0;width:1px;background:rgba(212,165,116,.32)}
+.след{position:absolute;left:0;width:1px;background:rgba(196,123,190,.32)}
 :root.превью .подпись{display:none}
-.ус[aria-selected="true"] .ном{color:#d4a574}
+.ус[aria-selected="true"] .ном{color:#c47bbe}
 .ус[aria-selected="true"] .что{opacity:.75;transform:none}
 
 /* Метки реза. Один набор на весь столбик, переезжает к выбранному. */
 .рез{position:absolute;left:0;top:0;pointer-events:none;
   transition:transform .55s cubic-bezier(.65,0,.2,1),width .55s cubic-bezier(.65,0,.2,1)}
-.рез i{position:absolute;width:9px;height:9px;border-color:#a8917a;border-style:solid}
+.рез i{position:absolute;width:9px;height:9px;border-color:#a3869f;border-style:solid}
 .рез i:nth-child(1){left:0;top:0;border-width:1px 0 0 1px}
 .рез i:nth-child(2){right:0;top:0;border-width:1px 1px 0 0}
 .рез i:nth-child(3){left:0;bottom:0;border-width:0 0 1px 1px}
@@ -93,23 +93,23 @@ body{background:#110a0a;color:#8a8079;
 
 /* ── ПРАВАЯ ЧАСТЬ, заготовка ───────────────────────────── */
 .шаги{list-style:none;display:flex;flex-direction:column;gap:22px;
-  border-left:1px dashed #2a2220;padding-left:40px;min-height:220px;
+  border-left:1px dashed #302a2d;padding-left:40px;min-height:220px;
   justify-content:center}
 .шаги li{display:flex;gap:16px;align-items:baseline;font-size:17px;
-  line-height:1.35;color:#8a8079}
-.шаги li b{font-weight:400;color:#cdc3b8}
+  line-height:1.35;color:#8a8286}
+.шаги li b{font-weight:400;color:#cdc6ca}
 .шаги li span.н{font-family:"Geist Mono",ui-monospace,monospace;
-  font-size:11px;color:#4f4741;width:14px;flex:none}
+  font-size:11px;color:#4d4549;width:14px;flex:none}
 .шаги.уход li{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
 .шаги li{transition:opacity .35s,transform .45s cubic-bezier(.2,0,0,1)}
 .шаги.приход li{opacity:0;transform:translateY(8px);transition:none}
-.дальше{font-size:13px;letter-spacing:.04em;color:#6f645c;text-decoration:none;
+.дальше{font-size:13px;letter-spacing:.04em;color:#6f676b;text-decoration:none;
   margin-top:6px}
-.дальше:hover{color:#a8917a}
+.дальше:hover{color:#a3869f}
 
 .подпись{position:fixed;bottom:22px;left:0;right:0;text-align:center;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
-  letter-spacing:.06em;color:#3a322e}
+  letter-spacing:.06em;color:#3a3336}
 
 
 /* ── ВЕРХ: возражение и ответ ─────────────────────────────
@@ -120,16 +120,16 @@ body{background:#110a0a;color:#8a8079;
   padding:0 var(--поле-п) 0 var(--поле-л)}
 .рама .сцена{padding:0;max-width:none}
 .верх h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
-  color:#a59a89}
-.верх p{margin-top:16px;font-size:17px;line-height:1.4;color:#6f645c}
-.верх p b{font-weight:400;color:#cdc3b8}
+  color:#aea8ab}
+.верх p{margin-top:16px;font-size:17px;line-height:1.4;color:#6f676b}
+.верх p b{font-weight:400;color:#cdc6ca}
 
 /* ── НИЗ: метка «ниже», дословно со второго экрана ─────────── */
 .smark{position:absolute;bottom:7%;left:0;right:0;margin:0 auto;
   padding:0 var(--поле-п) 0 var(--поле-л);--cell:48px}
 .mwin{display:block;width:max-content;overflow:hidden;height:var(--cell);
-  text-decoration:none;color:#8a8073}
-.mwin:hover{color:#ece7dd}
+  text-decoration:none;color:#8a8286}
+.mwin:hover{color:#ece8ea}
 .mlane{display:block;transform:translateY(-50%)}
 .mcell{display:flex;align-items:center;gap:12px;height:var(--cell)}
 .mtxt{font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em}

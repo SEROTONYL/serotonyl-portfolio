@@ -20,7 +20,7 @@
    ══════════════════════════════════════════════════════════════ */
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-html,body{margin:0;height:100%;background:#0a0606}
+html,body{margin:0;height:100%;background:#100e0f}
 body{scroll-snap-type:y proximity}
 /* Высота секции — `svh`, а не `vh`. На телефоне `vh` считается по экрану
    БЕЗ адресной строки: секция выходит выше видимой области, и низ уходит
@@ -60,19 +60,19 @@ body{scroll-snap-type:y proximity}
    реквизиты) плюс кабинет и бот. Реквизиты за ссылкой, по решению
    04.10. Ссылки на serotonyl.dev нет, сервис живёт сам по себе.
    Оферта и политика пока заглушки, страниц ещё нет. */
-.подвал{position:relative;background:#110a0a;padding:24px var(--g-m) 32px;
+.подвал{position:relative;background:#161314;padding:24px var(--g-m) 32px;
   scroll-snap-align:end;text-align:center;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
-  letter-spacing:.06em;color:#3a322e}
+  letter-spacing:.06em;color:#3a3336}
 .подвал::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
   background:rgba(255,255,255,.05)}
 .подвал nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 32px}
-.подвал a,.подвал button{color:#5a504a;text-decoration:none;cursor:pointer;
+.подвал a,.подвал button{color:#584f53;text-decoration:none;cursor:pointer;
   font:inherit;letter-spacing:inherit;background:none;border:0;padding:0;
   transition:color .2s}
 .подвал a:hover,.подвал a:focus-visible,
 .подвал button:hover,.подвал button:focus-visible,
-.подвал button[aria-expanded="true"]{color:#a8917a;outline:0}
+.подвал button[aria-expanded="true"]{color:#a3869f;outline:0}
 .подвал .рекв{margin:12px 0 0;line-height:1.8}
 .подвал .год{margin:16px 0 0}
 @media (max-width:760px){

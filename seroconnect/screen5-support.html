@@ -23,7 +23,7 @@
 html,body{min-height:100%}
 /* Верх прижат, а не по центру: заголовок обязан стоять у самой
    кромки, чтобы выглядывать из-под четвёртой (стык 4/5, вариант А). */
-body{background:#110a0a;color:#8a8079;padding:48px 0 40px;min-height:100vh;
+body{background:#161314;color:#8a8286;padding:48px 0 40px;min-height:100vh;
   font-family:"Onest","Inter",system-ui,sans-serif;
   display:flex;align-items:flex-start;justify-content:center;
   -webkit-font-smoothing:antialiased}
@@ -35,32 +35,32 @@ body{background:#110a0a;color:#8a8079;padding:48px 0 40px;min-height:100vh;
 
 /* Тише третьей: тот же кегль вопроса, но темнее. */
 h2{font-weight:400;font-size:56px;letter-spacing:-.025em;line-height:1.05;
-  color:#6f645c}
-.ответ{margin-top:16px;font-size:17px;line-height:1.4;color:#6f645c;max-width:560px}
-.ответ b{font-weight:400;color:#a59a89}
+  color:#6f676b}
+.ответ{margin-top:16px;font-size:17px;line-height:1.4;color:#6f676b;max-width:560px}
+.ответ b{font-weight:400;color:#aea8ab}
 
 /* Действие одно. Метки реза остались только у «оформить» в четвёртой,
    здесь строка ввода: начинаешь писать человеку. Моно рифмуется с
    фактами ниже. При наведении каретка перестаёт мигать и горит. */
 .написать{margin-top:48px;padding:12px 4px;display:inline-flex;align-items:center;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:17px;letter-spacing:.01em;
-  color:#cdc3b8;text-decoration:none;transition:color .2s}
-.написать .п{color:#a8917a;margin-right:.7em;transition:transform .3s cubic-bezier(.2,0,0,1)}
+  color:#cdc6ca;text-decoration:none;transition:color .2s}
+.написать .п{color:#a3869f;margin-right:.7em;transition:transform .3s cubic-bezier(.2,0,0,1)}
 .написать .к{display:inline-block;width:.55em;height:1.15em;margin-left:.25em;
-  background:#a8917a;animation:миг 1.1s steps(1) infinite}
-.написать:hover,.написать:focus-visible{color:#ece7dd;outline:0}
+  background:#a3869f;animation:миг 1.1s steps(1) infinite}
+.написать:hover,.написать:focus-visible{color:#ece8ea;outline:0}
 .написать:hover .п,.написать:focus-visible .п{transform:translateX(3px)}
-.написать:hover .к,.написать:focus-visible .к{animation:none;background:#e2b98e}
+.написать:hover .к,.написать:focus-visible .к{animation:none;background:#d68fd0}
 @keyframes миг{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.написать .к{animation:none}}
 
 /* Факт моно: это показывает система, а не говорим мы. */
 .факт{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 32px;
   font-family:"Geist Mono",ui-monospace,monospace;font-size:12px;
-  letter-spacing:.06em;color:#4f4741}
-.факт span b{font-weight:400;color:#8a8073}
+  letter-spacing:.06em;color:#4d4549}
+.факт span b{font-weight:400;color:#8a8286}
 .где{margin-top:16px;font-family:"Geist Mono",ui-monospace,monospace;
-  font-size:11px;letter-spacing:.06em;color:#3a322e}
+  font-size:11px;letter-spacing:.06em;color:#3a3336}
 
 @media (max-width:760px){
   h2{font-size:36px}

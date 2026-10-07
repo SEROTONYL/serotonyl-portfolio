@@ -61,7 +61,7 @@
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2212}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:#110a0a;color:#a2a2a2;
+body{background:#161314;color:#a2a2a2;
   font-family:"Geist Mono Variable",ui-monospace,monospace;
   display:flex;align-items:center;justify-content:center;
   -webkit-font-smoothing:antialiased}
@@ -93,17 +93,17 @@ body{background:#110a0a;color:#a2a2a2;
    есть признак органа управления. */
 .terms{display:flex;gap:8px}
 .terms button{background:none;border:0;font-family:inherit;font-size:19px;
-  letter-spacing:0;color:#6f645c;cursor:pointer;
+  letter-spacing:0;color:#6f676b;cursor:pointer;
   padding:11px 12px;line-height:22px;
   transition:color .15s cubic-bezier(.4,0,.2,1)}
 /* Наведение — медь, как и везде на сайте: медь отвечает КУРСОРУ.
    Выбранный от курсора не теплеет: он уже белый, и подмена белого на
    медь читалась бы как потеря выбора, а не как отклик.
 
-   Медь подняли с #8a7a68 до #a8917a вслед за невыбранными: те стали
-   светлее (#4f4741 было почти неразличимо на #110a0a), и прежняя медь
+   Медь подняли с #8a7a86 до #a3869f вслед за невыбранными: те стали
+   светлее (#4d4549 было почти неразличимо на #161314), и прежняя медь
    встала к ним вплотную. Отклик обязан быть заметно выше покоя. */
-.terms button:not(.on):hover{color:#a8917a}
+.terms button:not(.on):hover{color:#a3869f}
 
 /* ── ПОЧЕМУ ВЫБРАННЫЙ БОЛЬШЕ НИКУДА НЕ СДВИГАЕТСЯ ────────────────────
    До 17.09 выбранный выходил из ряда вниз, в сторону прибора: 7 px при
@@ -112,7 +112,7 @@ body{background:#110a0a;color:#a2a2a2;
    яркостью и предмет не сопротивлялся, а «ездила подсветка».
 
    Лекарство пережило болезнь. После правки кегля выбор несут три вещи
-   разом: белый #f5f5f5 против #6f645c, кегль 19 и плоская форма без
+   разом: белый #f5f5f5 против #6f676b, кегль 19 и плоская форма без
    разрядки. Сдвиг стал четвёртым признаком поверх трёх работающих, и
    на 19 px он читается уже не как механизм, а как сбитая строка. Он же
    спорит с только что выбранной плоскостью: ряд из трёх слов с одним
@@ -143,7 +143,7 @@ body{background:#110a0a;color:#a2a2a2;
    любом шрифте и кегле — считать её вручную не нужно. */
 .тень{visibility:hidden}
 .rate{display:flex;align-items:baseline;justify-content:center;gap:9px;
-  color:#8a8079;font-size:12px;letter-spacing:.08em}
+  color:#8a8286;font-size:12px;letter-spacing:.08em}
 /* Разрядка добавляется ПОСЛЕ последней буквы, и строка съезжает влево
    на половину этого хвоста. Отрицательное поле в один трек убирает
    его из коробки, и центр коробки совпадает с центром букв. */
@@ -151,7 +151,7 @@ body{background:#110a0a;color:#a2a2a2;
 .rnum{position:relative;display:inline-block;
   font-family:"Space Grotesk Variable",system-ui,sans-serif;
   font-weight:600;font-size:34px;line-height:1;letter-spacing:-.02em;
-  color:#cdc3b8;font-variant-numeric:tabular-nums}
+  color:#cdc6ca;font-variant-numeric:tabular-nums}
 /* Холст ложится ПОВЕРХ строки и снимается на последней ступени.
    `pixelated` обязателен: без него браузер сгладит блоки обратно и
    огрубление превратится в размытие. */
@@ -205,12 +205,12 @@ body.рубль .sum i{display:inline}
 .slot{overflow:hidden;line-height:inherit}
 .slot.off{width:0!important}
 .reel{display:flex;flex-direction:column;will-change:transform}
-.buy.hv .sum{color:#efd4b0;transition:color .16s cubic-bezier(.23,1,.32,1)}
-.buy.press .sum{color:#d4a574;transition:color .06s linear}
+.buy.hv .sum{color:#efc6eb;transition:color .16s cubic-bezier(.23,1,.32,1)}
+.buy.press .sum{color:#c47bbe;transition:color .06s linear}
 
 .act{font-size:15px;letter-spacing:.22em;margin-right:-.22em;text-transform:uppercase;
-  color:#d4a574;transition:color .25s cubic-bezier(.23,1,.32,1)}
-.buy.hv .act{color:#e2b98e}
+  color:#c47bbe;transition:color .25s cubic-bezier(.23,1,.32,1)}
+.buy.hv .act{color:#d68fd0}
 
 .mark{position:absolute;width:15px;height:15px;pointer-events:none;
   border-color:#d4a57459;border-style:solid;border-width:0;
@@ -221,7 +221,7 @@ body.рубль .sum i{display:inline}
 .m-bl{bottom:0;left:0;border-bottom-width:1px;border-left-width:1px}
 .m-br{bottom:0;right:0;border-bottom-width:1px;border-right-width:1px}
 @media (max-width:760px){ .mark{border-color:#d4a574a6} }
-.buy.hv .mark{border-color:#d4a574;
+.buy.hv .mark{border-color:#c47bbe;
   transition:transform .24s cubic-bezier(.23,1,.32,1),
              border-color .16s cubic-bezier(.23,1,.32,1)}
 .buy.hv .m-tl{transform:translate(5px,5px)}
@@ -242,9 +242,9 @@ body.рубль .sum i{display:inline}
   .terms button{font-size:16px;padding:11px 10px;line-height:22px}
 }
 
-.after{font-size:11px;letter-spacing:.06em;margin-right:-.06em;color:#4f4741}
+.after{font-size:11px;letter-spacing:.06em;margin-right:-.06em;color:#4d4549}
 .hint{position:fixed;left:20px;right:20px;bottom:14px;font-size:10px;
-  letter-spacing:.08em;line-height:1.7;color:#4f4741}
+  letter-spacing:.08em;line-height:1.7;color:#4d4549}
 </style>
 
 <div class="col">
@@ -406,7 +406,7 @@ function растворить(el, новое){
     fg.clearRect(0, 0, W, H);
     fg.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
     if ('letterSpacing' in fg) fg.letterSpacing = cs.letterSpacing;
-    fg.fillStyle = cs.color === 'rgba(0, 0, 0, 0)' ? '#cdc3b8' : cs.color;
+    fg.fillStyle = cs.color === 'rgba(0, 0, 0, 0)' ? '#cdc6ca' : cs.color;
     fg.textBaseline = 'alphabetic';
     const m = fg.measureText(текст);
     const asc = m.actualBoundingBoxAscent || parseFloat(cs.fontSize) * .72;

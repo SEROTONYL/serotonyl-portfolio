@@ -17,7 +17,7 @@
       врать наоборот.
    2. Всё ВНУТРИ коробки принадлежит приложению, всё СНАРУЖИ —
       сайту. Поэтому кнопка подключения собрана на языке кабинета
-      (брусок с медной полосой), а брендовый градиент #d4a574
+      (брусок с медной полосой), а брендовый градиент #c47bbe
       остаётся кнопкам сайта: иначе самая заметная кнопка страницы
       оказалась бы ненажимаемой приманкой, уводящей от покупки.
 
@@ -39,13 +39,13 @@
 
 :root{
   color-scheme:dark;
-  --bg:#110a0a; --ink:#f5f5f5; --soft:#a59a89; --gold:#d4a574;
+  --bg:#161314; --ink:#f5f5f5; --soft:#aea8ab; --gold:#c47bbe;
   --sans:"Onest","Inter",system-ui,sans-serif;
   --mono:"Geist Mono Variable","Geist Mono",ui-monospace,Menlo,monospace;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:#0a0606;color:var(--soft);font-family:var(--sans);
+body{margin:0;background:#100e0f;color:var(--soft);font-family:var(--sans);
   -webkit-font-smoothing:antialiased;overflow:hidden}
 /* Кадр — сам себе единица измерения. Пороги композиции спрашивают
    ЕГО ширину, а не ширину окна: иначе узкий кадр посреди широкого
@@ -74,7 +74,7 @@ body.phoneview .frame{box-sizing:content-box;width:390px;height:844px;
   max-width:100%;max-height:100%;border:1px solid rgba(255,255,255,.08);
   box-shadow:0 20px 60px rgba(0,0,0,.6)}
 body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bottom:20px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#4f4741}
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#4d4549}
 
 /* ── левая колонка ──────────────────────────────────────────────
    Заголовок вырос с 26 до 52 px. Причина замерена: на кадре не было
@@ -83,7 +83,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    набраны моно 11–13. Растёт ВНИЗ от направляющей: раньше висел над
    ней, и три строки уехали бы за верхнюю кромку. */
 .label{position:absolute;left:12.5%;margin:0;font-family:var(--mono);
-  font-size:11px;letter-spacing:.14em;color:#6f655a;text-transform:uppercase}
+  font-size:11px;letter-spacing:.14em;color:#746c70;text-transform:uppercase}
 .h2{position:absolute;left:12.5%;margin:0;font-size:52px;font-weight:600;
   line-height:1.08;letter-spacing:-.02em;color:var(--ink);max-width:12ch}
 /* Фраза переехала налево под заголовок: это сильнейший текст экрана,
@@ -98,42 +98,42 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    На тёмном фоне тело поднимают СВЕТЛЫМ СВЕРХУ, а не чёрным снизу;
    приём взят из продукта — там медный волосок уже принят. */
 .box{position:absolute;width:547px;padding:32px;border-radius:18px;
-  background:#1d1712;border:1px solid rgba(255,255,255,.10);
-  box-shadow:inset 0 1px 0 rgba(226,185,142,.18), 0 32px 80px rgba(0,0,0,.55);
+  background:#272224;border:1px solid rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(214,143,208,.18), 0 32px 80px rgba(0,0,0,.55);
   overflow:hidden}
 .cab,.app,.fly-layer{position:absolute;left:32px;right:32px}
 .fly-layer{top:32px;pointer-events:none;z-index:3}
 
 /* ── кабинет ─────────────────────────────────────────────────── */
 .ctop{display:flex;align-items:center;justify-content:space-between;height:38px}
-.ctop .t{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:#ece7dd;
+.ctop .t{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:#ece8ea;
   text-transform:uppercase}
 .seg{display:flex;align-items:center;width:151px;height:38px;border-radius:14px;
-  background:#0f0c09;padding:3px}
+  background:#121011;padding:3px}
 .seg b{flex:1 1 0;height:32px;border-radius:11px;display:flex;align-items:center;
   justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;
   font-weight:400;color:var(--soft);text-transform:uppercase}
-.seg b.on{background:linear-gradient(#dcb486,#c79a6b);color:#241a10}
+.seg b.on{background:linear-gradient(#d68fd0,#c47bbe);color:#2a2427}
 .steps{margin-top:45.7px;font-size:13px;color:var(--soft)}
-.steps b{color:#f3eee4;font-weight:700}
-.steps i{font-style:normal;color:#6f655a;padding:0 6px}
+.steps b{color:#f2eef0;font-weight:700}
+.steps i{font-style:normal;color:#746c70;padding:0 6px}
 .field{position:relative;display:flex;align-items:center;height:50px;margin-top:18px;
-  border-radius:13px;background:#0f0c09;border:1px solid rgba(255,255,255,.12);padding:0 16px}
+  border-radius:13px;background:#121011;border:1px solid rgba(255,255,255,.12);padding:0 16px}
 .field .url{font-family:var(--mono);font-size:14px;color:var(--soft);white-space:nowrap}
 .field .url i{font-style:normal;display:inline-block}
 .field .ico{position:absolute;top:50%;width:34px;height:34px;margin-top:-17px;border-radius:9px;
-  background:#171411;border:1px solid rgba(255,255,255,.13);
+  background:#1f1b1d;border:1px solid rgba(255,255,255,.13);
   display:flex;align-items:center;justify-content:center}
 .field .ico.eye{right:62px} .field .ico.copy{right:16px}
 .field .ico svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:1.5}
 
-/* Брусок — замер живой кнопки кабинета: волосок #63513d сверху и
+/* Брусок — замер живой кнопки кабинета: волосок #5f4a5c сверху и
    заливка сверху вниз. Медная полоса снизу, которая была в замере,
    снята по решению владельца: сперва у кнопки подключения (там её
    место занял нагрев), следом и у кнопки копирования — ради одного
    языка у обеих. Это осознанное расхождение с оригиналом. */
 .brick{position:relative;height:50px;border-radius:14px;overflow:hidden;
-  background:linear-gradient(#292018,#100b07);box-shadow:inset 0 1px 0 #63513d;
+  background:linear-gradient(#2e282b,#151213);box-shadow:inset 0 1px 0 #5f4a5c;
   display:flex;align-items:center;justify-content:center}
 .brick span.t{position:absolute;font-family:var(--sans);font-size:14px;font-weight:700;
   color:var(--ink);white-space:nowrap}
@@ -141,7 +141,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    её. Без полосы видимое поле совпадает с боксом, и центр честный. */
 .cbtn{margin-top:18px}
 .cbtn2{height:48px;margin-top:6px;border-radius:13px;
-  background:linear-gradient(#161009,#110c07);box-shadow:inset 0 -3px 0 #080604;
+  background:linear-gradient(#1f1b1d,#191617);box-shadow:inset 0 -3px 0 #0b0a0a;
   display:flex;align-items:center;justify-content:center;font-size:12px;color:#aeacaa}
 
 /* ── приложение ─────────────────────────────────────────────── */
@@ -151,7 +151,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 .list{overflow:hidden}
 .gr{overflow:hidden}          /* группа узла обрезается своей кромкой */
 .grp{height:48px;display:flex;align-items:center;font-family:var(--mono);font-size:13px;
-  color:#ece7dd;letter-spacing:.02em}
+  color:#ece8ea;letter-spacing:.02em}
 .grp i{font-style:normal}
 /* Просветы перед маской. Обе величины — из замера чернил, а не на глаз.
    В ГРУППЕ маска — отдельное слово (закрытый хеш), и просвет перед ней
@@ -170,9 +170,9 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 /* Заголовок узла со счётчиком — вместо восьмикратного «узел N».
    Так устроены все клиенты, у которых стран нет. */
 .node{display:flex;align-items:center;justify-content:space-between;height:34px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#6f655a;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#746c70;
   text-transform:uppercase;border-top:1px solid rgba(255,255,255,.06);margin-top:6px}
-.node b{font-weight:400;color:#4f4741}
+.node b{font-weight:400;color:#4d4549}
 .win{height:48px;overflow:hidden}
 /* Слот слева ПУСТОЙ. В живых клиентах ведущий значок несёт либо
    страну, либо состояние — третьего назначения нет ни у кого. Стран
@@ -182,13 +182,13 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
   border-radius:8px}
 .srow .pk{position:absolute;left:0;top:50%;width:2px;height:20px;margin-top:-10px;
   background:var(--gold);border-radius:1px;transform:scaleY(0);transform-origin:50% 50%}
-.srow .p{font-family:var(--mono);font-size:13px;color:#ece7dd;letter-spacing:.02em}
-.srow .p i{font-style:normal;color:#8a8073}   /* второй вес внутри строки */
+.srow .p{font-family:var(--mono);font-size:13px;color:#ece8ea;letter-spacing:.02em}
+.srow .p i{font-style:normal;color:#8a8286}   /* второй вес внутри строки */
 
 /* ── подключение ────────────────────────────────────────────── */
 .conn{margin-top:20px}
 .conn .st{display:block;height:16px;margin-bottom:10px;font-family:var(--mono);
-  font-size:11px;letter-spacing:.14em;color:#6f655a;text-transform:uppercase}
+  font-size:11px;letter-spacing:.14em;color:#746c70;text-transform:uppercase}
 .conn .brick{cursor:pointer;will-change:transform}
 /* НАГРЕВ вместо заливки. Прошлая версия была плашкой, наклеенной
    поверх кнопки: жёсткий вертикальный фронт со светлой чертой ехал
@@ -205,15 +205,15 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    движение читается живым. */
 .conn .heat{position:absolute;left:0;top:0;bottom:0;width:calc(100% + 60px);
   background:linear-gradient(90deg,
-    rgba(212,165,116,.26) 0,
-    rgba(212,165,116,.26) calc(100% - 60px),
-    rgba(212,165,116,0) 100%);
-  box-shadow:inset 0 1px 0 rgba(226,185,142,.45);
+    rgba(196,123,190,.26) 0,
+    rgba(196,123,190,.26) calc(100% - 60px),
+    rgba(196,123,190,0) 100%);
+  box-shadow:inset 0 1px 0 rgba(214,143,208,.45);
   will-change:transform}
-.pw{width:19px;height:19px;fill:none;stroke-width:1.7;stroke:#8a8073}
+.pw{width:19px;height:19px;fill:none;stroke-width:1.7;stroke:#8a8286}
 
 .fly{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);
-  font-size:13px;color:#ece7dd;letter-spacing:.02em;transform-origin:0 50%}
+  font-size:13px;color:#ece8ea;letter-spacing:.02em;transform-origin:0 50%}
 /* Куски клона растянуты на всю его высоту и центрируют текст сами —
    так же, как это делает настоящая строка группы (флекс, 48 px, текст
    17). Стояло `top:0`, и буквы клона держались по ВЕРХУ коробки: сама
@@ -222,7 +222,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 .fly i{position:absolute;left:0;top:0;bottom:0;font-style:normal;
   display:flex;align-items:center}
 .hint{position:absolute;left:12.5%;bottom:36px;margin:0;font-family:var(--mono);
-  font-size:11px;letter-spacing:.08em;color:#4f4741}
+  font-size:11px;letter-spacing:.08em;color:#4d4549}
 
 /* ── МЕТКА «НИЖЕ!» ──────────────────────────────────────────────
    Перенесена с первого экрана ДОСЛОВНО — устройство, размеры, ход и
@@ -245,7 +245,7 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
    заголовок и фраза. Метка встаёт в их колонку, а не висит в никуда. */
 .smark{position:absolute;left:12.5%;bottom:11%;z-index:4}
 .mwin{display:block;width:max-content;overflow:hidden;height:var(--cell);
-  text-decoration:none;color:#8a8073}      /* 5,05:1 к фону */
+  text-decoration:none;color:#8a8286}      /* 5,05:1 к фону */
 .mwin:hover{color:var(--ink)}
 .mwin:focus-visible{outline:2px solid var(--gold);outline-offset:6px}
 .mlane{display:block;transform:translateY(-50%)}
@@ -1002,9 +1002,9 @@ function scene(){
   gsap.set(say,  {autoAlpha:0, y:8});
   gsap.set(pick, {scaleY:0});
   gsap.set(rows[PICK], {backgroundColor:'rgba(255,255,255,0)'});
-  gsap.set(rows[PICK].querySelector('.p'), {color:'#ece7dd'});
+  gsap.set(rows[PICK].querySelector('.p'), {color:'#ece8ea'});
   st.textContent = ST_1; connected = false;
-  gsap.set(pw, {stroke:'#8a8073'});
+  gsap.set(pw, {stroke:'#8a8286'});
 
   tl = gsap.timeline({paused:true});
 
@@ -1075,7 +1075,7 @@ function scene(){
 
   /* ── КЛОН РОЖДАЕТСЯ КОПИЕЙ ИСТОЧНИКА ────────────────────────
      Он собирался по стилю ЦЕЛИ и подменял собой поле мгновенно. Замер
-     кадра подмены: строка разом белела (#a59a89 → #ece7dd) и
+     кадра подмены: строка разом белела (#aea8ab → #ece8ea) и
      растягивалась на 20,6 px, потому что несла кегль и трекинг строки
      группы, а не поля. Хвост со слешем при этом наезжал на маску —
      голова кончалась на 1493,59 при точках, начинающихся с 1477.
@@ -1211,7 +1211,7 @@ function scene(){
   // надо ПОКАЗАТЬ, а не нарисовать заранее.
     .to(pick, {scaleY:1, duration:.24, ease:E_IN}, 5.30)
     .to(rows[PICK], {backgroundColor:'rgba(255,255,255,.045)', duration:.24, ease:E_IN}, 5.30)
-    .to(rows[PICK].querySelector('.p'), {color:'#efd4b0', duration:.24, ease:E_IN}, 5.30)
+    .to(rows[PICK].querySelector('.p'), {color:'#efc6eb', duration:.24, ease:E_IN}, 5.30)
   // Кнопка оживает — теперь есть что подключать.
     .to(conn, {autoAlpha:1, duration:.315, ease:E_IN}, 5.62)
   /* Об этом моменте экран сообщает наружу. Он же — единственное место,
@@ -1250,7 +1250,7 @@ function doConnect(){
   press(t, cbtn, 0);
   if (connected){                       // повторное нажатие — отключаемся
     t.call(() => { st.textContent = ST_1; connected = false; }, null, PRESS_ANSWER)
-     .to(pw,   {stroke:'#8a8073', duration:.21, ease:E_MOVE}, PRESS_ANSWER)
+     .to(pw,   {stroke:'#8a8286', duration:.21, ease:E_MOVE}, PRESS_ANSWER)
      .to(heat, {xPercent:-100, duration:.34, ease:E_OUT}, PRESS_ANSWER);
     return;
   }
@@ -1261,7 +1261,7 @@ function doConnect(){
            {keyframes: FILL.map(k => ({xPercent:XP(k.v), duration:k.d, ease:k.e}))},
            PRESS_ANSWER)
    .call(() => { st.textContent = ST_3; connected = true; startMark(); })
-   .to(pw, {stroke:'#d4a574', duration:.21, ease:E_IN}, '<');
+   .to(pw, {stroke:'#c47bbe', duration:.21, ease:E_IN}, '<');
 }
 cbtn.addEventListener('click', doConnect);
 
@@ -1289,7 +1289,7 @@ if (reduce){
   // «подключено». Запуск ветки поймал противоречие: нагрев стоял на
   // единице, а над ним висело «подключиться».
   st.textContent = ST_3; connected = true;
-  gsap.set(pw, {stroke:'#d4a574'});
+  gsap.set(pw, {stroke:'#c47bbe'});
   cab.style.position = 'static'; app.style.position = 'static';
   app.style.marginTop = '24px'; box.style.height = 'auto';
   place();
