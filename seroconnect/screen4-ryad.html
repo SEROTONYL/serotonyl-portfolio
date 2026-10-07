@@ -492,6 +492,15 @@ buy.addEventListener('blur', () => { buy.classList.remove('hv'); отжать();
 buy.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') жать(); });
 buy.addEventListener('keyup',   e => { if (e.key === 'Enter' || e.key === ' ') отжать(); });
 
+/* Переход на оплату с выбранным сроком (07.10.2026). Экран живёт в
+   айфрейме склейки, поэтому уходит верхнее окно, а не сам кадр.
+   Срок передаётся номером: ?t=1, 2 или 3. */
+buy.addEventListener('click', () => {
+  const куда = 'oplata.html?t=' + (выбран + 1);
+  try { (window.top || window).location.href = куда; }
+  catch { location.href = куда; }
+});
+
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (k === '1') ставить(0);
