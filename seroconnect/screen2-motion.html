@@ -540,7 +540,7 @@ frame.innerHTML =
       `<div class="steps"><b>1.</b> скопируй ссылку <i>→</i> <b>2.</b> вставь в приложение</div>` +
       `<div class="field"><span class="url" id="url">` +
           `<i id="uhead">${URL_HEAD}</i><i id="umask">${MASK}</i></span>` +
-        `<span class="ico eye">${eyeSVG}</span><span class="ico copy">${copySVG}</span></div>` +
+        `</div>` +
       `<div class="brick cbtn" id="btn">` +
         `<span class="t" id="lbl1">Скопировать ссылку подписки</span>` +
         `<span class="t" id="lbl2">Скопировано</span></div>` +
@@ -917,14 +917,16 @@ function layoutList(avail){
    В поле остаётся ровно столько места, сколько остаётся; на 375 от
    пяти точек уже наезжает глаз. Считаем: сколько точек влезает между
    концом головы и левой кромкой глаза — столько и ставим, но не
-   меньше трёх, иначе маска перестаёт читаться множеством. */
+   меньше трёх, иначе маска перестаёт читаться множеством.
+   07.10.2026 глаз и копирование из поля сняты владельцем: лишние.
+   Предел теперь правое поле самого поля (те же 16 px отступа). */
 function applyMask(n){
   if (n === MASK.length) return;
   MASK = '•'.repeat(n);
   umask.textContent = MASK; gmask.textContent = MASK;
 }
 function fitMask(){
-  const eyeL = frame.querySelector('.ico.eye').getBoundingClientRect().left;
+  const eyeL = frame.querySelector('.field').getBoundingClientRect().right - 16 + 10;
   const g    = document.createRange();
   g.selectNodeContents(umask);
   const gb   = g.getBoundingClientRect();
