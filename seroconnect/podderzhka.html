@@ -403,6 +403,18 @@ function ставитьРазговор(){
 
 function всё(){ $('#outage').hidden = !сбой; рисоватьСписок(); рисоватьРазговор(); }
 
+/* ── ЗАЩИТА ОТ БЫСТРЫХ НАЖАТИЙ ─────────────────────────────────────
+   После действия, которое двигает страницу (раскрытие строки, форма,
+   перерисовка), клики на короткое время глотаются. Иначе второй тап
+   попадает в то, что уже уехало под палец: строка открывается и тут же
+   закрывается, или «вопрос решён» дважды щёлкает по списку под ним.
+   Слушаем на захвате, раньше всех остальных обработчиков. */
+let тишинаДо = 0;
+const замолчать = мс => { тишинаДо = performance.now() + мс; };
+document.addEventListener('click', e => {
+  if (performance.now() < тишинаДо){ e.stopPropagation(); e.preventDefault(); }
+}, true);
+
 /* ── ДЕЙСТВИЯ ─────────────────────────────────────────────────────── */
 $('#list').addEventListener('click', e => {
   const h = e.target.closest('.qh');
@@ -412,6 +424,7 @@ $('#list').addEventListener('click', e => {
     if (k !== 'past') document.querySelectorAll('.q.open:not(.past)').forEach(x => { if (x !== q){
       x.classList.remove('open'); x.querySelector('.fold').classList.remove('open');
       x.querySelector('.pm').textContent = '+'; x.querySelector('.qh').setAttribute('aria-expanded', false); }});
+    замолчать(узкий() ? 380 : 260);
     q.classList.toggle('open', стала); q.querySelector('.fold').classList.toggle('open', стала);
     q.querySelector('.pm').textContent = стала ? '−' : '+';
     h.setAttribute('aria-expanded', стала);
@@ -431,6 +444,7 @@ function писать(){
   const t = $('#talk'), m = $('#msg'); if (!m) return;
   if (!узкий()){ m.focus({preventScroll:true}); return; }
   if (t.classList.contains('shut')){
+    замолчать(500);
     пишет = true; t.classList.remove('shut');
     t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
   }
@@ -442,8 +456,8 @@ $('#talk').addEventListener('click', e => {
   const id = e.target.closest('button')?.id;
   if (id === 'send') отправить();
   if (id === 'attach') $('#fileinp').click();
-  if (id === 'again'){ отправлено = false; рисоватьРазговор(); }
-  if (id === 'close'){ тикет = false; прошлых++; ход = 'вы'; всё(); }
+  if (id === 'again'){ замолчать(400); отправлено = false; рисоватьРазговор(); }
+  if (id === 'close'){ замолчать(400); тикет = false; прошлых++; ход = 'вы'; всё(); }
 });
 $('#talk').addEventListener('input', e => {
   if (e.target.tagName === 'TEXTAREA'){ e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }
@@ -472,9 +486,9 @@ function отправить(){
       переписка = тикет ? переписка : [];
       переписка.push({sup:false, when:`вы · 07.10, ${чч}:${мм}`, tx:m.value.trim().replace(/</g,'&lt;'), at: файл ? 'скриншот: ' + файл : ''});
       тикет = true; ход = 'мы'; $('#fileinp').value = '';
-      всё();
+      замолчать(400); всё();
     } else {
-      почтаОтвета = em.value.trim().replace(/</g,'&lt;'); отправлено = true; рисоватьРазговор();
+      почтаОтвета = em.value.trim().replace(/</g,'&lt;'); отправлено = true; замолчать(400); рисоватьРазговор();
     }
   }, 900);
 }
