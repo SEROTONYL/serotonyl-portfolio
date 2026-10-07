@@ -19,7 +19,7 @@
      не работает 20, оплатил без доступа 16, куда ссылку 11, до покупки 0.
 
      Адрес: ?in вошёл, ?s=none|pending|active, ?t обращение, ?pay с оплаты.
-     Клавиши: L S T P.
+     Клавиши: L S T P O. ?down строка о сбое.
      ══════════════════════════════════════════════════════════════════ -->
 <link rel="stylesheet" href="grid.css">
 <script src="grid.js" defer></script>
@@ -65,7 +65,7 @@ main{flex:1;display:flex;align-items:center;justify-content:center;
    нами»: либо форма нового обращения, либо открытое обращение. Новое
    при открытом бэкенд не создаст, поэтому место одно на двоих. */
 main{flex:1;display:block;padding:132px 20px 96px}
-.col{display:flex;flex-direction:column;gap:40px;width:100%}
+.col{display:flex;flex-direction:column;align-items:stretch;gap:40px;width:100%}
 .ask{display:flex;flex-direction:column}
 h1{font-family:var(--sans);font-weight:600;font-size:44px;line-height:1;
   letter-spacing:-.02em;color:#f5f5f5;margin-bottom:28px}
@@ -117,8 +117,11 @@ h1{font-family:var(--sans);font-weight:600;font-size:44px;line-height:1;
 
 /* ── ФОРМА И ОБРАЩЕНИЕ ───────────────────────────────────────────── */
 .talk{display:flex;flex-direction:column;gap:22px}
-.topic{font-size:11px;letter-spacing:.08em;color:#6f676b}
-.topic b{font-weight:400;color:#cdc6ca}
+/* Строка о сбое. Ставится вручную, когда лежит часть серверов:
+   обращения «не работает» идут пачками ровно в такие дни. */
+.outage{border-left:1px solid #d68fd0;padding:2px 0 2px 14px;margin-bottom:36px;
+  font-size:13px;line-height:1.7;color:#cdc6ca}
+.outage span{display:block;font-size:11px;letter-spacing:.04em;color:#6f676b}
 .flbl{display:block;font-size:11px;letter-spacing:.08em;color:#6f676b;margin-bottom:2px}
 .field{width:100%;background:none;border:0;border-bottom:1px solid #3a3236;
   font-family:inherit;font-size:15px;color:#f5f5f5;padding:10px 0;outline:none;
@@ -128,7 +131,7 @@ h1{font-family:var(--sans);font-weight:600;font-size:44px;line-height:1;
 .field:hover{border-bottom-color:#4d4549}
 .field:focus{border-bottom-color:#c47bbe}
 .field.bad{border-bottom-color:#b8606f}
-textarea.field{min-height:92px;font-size:14px}
+textarea.field{font-size:14px;overflow:hidden}
 .note{font-size:11px;letter-spacing:.04em;line-height:1.6;color:#6f676b;margin-top:8px}
 .note.bad{color:#c98a95}
 .note:empty{display:none}
@@ -151,7 +154,11 @@ textarea.field{min-height:92px;font-size:14px}
 .send.is-down{transform:translateY(3px);box-shadow:0 0 0 #00000000,0 2px 4px -3px #00000066,inset 0 2px 3px #00000080;
   transition:color .14s,transform 180ms cubic-bezier(.4,0,.2,1),box-shadow 180ms cubic-bezier(.4,0,.2,1)}
 .send.busy{animation:дышать 1.4s ease-in-out infinite;cursor:progress}
+@keyframes появиться{from{opacity:0;transform:translateY(10px)}}
 @keyframes дышать{50%{opacity:.5}}
+a.send{text-decoration:none}
+.ans a.send{color:#fff;border-bottom:0}
+.ans a.send:hover{color:#c47bbe}
 
 .done h2{font-family:var(--sans);font-weight:600;font-size:28px;color:#f5f5f5;letter-spacing:-.01em}
 .done p{font-size:13px;line-height:1.7;color:#8a8286;margin-top:8px}
@@ -198,12 +205,18 @@ textarea.field{min-height:92px;font-size:14px}
   main{padding:132px 0 96px}
   .col{display:grid;grid-template-columns:repeat(var(--колонок),minmax(0,1fr));
     column-gap:var(--жёлоб);padding:0 var(--поле-п) 0 var(--поле-л);align-items:start}
-  .ask{grid-column:1/7;grid-row:1}
-  .talk{grid-column:8/13;grid-row:1;position:sticky;top:96px;padding-top:72px}
+  .outage{grid-column:1/13;grid-row:1}
+  .ask{grid-column:1/7;grid-row:2}
+  .talk{grid-column:8/13;grid-row:2;position:sticky;top:96px;padding-top:72px}
 }
 @media (max-width:959px){
+  .outage{order:-2}
   .talk.thread{order:-1}
-  .q .talk{padding:26px 0 26px}
+  /* Форма на узком не сидит в строках: строка раскрывает только
+     короткий ответ. Форма появляется под списком по «написать нам». */
+  .talk.shut{display:none}
+  .talk.show{animation:появиться .45s cubic-bezier(.23,1,.32,1)}
+  .talk{scroll-margin-top:72px}
 }
 </style>
 
@@ -231,6 +244,7 @@ textarea.field{min-height:92px;font-size:14px}
     </header>
 <main>
 <div class="col" id="col">
+  <p class="outage" id="outage" hidden>Сейчас перебои на части серверов, чиним. Писать об этом не нужно.<span>обновлено 17:40</span></p>
   <section class="ask">
     <h1>Что случилось?</h1>
     <div id="list"></div>
@@ -253,6 +267,8 @@ let сОплаты = адрес.has('pay');
 let отправлено = false;
 let открыта = сОплаты ? 'paid' : null;
 let прошлых = 2;
+let пишет = false;             // на узком форма показана
+let сбой = адрес.has('down') || адрес.has('сбой');
 let почтаОтвета = '';
 let переписка = [
   {sup:false, when:'вы · 06.10, 21:14', tx:'Не подключается ни один сервер, пишет тайм-аут. Вчера всё работало.'},
@@ -271,7 +287,7 @@ const ОТВЕТЫ = {
   renew: {t:'Продлить подписку', b:() => `
     <p class="fact">подписка кончилась 02.10</p>
     <p>После оплаты обновите подписку в приложении. Серверы вернутся в список сами, заново добавлять ссылку не нужно.</p>
-    <p class="more"><a href="oplata.html">продлить</a></p>`},
+    <p class="more"><a class="send" href="oplata.html">продлить за 199 ₽</a></p>`},
   work: {t:'Не работает', b:() => `
     ${вошёл ? (сост === 'active'
       ? '<p class="fact">подписка активна до 07.11, дело не в оплате</p>'
@@ -297,8 +313,17 @@ const ОТВЕТЫ = {
       <li><span>Ссылка появится там сама, обычно за несколько секунд.</span></li>
     </ol>
     <p>Если кабинет пишет, что подписки нет, напишите нам. Найдём платёж.</p>`},
-  link: {t:'Куда вставлять ссылку', b:() => `
-    <p>Ссылка лежит в ${вошёл ? '<a href="#">кабинете</a>' : 'кабинете'}. Её вставляют в VPN-приложение, а какое приложение и куда нажать, написано в <a href="#">инструкции для вашего устройства</a>.</p>`},
+  link: {t:'Куда вставлять ссылку', b:() => !вошёл ? `
+    <p>Ссылка лежит в кабинете. Её вставляют в VPN-приложение, а какое приложение и куда нажать, написано в <a href="#">инструкции для вашего устройства</a>.</p>`
+    : сост === 'active' ? `
+    <p>Её вставляют в VPN-приложение, а какое приложение и куда нажать, написано в <a href="#">инструкции для вашего устройства</a>.</p>
+    <p class="more"><button class="send" data-copy type="button">скопировать ссылку</button></p>`
+    : сост === 'pending' ? `
+    <p class="fact">ссылка ещё готовится</p>
+    <p>Кабинет покажет её сам. Её вставляют в VPN-приложение, а куда нажать, написано в <a href="#">инструкции для вашего устройства</a>.</p>`
+    : `
+    <p class="fact">подписка кончилась 02.10</p>
+    <p>Старая ссылка заработает снова после продления, заново добавлять её не нужно.</p>`},
   refund: {t:'Вернуть деньги', b:() => `
     <p>В течение трёх дней с оплаты, причину объяснять не нужно. Позже тоже можно, если техническую проблему не удалось решить.</p>
     <p>Напишите нам${вошёл ? '' : ' с почты аккаунта'}. Подробнее в <a href="#">условиях оплаты</a>.</p>`},
@@ -317,12 +342,11 @@ const порядок = () => !вошёл ? ['work','paid','link','refund','other
 const узкий = () => matchMedia('(max-width:959px)').matches;
 
 function рисоватьСписок(){
-  $('#col').appendChild($('#talk'));   // форма могла сидеть внутри строки
   const html = порядок().map(k => {
     const о = ОТВЕТЫ[k];
-    const пишем = k === 'renew' ? '' : k === 'other' ? '' :
+    const пишем = k === 'renew' ? '' :
       `<p class="more"><button class="txt acc" data-write type="button"><u>${тикет && вошёл
-        ? 'дописать в текущее обращение' : 'не помогло, написать нам'}</u></button></p>`;
+        ? 'дописать в текущее обращение' : k === 'other' ? 'написать нам' : 'не помогло, написать нам'}</u></button></p>`;
     return `<div class="q${открыта === k ? ' open' : ''}" data-k="${k}">
       <button class="qh" type="button" aria-expanded="${открыта === k}">
         <span>${о.t}</span><span class="pm">${открыта === k ? '−' : '+'}</span></button>
@@ -339,8 +363,6 @@ function рисоватьСписок(){
   $('#list').innerHTML = html + past;
 }
 
-function тема(){ return открыта && !['other','renew'].includes(открыта) && ОТВЕТЫ[открыта] ? ОТВЕТЫ[открыта].t.toLowerCase() : 'другое'; }
-
 function рисоватьРазговор(){
   const t = $('#talk');
   t.classList.toggle('thread', вошёл && тикет);
@@ -350,7 +372,7 @@ function рисоватьРазговор(){
         <span class="turn${ход === 'мы' ? ' them' : ''}">${ход === 'вы' ? 'ждём вас' : 'ждём ответа поддержки'}</span></div>
       <div class="msgs">${переписка.map(м => `<div class="msg${м.sup ? ' sup' : ''}">
         <p class="who">${м.when}</p><p class="tx">${м.tx}</p>${м.at ? `<p class="at">${м.at}</p>` : ''}</div>`).join('')}</div>
-      <div><textarea class="field" id="msg" rows="3" placeholder="ответить"></textarea><p class="note" id="msgnote"></p></div>
+      <div><textarea class="field" id="msg" rows="1" placeholder="ответить"></textarea><p class="note" id="msgnote"></p></div>
       <div class="acts"><button class="txt" id="attach" type="button"><u>прикрепить скриншот</u></button><button class="send" id="send" type="button">отправить</button></div>
       <p class="file" id="file"></p>
       <button class="txt close" id="close" type="button"><u>вопрос решён, закрыть</u></button>`;
@@ -360,13 +382,12 @@ function рисоватьРазговор(){
       <button class="txt" id="again" type="button" style="align-self:flex-start"><u>написать ещё</u></button>`;
   } else {
     t.innerHTML = `
-      <p class="topic">тема: <b id="topic">${тема()}</b></p>
       ${сОплаты ? `<div class="payref">платёж <b>2c1f…a08e</b> · 199 ₽ · 07.10, 15:12<br>приложим к обращению</div>` : ''}
+      <div><label class="flbl" for="msg">что случилось</label>
+        <textarea class="field" id="msg" rows="1" placeholder="коротко, своими словами"></textarea><p class="note" id="msgnote"></p></div>
       ${вошёл ? '' : `<div><label class="flbl" for="email">почта для ответа</label>
         <input class="field" id="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" spellcheck="false">
         <p class="note" id="mailnote"></p></div>`}
-      <div><label class="flbl" for="msg">что случилось</label>
-        <textarea class="field" id="msg" rows="3" placeholder="коротко, своими словами"></textarea><p class="note" id="msgnote"></p></div>
       <div class="acts">${вошёл ? '<button class="txt" id="attach" type="button"><u>прикрепить скриншот</u></button>' : '<span></span>'}
         <button class="send" id="send" type="button">отправить</button></div>
       <p class="file" id="file"></p>`;
@@ -374,16 +395,13 @@ function рисоватьРазговор(){
   ставитьРазговор();
 }
 
-/* На узком форма нового обращения встаёт внутрь раскрытой строки,
-   переписка остаётся наверху. На широком всё на своих местах. */
+/* На узком форма спрятана, пока не нажали «написать нам» (на широком
+   класс ничего не делает). Переписка и «получили» видны всегда. */
 function ставитьРазговор(){
-  const t = $('#talk');
-  const вСтроку = узкий() && !(вошёл && тикет) && открыта && открыта !== 'renew';
-  const куда = вСтроку ? document.querySelector(`.q[data-k="${открыта}"] .ans`) : $('#col');
-  if (t.parentNode !== куда) куда.appendChild(t);
+  $('#talk').classList.toggle('shut', !(вошёл && тикет) && !отправлено && !пишет);
 }
 
-function всё(){ рисоватьСписок(); рисоватьРазговор(); }
+function всё(){ $('#outage').hidden = !сбой; рисоватьСписок(); рисоватьРазговор(); }
 
 /* ── ДЕЙСТВИЯ ─────────────────────────────────────────────────────── */
 $('#list').addEventListener('click', e => {
@@ -398,16 +416,26 @@ $('#list').addEventListener('click', e => {
     q.querySelector('.pm').textContent = стала ? '−' : '+';
     h.setAttribute('aria-expanded', стала);
     if (k !== 'past'){ открыта = стала ? k : null;
-      const tp = $('#topic'); if (tp) tp.textContent = тема();
-      ставитьРазговор(); }
+      }
     return;
   }
   if (e.target.closest('[data-write]')) писать();
+  const c = e.target.closest('[data-copy]');
+  if (c && !c.dataset.busy){
+    try { navigator.clipboard.writeText('https://seroconnect.example/sub/7f3a9c'); } catch {}
+    c.dataset.busy = 1; c.textContent = 'скопировано';
+    setTimeout(() => { c.textContent = 'скопировать ссылку'; delete c.dataset.busy; }, 1600);
+  }
 });
 function писать(){
-  const m = $('#msg'); if (!m) return;
-  if (!узкий()) m.focus({preventScroll:true});
-  else { m.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(() => m.focus({preventScroll:true}), 350); }
+  const t = $('#talk'), m = $('#msg'); if (!m) return;
+  if (!узкий()){ m.focus({preventScroll:true}); return; }
+  if (t.classList.contains('shut')){
+    пишет = true; t.classList.remove('shut');
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+  }
+  t.scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(() => m.focus({preventScroll:true}), 450);
 }
 
 $('#talk').addEventListener('click', e => {
@@ -455,7 +483,8 @@ function отправить(){
 addEventListener('keydown', e => {
   if (e.target.matches('input,textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
-  if (k === 'l' || k === 'д'){ вошёл = !вошёл; отправлено = false; }
+  if (k === 'o' || k === 'щ'){ сбой = !сбой; }
+  else if (k === 'l' || k === 'д'){ вошёл = !вошёл; отправлено = false; }
   else if (k === 's' || k === 'ы'){ вошёл = true; сост = {none:'pending', pending:'active', active:'none'}[сост]; открыта = null; }
   else if (k === 't' || k === 'е'){ вошёл = true; тикет = !тикет; ход = 'вы'; }
   else if (k === 'p' || k === 'з'){ сОплаты = !сОплаты; открыта = сОплаты ? 'paid' : null; отправлено = false; }
@@ -465,7 +494,7 @@ addEventListener('keydown', e => {
 function статус(){
   const h = $('.hint'); if (!h) return;
   h.textContent = (вошёл ? 'вошёл, ' + ИМЯ_СОСТ[сост] + (тикет ? ', есть обращение' : '') : 'не вошёл')
-    + (сОплаты ? ', с оплаты' : '') + ' · L вход · S подписка · T обращение · P с оплаты';
+    + (сОплаты ? ', с оплаты' : '') + ' · L вход · S подписка · T обращение · P с оплаты · O сбой';
 }
 /* Нажатие «отправить»: тот же пол в 180 мс, что у кнопки кабинета.
    Кнопка перерисовывается, поэтому слушаем на панели. */
@@ -476,7 +505,7 @@ function статус(){
     const ост = 180 - (performance.now() - нач);
     if (ост > 0) отл = setTimeout(() => { отл = 0; b.classList.remove('is-down'); }, ост);
     else b.classList.remove('is-down'); };
-  $('#talk').addEventListener('pointerdown', вниз);
+  document.addEventListener('pointerdown', вниз);
   addEventListener('pointerup', вверх); addEventListener('pointercancel', вверх); }
 addEventListener('resize', ставитьРазговор);
 всё(); статус();
