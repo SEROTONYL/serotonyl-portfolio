@@ -149,4 +149,10 @@ def main():
     (D / 'index.html').write_text(out)
     print('index.html', len(out.splitlines()), 'строк')
 
+# С 14.10.2026 источник лендинга живёт в сайте (vpn-site, src/landing/index.html)
+# и несёт правки, которых в черновиках нет. Пересборка их сотрёт, поэтому
+# без явного --force скрипт не пишет ничего.
+if '--force' not in sys.argv:
+    sys.exit('merge.py: лендинг правится в vpn-site/src/landing/index.html, '
+             'пересборка сотрёт правки. Запуск только с --force.')
 main()
