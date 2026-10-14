@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-41.85 0 414.59 414.59">
+          <defs>
+            <linearGradient id="lg1" x1="254.43" y1="206.97" x2="32.61" y2="51.65" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#efc6eb"/><stop offset="1" stop-color="#c47bbe"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="135.09" y1="356.68" x2="15.57" y2="300.94" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#b874b0"/><stop offset="1" stop-color="#8c5285"/>
+            </linearGradient>
+            <linearGradient id="lg3" x1="331.68" y1="322.92" x2="169.01" y2="279.34" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#6e3f68"/><stop offset="1" stop-color="#5a3355"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,191.56l164.22,95.33v-93.33l-82.11-48.44,83.56-48.67,83.66,48.44,81.56-47.11L165.44,0,0,98.22v93.33Z" fill="url(#lg1)"/>
+          <polygon points="0 240.37 144.96 325.7 144.96 414.59 0 329.93 0 240.37" fill="url(#lg2)"/>
+          <polygon points="186.52 327.48 186.52 414.59 330.89 329.26 330.89 192.15 253.41 237.7 252.96 288.59 186.52 327.48" fill="url(#lg3)"/>
+        </svg>

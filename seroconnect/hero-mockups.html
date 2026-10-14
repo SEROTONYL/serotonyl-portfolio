@@ -786,6 +786,8 @@ html{cursor:default}
     position:static; width:auto; max-width:none; margin-top:var(--g-1);
   }
 
+/* Счётчик не пришёл (пункт 2 беклога): строки нет, место за ней остаётся. */
+body.nolive .stat,body.nolive .asof{ visibility:hidden }
 </style>
 </head>
 <body>
@@ -835,7 +837,13 @@ html{cursor:default}
 'use strict';
 
 // ── живой источник ────────────────────────────────────────────
-const LIVE = { paying: 34, asOf: '14 августа 2026' };
+// Пункт 2 беклога, 12.10.2026: число живое, его отдаёт /api/stats/paying
+// (Core: активная подписка плюс хотя бы одна настоящая оплата, сайт помнит
+// число 10 минут). 34 осталось заглушкой для лаборатории: ?lab в адресе
+// или файл, открытый сам по себе. Дату среза сняли: «прямо сейчас» и так
+// значит сейчас.
+const LIVE = { paying: 34 };
+const STUB = typeof LAB === 'undefined' || LAB;
 
 function plural(n, one, few, many){
   const m10 = n % 10, m100 = n % 100;
@@ -899,7 +907,7 @@ const CAPTIONS = [
 // один продукт, три срока. В мокапе помечено подписью.
 const PLANS = [
   { term: 'месяц',      amt: '199',  unit: '₽' },
-  { term: '6 месяцев',  amt: '990',  unit: '₽', pick: true },
+  { term: '6 месяцев',  amt: '950',  unit: '₽', pick: true },
   { term: 'год',        amt: '1690', unit: '₽' },
 ];
 
@@ -941,7 +949,7 @@ const POS_PHONE = {
 const SUSTAIN = 'сервис держится на этих деньгах';
 // ЧЕРНОВИК. Формулировку должен дать владелец: это утверждение о том,
 // как считается его собственная выручка, и выдумывать его нельзя.
-const HOWTO = 'оплаченные подписки, активные на дату среза. без пробных и без возвратов';
+const HOWTO = 'люди с активной подпиской и хотя бы одной оплатой. без пробных, подарков и возвратов. пересчёт раз в 10 минут';
 const COPY_NOTE = [
   'строки нет вовсе — запасной исход, названный обоими агентами',
   'над прейскурантом — подпись к сделке, а не призыв; левое место пусто',
@@ -1348,7 +1356,7 @@ function build(){
     // одиннадцать пикселей, и в момент подмены вопрос прыгал вправо.
     // `\u2002` — полукруглая шпация, её меряют одинаково и вёрстка,
     // и холст, и подряд идущие не схлопываются.
-    `<p class="asof"><span class="asof-line">на ${LIVE.asOf}\u2002\u2002` +
+    `<p class="asof"><span class="asof-line">` +
       `<button type="button" class="howq" aria-expanded="false">как считается?</button></span>` +
       `<span class="howa" hidden>${HOWTO}</span></p>` +
     (variant === 2
@@ -1778,7 +1786,19 @@ if (h){
   if (nm) LIVE.paying = Math.min(999, Math.max(1, +nm[1]));
 }
 sync();
-build();
+// Пока число не пришло, экран пуст: показать заглушку и потом
+// перекрутить было бы враньём на пару сотен миллисекунд. Не пришло
+// совсем (Core лежит и сайт ничего не помнит), значит строки со
+// счётчиком нет: прячем её, раскладка остаётся.
+if (STUB) build();
+else fetch('/api/stats/paying', {signal: AbortSignal.timeout(4000)})
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(d => {
+    if (!(Number.isInteger(d.paying) && d.paying > 0)) throw d;
+    LIVE.paying = d.paying;
+  })
+  .catch(() => document.body.classList.add('nolive'))
+  .finally(build);
 })();
 </script>
 </body>

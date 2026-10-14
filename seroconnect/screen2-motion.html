@@ -386,7 +386,30 @@ body.phoneview::after{content:"P — обратно";position:fixed;left:20px;bo
 <div class="frame" id="frame"></div>
 <script src="vendor/gsap.min.js"></script>
 <script>
-(() => {
+/* ПУТИ ИЗ НАСТОЯЩЕЙ ПОДПИСКИ (беклог, пункт 12, 12.10.2026). Список узлов
+   и строк приходит с /api/stats/paths: Core читает подписку витрины
+   landing-showcase в панели, то есть ровно то, что получает клиент.
+   Сцена собирается, когда ответ пришёл или не пришёл за 4 с. Тогда
+   рисуется запасной список ниже, честный на 12.10.2026: один узел,
+   четыре пути. Вне склейки (черновик, ?lab) не спрашиваем вовсе.
+   Связка ждёт __ready, прежде чем мерить и запускать сцену. */
+const PATHS_FALLBACK = [{paths:[
+  {protocol:'vless',  transport:'xhttp', security:'reality'},
+  {protocol:'vless',  transport:'grpc',  security:'reality'},
+  {protocol:'trojan', transport:'grpc',  security:'tls'},
+  {protocol:'vless',  transport:'tcp',   security:'reality'}]}];
+const PATHS = (typeof LAB === 'undefined' || LAB)
+  ? Promise.resolve(PATHS_FALLBACK)
+  : fetch('/api/stats/paths', {signal: AbortSignal.timeout(4000)})
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => {
+        const ok = Array.isArray(d.nodes) && d.nodes.length &&
+          d.nodes.every(n => Array.isArray(n.paths) && n.paths.length);
+        if (!ok) throw d;
+        return d.nodes;
+      })
+      .catch(() => PATHS_FALLBACK);
+window.__ready = PATHS.then(PATHS_NODES => {
 const frame  = document.getElementById('frame');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -430,15 +453,21 @@ let MASK   = '•'.repeat(phone() ? 5 : MASK_WIDE);
    и поле флексовые, а флекс срезает пробел в конце своего куска
    (замер: ширина того пробела была ровно 0). */
 const GRP_HEAD = 'SEROCONNECT VPN';
-const NODES = [
-  {name:'узел 1', rows:[['VLESS','/XHTTP/REALITY'], ['VLESS','/GRPC/REALITY'],
-                        ['TROJAN','/GRPC/TLS'],     ['HYSTERIA2','/TLS']]},
-  {name:'узел 2', rows:[['VLESS','/XHTTP/REALITY'], ['VLESS','/GRPC/REALITY'],
-                        ['TROJAN','/GRPC/TLS'],     ['HYSTERIA2','/TLS']]},
-];
-const HEAD  = 'Одна ссылка — восемь путей';
+/* Строка пишется, как её пишет приложение: протокол, затем через косую
+   транспорт и защиту. Hysteria2 приложение пишет коротко, «/TLS».
+   Узлы безымянные: страны называть не договаривались. */
+const UP = s => String(s).toUpperCase();
+const rowOf = p => p.protocol === 'hysteria2' ? ['HYSTERIA2', '/TLS']
+  : [UP(p.protocol), '/' + UP(p.transport) + (p.security && p.security !== 'none' ? '/' + UP(p.security) : '')];
+const NODES = PATHS_NODES.map((n, i) => ({name: 'узел ' + (i + 1), rows: n.paths.map(rowOf)}));
+const ЧИСЛА = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь',
+               'девять', 'десять', 'одиннадцать', 'двенадцать'];
+const всего = NODES.reduce((s, n) => s + n.rows.length, 0);
+const путей = всего === 1 ? 'путь' : всего < 5 ? 'пути' : 'путей';
+// Число держится за слово: на телефоне «пути» иначе падало сиротой.
+const HEAD  = 'Одна ссылка, ' + (ЧИСЛА[всего] || всего) + '\u00a0' + путей;
 const LABEL = 'что происходит после оплаты';
-const SAY   = 'в подписке несколько разных способов подключения — если у твоего '
+const SAY   = 'в подписке несколько разных способов подключения: если у вашего '
             + 'провайдера один не проходит, рядом лежат остальные';
 const ST_1 = 'подключиться', ST_3 = 'подключено';
 
@@ -546,7 +575,7 @@ frame.innerHTML =
     `<div class="cab" id="cab">` +
       `<div class="ctop"><span class="t">Подключить устройство</span>` +
         `<span class="seg"><b class="on">ссылка</b><b>QR-код</b></span></div>` +
-      `<div class="steps"><b>1.</b> скопируй ссылку <i></i> <b>2.</b> вставь в приложение</div>` +
+      `<div class="steps"><b>1.</b> скопируйте ссылку <i></i> <b>2.</b> вставьте в приложение</div>` +
       `<div class="field"><span class="url" id="url">` +
           `<i id="uhead">${URL_HEAD}</i><i id="umask">${MASK}</i></span>` +
         `</div>` +
@@ -1215,7 +1244,7 @@ function scene(){
   tl.to(cab, {y:34, autoAlpha:0, duration:.42, ease:E_OUT}, 3.185)
     .set(app, {autoAlpha:1}, 3.185)
   // Список: заголовки узлов и строки одной волной сверху вниз.
-    .to([nodes[0], ...rows.slice(0, 4), nodes[1], ...rows.slice(4)],
+    .to(groups.flatMap(g => [...g.querySelectorAll('.node, .srow')]),
         {y:0, autoAlpha:1, duration:.315, ease:E_IN, stagger:.06}, 3.90)
     .to(say, {autoAlpha:1, y:0, duration:.42, ease:E_IN}, 4.60)
   // Выбор строки. В приложении одна строка действительно выбрана, но
@@ -1349,5 +1378,5 @@ window.__seam  = v => { if (v !== undefined){ seamIx = v; place(); } return SEAM
 // видела бы ни смаза, ни его снятия. Второй аргумент их возвращает.
 window.__t = t => { (tl || scene()).pause(t, false); return t; };
 window.__dur = () => (tl || scene()).duration();
-})();
+});
 </script>

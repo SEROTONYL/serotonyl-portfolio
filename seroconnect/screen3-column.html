@@ -101,6 +101,10 @@ body{background:#161314;color:#8a8286;
 .шаги li{display:flex;gap:16px;align-items:baseline;font-size:17px;
   line-height:1.35;color:#8a8286}
 .шаги li b{font-weight:400;color:#cdc6ca}
+/* «личного кабинета» ведёт в кабинет (беклог 17): тот же светлый, плюс тихое подчёркивание. */
+.шаги li a{color:#cdc6ca;text-decoration:underline;text-decoration-color:#584f53;
+  text-underline-offset:3px;transition:text-decoration-color .2s}
+.шаги li a:hover{text-decoration-color:#a3869f}
 .шаги li span.н{font-family:"Geist Mono",ui-monospace,monospace;
   font-size:11px;color:#4d4549;width:14px;flex:none}
 .шаги.уход li{opacity:0;transform:translateY(-6px);transition:opacity .18s,transform .18s}
@@ -190,6 +194,8 @@ var ШАГИ = {
   mac:     {прил:'Happ', где:'из App Store'},
   win:     {прил:'Happ', где:'с сайта Happ'}
 };
+/* Гайд выбранного устройства на боевом сайте (12.10.2026). */
+var ГАЙД = {ios:'iphone', android:'android', mac:'macos', win:'windows'};
 var столб = document.querySelector('.столб'),
     кнопки = [].slice.call(document.querySelectorAll('.ус')),
     рез = document.querySelector('.рез'),
@@ -199,9 +205,9 @@ var столб = document.querySelector('.столб'),
 function шагиДля(ос){
   var s = ШАГИ[ос];
   return '<li><span class="н">1</span><span>Скачайте <b>'+s.прил+'</b> '+s.где+'</span></li>'+
-         '<li><span class="н">2</span><span>Скопируйте ключ из <b>личного кабинета</b> или письма</span></li>'+
+         '<li><span class="н">2</span><span>Скопируйте ключ из <a href="/account">личного кабинета</a> или письма</span></li>'+
          '<li><span class="н">3</span><span>Вставьте его в '+s.прил+' и нажмите <b>подключить</b></span></li>'+
-         '<a class="дальше" href="#">подробная инструкция</a>';
+         '<a class="дальше" href="/instructions/'+ГАЙД[ос]+'">подробная инструкция</a>';
 }
 
 function поставить(ос, сразу){

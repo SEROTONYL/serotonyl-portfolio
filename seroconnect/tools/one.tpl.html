@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>SeroConnect VPN</title>
+<!-- Превью ссылки и иконки (BACKLOG пункт 11). Картинка и иконки рисуются
+     из og/og.html и og/icon.html: node og/shoot.cjs. На сайте лежат в
+     корне: /og.png, /apple-touch-icon.png, /icon.svg (знак орхидеей, как
+     в шапке, а не медный favicon.svg старого сайта). -->
+<meta name="description" content="Одна ссылка на все ваши устройства. 199 ₽ в месяц. В поддержке отвечает человек, а не бот.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SeroConnect">
+<meta property="og:title" content="SeroConnect VPN">
+<meta property="og:description" content="Одна ссылка на все ваши устройства. 199 ₽ в месяц. В поддержке отвечает человек, а не бот.">
+<meta property="og:url" content="https://seroconnect.ru/">
+<meta property="og:image" content="https://seroconnect.ru/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#100e0f">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="grid.css">
+<script src="grid.js" defer></script>
+<!-- ОДНА СТРАНИЦА, 12.10.2026 (BACKLOG, пункт 4).
+     СОБРАНО tools/merge.py из пяти экранов-черновиков. Правишь экран,
+     пересобираешь: python3 tools/merge.py. Руками этот файл не править. -->
+<style>
+/*@@TOP@@*/
+
+/* ── СТРАНИЦА ─────────────────────────────────────────────────── */
+/* 07.10.2026 по просьбе владельца: над обычным текстом курсор не
+   превращается в текстовую палочку. Ссылки и кнопки держат свою руку. */
+html{cursor:default}
+*{box-sizing:border-box}
+html,body{margin:0;background:#100e0f;overflow-x:clip}
+html{scroll-behavior:smooth}
+.sec{position:relative;width:100%}
+/* Волоски между секциями и над подвалом сняты 12.10.2026 по его просьбе. */
+
+/*@@CSS@@*/
+
+/* ── ВЫСОТЫ СЕКЦИЙ ────────────────────────────────────────────────
+   Раньше их держали айфреймы, теперь сами секции. `svh`, а не `vh`:
+   на телефоне `vh` считается без адресной строки, и низ уходит под
+   кромку.
+   1: ровно экран телефона. 2: кадр в экран, а если списку нужно
+   больше, сцена сама растягивает кадр (placeTall). 3: по содержимому.
+   4: окно минус полоса, содержимое сверху, пятая выглядывает снизу.
+   5: послесловие. */
+section#s1{height:100vh;height:100svh;overflow:hidden}
+section#s2{height:auto;overflow:visible;z-index:1}
+/* Тень коробки (вниз на 80 px) обрезалась нижней кромкой кадра, и под
+   вторым экраном выходила ступенька фона. Кадр режет теперь с запасом,
+   тень гаснет поверх третьего экрана. Секция поднята над соседкой. */
+#s2 #frame2{overflow:clip;overflow-clip-margin:96px}
+#s2 #frame2{height:100vh;height:max(100svh, var(--нужно, 0px))}
+section#s3{min-height:0;padding:80px 0}
+/* Метка «ниже» стояла по низу окна айфрейма. Секция теперь по
+   содержимому, поэтому метка в потоке под столбиком, как на телефоне. */
+section#s3 .smark{position:static}
+/* Экран 4: высота «окно минус 192 px» (160 на телефоне), чтобы из-под кромки
+   выглядывал верх пятой (стык 4/5). Содержимое прижато к верху, а не по
+   центру: по центру над сроками висела пустота, теперь весь запас внизу,
+   перед пятой. */
+section#s4{height:auto;min-height:calc(100vh - 192px);min-height:calc(100svh - 192px);
+  padding:80px 0;align-items:flex-start}
+/* Экран 5 по содержимому: после снятия цифр (беклог 14) ниже строки
+   «или из личного кабинета» висела пустота до подвала. */
+section#s5{min-height:0;height:auto;padding-bottom:96px}
+@media (max-width:760px){
+  section#s3{padding:48px 0}
+  section#s4{padding:48px 0;min-height:calc(100vh - 160px);min-height:calc(100svh - 160px)}
+}
+/* Пункт 1 беклога. Телефон рисовал свою голубую подсветку нажатия, а
+   браузер свою голубую обводку фокуса. Подсветку нажатия снимаем везде.
+   Фокус с клавиатуры остаётся видимым, но своим: медная обводка, как у
+   метки «ниже». Экраны, у которых фокус оформлен сами, держат своё. */
+html{-webkit-tap-highlight-color:transparent}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:2px solid #c47bbe;outline-offset:4px}
+/* Подсказки о клавишах нужны, когда экран смотрят поодиночке. */
+.sec .hint,.sec .подпись{display:none!important}
+
+/* ── ПОДВАЛ ───────────────────────────────────────────────────── */
+.подвал{position:relative;background:#161314;padding:24px var(--g-m) 32px;
+  text-align:center;
+  font-family:"Geist Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.06em;color:#3a3336}
+.подвал nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 32px}
+.подвал a,.подвал button{color:#584f53;text-decoration:none;cursor:pointer;
+  font:inherit;letter-spacing:inherit;background:none;border:0;padding:0;
+  transition:color .2s}
+.подвал a:hover,.подвал a:focus-visible,
+.подвал button:hover,.подвал button:focus-visible,
+.подвал button[aria-expanded="true"]{color:#a3869f;outline:0}
+.подвал .рекв{margin:12px 0 0;line-height:1.8}
+.подвал .год{margin:16px 0 0}
+@media (max-width:760px){
+  .подвал nav{gap:8px 16px}
+}
+</style>
+</head>
+<body>
+
+<!--@@HTML@@-->
+
+<footer class="подвал">
+  <nav>
+    <a href="/legal/terms">оферта</a>
+    <a href="/legal/privacy">данные</a>
+    <a href="/legal/consent">согласие</a>
+    <a href="/account">кабинет</a>
+    <button type="button" aria-expanded="false" aria-controls="рекв"
+      onclick="const o=this.getAttribute('aria-expanded')!=='true';this.setAttribute('aria-expanded',o);document.getElementById('рекв').hidden=!o">реквизиты</button>
+  </nav>
+  <p class="рекв" id="рекв" hidden>самозанятый Яворский Владислав Эдуардович, ИНН 246009308659<br>support@seroconnect.ru · <a href="/legal/seller">реквизиты продавца</a></p>
+  <p class="год">seroconnect 2026</p>
+</footer>
+
+<script src="vendor/gsap.min.js"></script>
+<script>
+/* Клавиши-лаборатория экранов (R, P, B, O, M, 1 2 3...) живут только
+   с ?lab в адресе: на настоящей странице им не место. */
+const LAB = new URLSearchParams(location.search).has('lab');
+
+/*@@JS@@*/
+
+/* ══ СВЯЗКА ═══════════════════════════════════════════════════════ */
+(function(){
+/* Метки «ниже» ведут к следующей секции. */
+document.addEventListener('click', e => {
+  const a = e.target.closest('.mwin');
+  if (!a) return;
+  e.preventDefault();
+  const next = a.closest('.sec').nextElementSibling;
+  if (next) next.scrollIntoView({behavior: 'smooth'});
+});
+
+/* Пункт 3 беклога. Срок на первом экране ведёт к покупке: страница
+   доезжает до четвёртого экрана, и там встаёт тот же срок. Ставим его,
+   когда экран уже перед глазами, чтобы барабан докрутил на виду.
+   Порядок сроков у обоих экранов один: месяц, полгода, год. */
+document.addEventListener('click', e => {
+  const row = e.target.closest('#s1 .prow');
+  if (!row) return;
+  e.preventDefault();
+  const i = [...row.parentElement.querySelectorAll('.prow')].indexOf(row);
+  const s4 = document.getElementById('s4');
+  s4.scrollIntoView({behavior: 'smooth'});
+  let done = false;
+  const set = () => { if (done) return; done = true; if (s4.__set) s4.__set(i); };
+  if ('onscrollend' in window) addEventListener('scrollend', set, {once: true});
+  setTimeout(set, 900);
+});
+
+/* ДОВОДКА К КНОПКЕ. На невысоком телефоне кнопка подключения второго
+   экрана стоит за нижней кромкой. Когда она появляется, страница мягко
+   доводится, чтобы кнопка вошла в кадр с полем 24 px. Любое действие
+   человека отменяет доводку навсегда. */
+let рукой = false;
+['pointerdown','touchstart','wheel','keydown'].forEach(ev =>
+  document.addEventListener(ev, () => { рукой = true; }, {passive:true}));
+function доводка(){
+  if (рукой) return;
+  const cb = document.getElementById('cbtn');
+  if (!cb) return;
+  const нужно = Math.round(cb.getBoundingClientRect().bottom - innerHeight + 24);
+  if (нужно > 8) scrollBy({top: нужно, behavior: 'smooth'});
+}
+
+/* Второй экран растёт под список. Сцена знает, сколько ей нужно,
+   чтобы показать его целиком (на широком кадре отвечает нулём), связка
+   отдаёт эту высоту кадру через --нужно и просит пересчитать.
+   Сцена собирается после ответа со списком путей (пункт 12), поэтому
+   всё, что её трогает, ждёт s2.__ready. */
+const s2 = document.getElementById('s2');
+const готова = s2.__ready.catch(() => {});
+function рост(){
+  const n = s2.__needed ? s2.__needed() : 0;
+  const v = n > innerHeight ? n + 'px' : '0px';
+  if (s2.style.getPropertyValue('--нужно') === v) return;
+  s2.style.setProperty('--нужно', v);
+  if (s2.__place) s2.__place();
+}
+Promise.all([document.fonts.ready, готова]).then(() => setTimeout(рост, 60));
+готова.then(() => setTimeout(рост, 300));
+addEventListener('resize', () => setTimeout(рост, 60));
+
+/* Сцена второго экрана играет ОДИН раз: когда экран виден на 40 %,
+   через 400 мс (задержка из раскадровки). Вернулся, а там финал.
+   Ушёл раньше, чем она тронулась, значит не видел: ждём следующего входа. */
+let timer = 0, сыграла = false;
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (сыграла) return;
+  if (e.isIntersecting){
+    timer = setTimeout(() => {
+      сыграла = true; io.disconnect();
+      готова.then(() => { try { s2.__onConn(доводка); s2.__play(); } catch (err) {} });
+    }, 400);
+  } else clearTimeout(timer);
+}), {threshold:.4});
+io.observe(s2);
+})();
+</script>
+</body>
+</html>
