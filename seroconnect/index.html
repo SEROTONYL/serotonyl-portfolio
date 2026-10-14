@@ -340,17 +340,24 @@ html{scroll-behavior:smooth}
 #s1 .stage.narrow .btn{display:flex;}
 #s1 .stage.narrow .hero:has(.plist) .btn{display:none}
 #s1 .stage.narrow .hero{display:flex; flex-direction:column;
-    padding:calc(56px + var(--g-6)) var(--g-m) var(--g-3);}
+    padding:calc(56px + var(--g-6)) max(var(--g-m), calc((100% - 640px) / 2)) var(--g-3);}
 #s1 .stage.narrow .stat{display:contents;}
 #s1 .stage.narrow .hero > *,#s1 .stage.narrow .numlink,#s1 .stage.narrow .say{position:static; left:auto; right:auto; top:auto; bottom:auto; margin:0;}
-#s1 .stage.narrow .numlink{order:1; align-self:flex-start;}
+/* Узкий кадр держит число и прейскурант ВМЕСТЕ (14.10.2026). Раньше
+   прейскурант прибивался к низу (`margin-top:auto`), и весь запас высоты
+   ложился между ними: ~140 px на 390×844, ~420 на 744×1133 (планшет).
+   Теперь просвет между ними фиксированный, а запас делят поровну два
+   auto: над числом и под прейскурантом, над меткой «ниже». Группа стоит
+   по центру между шапкой и меткой. */
+#s1 .stage.narrow{--g-pl:clamp(48px, 7svh, 80px)}
+#s1 .stage.narrow .numlink{order:1; align-self:flex-start; margin-top:auto;}
 #s1 .stage.narrow .asof{order:2;}
 #s1 .stage.narrow .say{order:3; margin-top:var(--g-3); font-size:15px; line-height:1.5;}
-#s1 .stage.narrow .join{order:4; margin-top:auto; padding-top:var(--g-3);}
+#s1 .stage.narrow .join{order:4; margin-top:var(--g-pl);}
 #s1 .stage.narrow .plist{order:5; margin-top:var(--g-2);}
-#s1 .stage.narrow .smark{order:6; margin-top:var(--g-3); align-self:flex-start;}
+#s1 .stage.narrow .smark{order:6; margin-top:auto; padding-top:var(--g-3); align-self:flex-start;}
 #s1 .stage.narrow .join:empty{display:none}
-#s1 .stage.narrow .hero:not(:has(.join:not(:empty))) .plist{margin-top:auto; padding-top:var(--g-3);}
+#s1 .stage.narrow .hero:not(:has(.join:not(:empty))) .plist{margin-top:var(--g-pl);}
 #s1 .stage.narrow .hero.tight .smark{display:none}
 #s1 .stage.narrow .plist-cap{position:static; white-space:normal; margin:0 0 var(--g-2)}
 #s1 .stage.narrow .howa{position:static; width:auto; max-width:none; margin-top:var(--g-1);}
@@ -721,7 +728,7 @@ html{scroll-behavior:smooth}
    кромку.
    1: ровно экран телефона. 2: широкий кадр в экран, вертикальный по
    содержимому — высоту называет сцена (placeTall). 3: по содержимому.
-   4: окно минус полоса, содержимое сверху, пятая выглядывает снизу.
+   4: по содержимому.
    5: послесловие. */
 section#s1{height:100vh;height:100svh;overflow:hidden}
 section#s2{height:auto;overflow:visible;z-index:1}
@@ -747,18 +754,17 @@ section#s3{min-height:0;padding:80px 0}
    плюс 190 px» — на 1872 метка стояла на x 1014 вместо направляющей
    234. Поля даёт рама, центровки нет. Верх (−8 px телефона) не трогаем. */
 section#s3 .smark{position:static;margin-left:0;margin-right:0;padding:0}
-/* Экран 4: высота «окно минус 192 px» (160 на телефоне), чтобы из-под кромки
-   выглядывал верх пятой (стык 4/5). Содержимое прижато к верху, а не по
-   центру: по центру над сроками висела пустота, теперь весь запас внизу,
-   перед пятой. */
-section#s4{height:auto;min-height:calc(100vh - 192px);min-height:calc(100svh - 192px);
-  padding:80px 0;align-items:flex-start}
+/* Экран 4 по содержимому, как третий (14.10.2026). Была высота «окно
+   минус 192 px» (160 на телефоне) ради стыка 4/5; на высоком экране она оставляла под ценой пустоту в полэкрана: ~480 px на
+   390×844, ~900 на iPad Pro, ~400 на 1440×900. Пятая и так выглядывает:
+   четвёртый теперь короткий. */
+section#s4{height:auto;min-height:0;padding:80px 0;align-items:flex-start}
 /* Экран 5 по содержимому: после снятия цифр (беклог 14) ниже строки
    «или из личного кабинета» висела пустота до подвала. */
 section#s5{min-height:0;height:auto;padding-bottom:96px}
 @media (max-width:760px){
   section#s3{padding:48px 0}
-  section#s4{padding:48px 0;min-height:calc(100vh - 160px);min-height:calc(100svh - 160px)}
+  section#s4{padding:48px 0}
 }
 /* Пункт 1 беклога. Телефон рисовал свою голубую подсветку нажатия, а
    браузер свою голубую обводку фокуса. Подсветку нажатия снимаем везде.
@@ -1885,9 +1891,15 @@ function wake(){
 // нужно 336 px справа, числу — поле 12,5% слева, между ними фраза.
 const NARROW = 760;
 let narrow = false;
+/* Книжный кадр тоже узкий (14.10.2026). Широкая композиция расставлена
+   процентами под альбомный кадр: на 820×1180 она занимала верхние ~45 %,
+   а фраза под числом наезжала на прейскурант — справа ему нужно 400 px.
+   Колонка на планшете ограничена 640 px и стоит посередине, как
+   вертикальный кадр второго экрана. */
 function measureNarrow(){
-  const w = frame.getBoundingClientRect().width || innerWidth;
-  const n = w < NARROW;
+  const r = frame.getBoundingClientRect();
+  const w = r.width || innerWidth, h = r.height || innerHeight;
+  const n = w < NARROW || h > w;
   if (n === narrow) return false;
   narrow = n;
   stage.classList.toggle('narrow', narrow);
