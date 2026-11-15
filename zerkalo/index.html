@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>привет</title>
+<style>
+  :root { --bg: #070708; --fg: #e9e6e1; --dim: #6d6a66; --hot: #ff2e4d; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font: 16px/1.35 ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  #stage { padding: 7vh 6vw 12vh; max-width: 900px; }
+  .line {
+    font-size: clamp(17px, 4.4vw, 30px);
+    margin: 0 0 .55em; opacity: 0; transform: translateX(-30px) skewX(-12deg);
+  }
+  .line.in { animation: slam .22s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+  .line .k { color: var(--dim); }
+  .line .v { color: var(--fg); }
+  .line.w3 .v { color: var(--hot); text-shadow: 0 0 18px rgba(255, 46, 77, .45); }
+  .line.w3 { font-size: clamp(20px, 5.4vw, 38px); margin-top: .5em; }
+  @keyframes slam {
+    0%   { opacity: 0; transform: translateX(-30px) skewX(-12deg); filter: blur(4px); }
+    60%  { opacity: 1; transform: translateX(6px) skewX(4deg); filter: blur(0); }
+    100% { opacity: 1; transform: none; }
+  }
+  .shake1 { animation: sh1 .18s linear; }
+  .shake2 { animation: sh2 .28s linear; }
+  .shake3 { animation: sh3 .45s linear; }
+  @keyframes sh1 { 25% { transform: translate(2px, -1px); } 75% { transform: translate(-2px, 1px); } }
+  @keyframes sh2 {
+    20% { transform: translate(-6px, 3px) rotate(-.4deg); } 40% { transform: translate(5px, -4px); }
+    60% { transform: translate(-4px, 2px) rotate(.3deg); } 80% { transform: translate(3px, -1px); }
+  }
+  @keyframes sh3 {
+    10% { transform: translate(-14px, 6px) rotate(-1deg); } 20% { transform: translate(12px, -8px) rotate(.8deg); }
+    35% { transform: translate(-10px, 4px); } 50% { transform: translate(8px, -5px) rotate(-.5deg); }
+    65% { transform: translate(-5px, 3px); } 80% { transform: translate(3px, -2px); }
+  }
+  #flash {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0; background: #fff; mix-blend-mode: difference;
+  }
+  #flash.go { animation: fl .16s ease-out; }
+  #flash.red { background: var(--hot); mix-blend-mode: normal; }
+  @keyframes fl { 0% { opacity: .9; } 100% { opacity: 0; } }
+  #ask {
+    margin-top: 2.2em; opacity: 0; pointer-events: none;
+    font: inherit; font-size: clamp(16px, 4vw, 22px); color: var(--bg); background: var(--fg);
+    border: 0; padding: .8em 1.2em; cursor: pointer;
+  }
+  #ask.in { animation: slam .25s cubic-bezier(.2, 1.6, .4, 1) forwards; pointer-events: auto; }
+  #ask:hover { background: var(--hot); color: var(--fg); }
+  @media (prefers-reduced-motion: reduce) {
+    .shake1, .shake2, .shake3, #flash.go { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<main id="stage"></main>
+<script>
+// Ничего не отправляется и не сохраняется. Единственный внешний запрос: ipwho.is, чтобы узнать город по IP.
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const timeout = (p, ms) => Promise.race([p, wait(ms).then(() => null)]);
+const ua = navigator.userAgent;
+
+const TZ_CITY = {
+  'Europe/Moscow': 'Москве', 'Europe/Kaliningrad': 'Калининграду', 'Europe/Samara': 'Самаре',
+  'Asia/Yekaterinburg': 'Екатеринбургу', 'Asia/Omsk': 'Омску', 'Asia/Novosibirsk': 'Новосибирску',
+  'Asia/Barnaul': 'Барнаулу', 'Asia/Tomsk': 'Томску', 'Asia/Novokuznetsk': 'Новокузнецку',
+  'Asia/Krasnoyarsk': 'Красноярску', 'Asia/Irkutsk': 'Иркутску', 'Asia/Chita': 'Чите',
+  'Asia/Yakutsk': 'Якутску', 'Asia/Vladivostok': 'Владивостоку', 'Asia/Magadan': 'Магадану',
+  'Asia/Kamchatka': 'Камчатке', 'Europe/Minsk': 'Минску', 'Europe/Kiev': 'Киеву', 'Europe/Kyiv': 'Киеву',
+  'Asia/Almaty': 'Алматы', 'Asia/Tashkent': 'Ташкенту',
+};
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+const tzName = TZ_CITY[tz] || tz.split('/').pop().replace(/_/g, ' ');
+
+// ---------- сбор ----------
+const ipInfo = timeout(fetch('https://ipwho.is/?lang=ru').then(r => r.json()).then(j => j.success ? j : null).catch(() => null), 3500);
+
+const hints = navigator.userAgentData?.getHighEntropyValues
+  ? timeout(navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'fullVersionList']).catch(() => null), 1500)
+  : Promise.resolve(null);
+
+const battery = navigator.getBattery ? timeout(navigator.getBattery().catch(() => null), 1500) : Promise.resolve(null);
+
+function gpu() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return null;
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    let r = gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '';
+    const m = r.match(/ANGLE \(([^,]+),\s*([^,(]+)/);
+    if (m) r = m[2];
+    r = r.replace(/\/PCIe.*$/, '').replace(/\s*\(0x[0-9a-f]+\)/i, '').replace(/Direct3D.*$|OpenGL.*$|vs_\d.*$/i, '').trim();
+    return r || null;
+  } catch { return null; }
+}
+
+// Настоящий IP через WebRTC: если туннель не берёт UDP, STUN покажет адрес мимо VPN.
+function webrtcIP() {
+  return timeout(new Promise(res => {
+    try {
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      pc.createDataChannel('x');
+      pc.onicecandidate = e => {
+        const m = e.candidate?.candidate.match(/(\d+\.\d+\.\d+\.\d+) \d+ typ srflx/);
+        if (m) { res(m[1]); pc.close(); }
+      };
+      pc.createOffer().then(o => pc.setLocalDescription(o)).catch(() => res(null));
+    } catch { res(null); }
+  }), 3000);
+}
+const rtcIP = webrtcIP();
+
+async function device() {
+  const h = await hints;
+  if (/iPhone/.test(ua)) return 'iPhone, iOS ' + ((ua.match(/OS (\d+[_\d]*)/) || [])[1] || '?').replace(/_/g, '.');
+  if (/iPad/.test(ua)) return 'iPad';
+  if (/Android/.test(ua)) {
+    const model = h?.model || (ua.match(/Android [\d.]+; ([^;)]+)/) || [])[1];
+    const ver = h?.platformVersion || (ua.match(/Android ([\d.]+)/) || [])[1];
+    return (model && model !== 'K' ? model + ', ' : '') + 'Android ' + (ver || '');
+  }
+  if (/Windows/.test(ua)) return 'компьютер на Windows ' + (h?.platformVersion && parseInt(h.platformVersion) >= 13 ? '11' : '10');
+  if (/Mac OS X/.test(ua)) return 'Mac';
+  if (/Linux/.test(ua)) return 'компьютер на Linux';
+  return null;
+}
+
+async function browser() {
+  const h = await hints;
+  const list = h?.fullVersionList || navigator.userAgentData?.brands || [];
+  const pick = n => list.find(b => b.brand.includes(n));
+  const tg = /Telegram/i.test(ua) || window.TelegramWebviewProxy || window.TelegramWebview;
+  const ya = pick('YaBrowser') || pick('Yandex') || /YaBrowser/.test(ua);
+  const base = ya ? 'Яндекс Браузер' : pick('Edge') ? 'Edge' : pick('Opera') ? 'Opera' : pick('Chrome') ? 'Chrome'
+    : /Firefox/.test(ua) ? 'Firefox' : /Safari/.test(ua) ? 'Safari' : null;
+  if (tg) return 'встроенный браузер Телеграма' + (base ? ' (' + base + ')' : '');
+  const v = (pick('Chrome') || pick('YaBrowser') || {}).version;
+  return base ? base + (v && !ya ? ' ' + v.split('.')[0] : '') : null;
+}
+
+function screenLine() {
+  const dpr = window.devicePixelRatio || 1;
+  return `${Math.round(screen.width * dpr)}×${Math.round(screen.height * dpr)}`
+    + (matchMedia('(prefers-color-scheme: dark)').matches ? ', тёмная тема' : ', светлая тема');
+}
+
+function netLine() {
+  const c = navigator.connection;
+  if (!c) return null;
+  const parts = [];
+  if (c.type && c.type !== 'unknown') parts.push(c.type === 'wifi' ? 'Wi-Fi' : c.type === 'cellular' ? 'мобильный' : c.type);
+  if (c.downlink) parts.push('~' + c.downlink + ' Мбит/с');
+  if (c.rtt) parts.push('пинг ~' + c.rtt + ' мс');
+  return parts.join(', ') || null;
+}
+
+const darkReader = () => wait(900).then(() =>
+  document.querySelector('meta[name="darkreader"], style.darkreader') || document.documentElement.hasAttribute('data-darkreader-scheme')
+    ? 'включён Dark Reader' : null);
+
+// ---------- что показываем, по порядку ----------
+// w: 1 тихо, 2 тряска и мелкая вспышка, 3 сильная тряска и красная вспышка
+async function vpnLine() {
+  const ip = await ipInfo;
+  const real = await rtcIP;
+  if (ip && real && real !== ip.ip) return { k: 'Твой настоящий IP', v: real + ', а не ' + ip.ip, w: 3 };
+  if (ip?.timezone?.id && tz && ip.timezone.id !== tz)
+    return { k: 'Ты через VPN', v: `${ip.country} по IP, а часы у тебя по ${tzName}`, w: 3 };
+  if (/Telegram/i.test(ua) || window.TelegramWebviewProxy) return { k: 'Ты пришёл', v: 'из Телеграма, и я это вижу', w: 3 };
+  return null;
+}
+
+const plan = [
+  async () => { const ip = await ipInfo; if (!ip) return null;
+    const vpn = ip.timezone?.id && tz && ip.timezone.id !== tz;
+    return { k: vpn ? 'Твой IP говорит' : 'Твой город', v: [ip.city, ip.country].filter(Boolean).join(', '), w: 2 }; },
+  async () => { const d = await device(); return d && { k: 'Твоё устройство', v: d, w: 2 }; },
+  async () => { const b = await battery; return b && { k: 'Твой заряд', v: Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : ', не заряжается'), w: 2 }; },
+  async () => { const ip = await ipInfo; const isp = ip?.connection?.isp || ip?.connection?.org; return isp && { k: 'Твой провайдер', v: isp, w: 1 }; },
+  async () => ({ k: 'Твоё время', v: new Date().toLocaleTimeString('ru-RU') + (tzName ? ', по ' + tzName : ''), w: 1 }),
+  async () => { const g = gpu(); return g && { k: 'Твоя видеокарта', v: g, w: 1 }; },
+  async () => { const b = await browser(); return b && { k: 'Твой браузер', v: b, w: 1 }; },
+  async () => ({ k: 'Твой экран', v: screenLine(), w: 1 }),
+  async () => navigator.hardwareConcurrency && { k: 'Твой процессор', v: navigator.hardwareConcurrency + ' потоков' + (navigator.deviceMemory ? ', память ' + (navigator.deviceMemory >= 8 ? '8+' : navigator.deviceMemory) + ' ГБ' : ''), w: 1 },
+  async () => { const n = netLine(); return n && { k: 'Твоя сеть', v: n, w: 1 }; },
+  async () => ({ k: 'Твой язык', v: (navigator.languages || [navigator.language]).slice(0, 3).join(', '), w: 1 }),
+  async () => { const d = await darkReader(); return d && { k: 'У тебя', v: d, w: 1 }; },
+  vpnLine,
+];
+
+// ---------- показ ----------
+const stage = document.getElementById('stage');
+const flash = document.getElementById('flash');
+const GLYPHS = '█▓▒░#@$%&*+=?/\\|<>01';
+
+function scramble(el, text, ms) {
+  const t0 = performance.now();
+  return new Promise(res => {
+    (function tick(now) {
+      const p = Math.min(1, (now - t0) / ms);
+      const n = Math.floor(text.length * p);
+      el.textContent = text.slice(0, n) + Array.from(text.slice(n), c => c === ' ' ? ' ' : GLYPHS[Math.random() * GLYPHS.length | 0]).join('');
+      p < 1 ? requestAnimationFrame(tick) : res();
+    })(t0);
+  });
+}
+
+function hit(w) {
+  document.body.classList.remove('shake1', 'shake2', 'shake3');
+  void document.body.offsetWidth;
+  document.body.classList.add('shake' + w);
+  if (w >= 2) {
+    flash.classList.toggle('red', w === 3);
+    flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+  }
+}
+
+// Вспышки не чаще трёх в секунду (WCAG 2.3.1): строки идут не чаще раза в 450 мс.
+async function run() {
+  const results = plan.map(f => f().catch(() => null));
+  for (const r of results) {
+    const item = await r;
+    if (!item || !item.v) continue;
+    const t = performance.now();
+    const line = document.createElement('div');
+    line.className = 'line w' + item.w;
+    line.innerHTML = `<span class="k"></span> <span class="v"></span>`;
+    line.querySelector('.k').textContent = item.k + ':';
+    stage.appendChild(line);
+    line.classList.add('in');
+    hit(item.w);
+    await scramble(line.querySelector('.v'), item.v, item.w === 3 ? 520 : 260);
+    await wait(Math.max(0, (item.w === 3 ? 900 : 450) - (performance.now() - t)));
+  }
+  const btn = document.createElement('button');
+  btn.id = 'ask';
+  btn.textContent = 'Хочешь узнать, как такое вообще возможно?';
+  stage.appendChild(btn);
+  requestAnimationFrame(() => btn.classList.add('in'));
+}
+run();
+</script>
+</body>
+</html>
