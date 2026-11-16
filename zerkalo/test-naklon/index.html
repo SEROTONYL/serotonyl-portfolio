@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>наклон</title>
+<style>
+  body { margin: 0; background: #0b0b0d; color: #eee; font: 18px/1.4 ui-monospace, monospace; padding: 16px; }
+  .big { font-size: 44px; color: #ff4fd8; }
+  .lbl { font-size: 12px; letter-spacing: .1em; color: #888; margin-top: 14px; }
+  #pad { margin-top: 18px; height: 160px; border: 2px dashed #444; display: grid; place-items: center; color: #666; touch-action: none; }
+  button { margin-top: 18px; font: inherit; background: #ff2e4d; color: #fff; border: 0; padding: 10px 14px; }
+  #log { font-size: 13px; color: #aaa; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="lbl">ВПЕРЁД-НАЗАД (beta)</div><div class="big" id="b">нет данных</div>
+<div class="lbl">ВБОК (gamma)</div><div class="big" id="g">нет данных</div>
+<div class="lbl">ТРЯСКА (разброс beta за 1 с)</div><div class="big" id="j">нет данных</div>
+<div class="lbl">ИСТОЧНИК</div><div id="src">ждём</div>
+<div id="pad">ткни сюда пальцем</div>
+<div class="lbl">ПЯТНО ПАЛЬЦА</div><div id="t">нет касаний</div>
+<button id="mark">запомнить позу</button>
+<div id="log"></div>
+<script>
+const $ = id => document.getElementById(id);
+const hist = [];
+let last = null, events = 0;
+
+function show(beta, gamma, src) {
+  events++;
+  last = { beta, gamma };
+  $('b').textContent = beta.toFixed(0) + '°';
+  $('g').textContent = gamma.toFixed(0) + '°';
+  $('src').textContent = src + ', событий ' + events;
+  const now = performance.now();
+  hist.push([now, beta]);
+  while (hist.length && now - hist[0][0] > 1000) hist.shift();
+  const bs = hist.map(h => h[1]);
+  $('j').textContent = (Math.max(...bs) - Math.min(...bs)).toFixed(1) + '°';
+}
+
+addEventListener('deviceorientation', e => {
+  if (e.beta != null) show(e.beta, e.gamma, 'deviceorientation');
+});
+
+// запасной путь: наклон из гравитации, если ориентация пустая
+addEventListener('devicemotion', e => {
+  const a = e.accelerationIncludingGravity;
+  if (!a || a.x == null || events && $('src').textContent.startsWith('deviceorientation')) return;
+  const beta = Math.atan2(a.y, a.z) * 180 / Math.PI;
+  const gamma = Math.atan2(-a.x, Math.hypot(a.y, a.z)) * 180 / Math.PI;
+  show(beta, gamma, 'devicemotion');
+});
+
+setTimeout(() => { if (!events) $('src').textContent = 'за 3 с не пришло ни одного события, гироскоп закрыт'; }, 3000);
+
+$('pad').addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  $('t').textContent = `x ${t.clientX.toFixed(0)}, y ${t.clientY.toFixed(0)}, radius ${(t.radiusX || 0).toFixed(1)} × ${(t.radiusY || 0).toFixed(1)}, сила ${(t.force || 0).toFixed(2)}`;
+}, { passive: true });
+
+$('mark').onclick = () => {
+  const s = last ? `beta ${last.beta.toFixed(0)}°, gamma ${last.gamma.toFixed(0)}°, тряска ${$('j').textContent}` : 'нет данных';
+  $('log').textContent += `поза ${$('log').textContent.split('\n').filter(Boolean).length + 1}: ${s}\n`;
+};
+</script>
+</body>
+</html>
