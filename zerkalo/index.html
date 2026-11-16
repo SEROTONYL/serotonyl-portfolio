@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>привет</title>
 <style>
-  /* Палитра без опоры на красный: розовая лента у IP, жёлто-чёрная у финала. */
-  :root { --bg: #070708; --fg: #efece6; --dim: #77736d; --pink: #ff4fd8; --yel: #ffe600; --card: #151517; }
+  /* Розовая лента у IP, красная у финала. */
+  :root { --bg: #070708; --fg: #efece6; --dim: #77736d; --pink: #ff4fd8; --red: #ff2e4d; --card: #151517; }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--fg); }
   body {
@@ -18,12 +18,12 @@
   #page { overflow-x: clip; }
   #hero { position: relative; height: 46vw; max-height: 340px; margin: 9vh 0 2vh; transform: rotate(-10deg); }
   #tape {
-    position: absolute; left: -10vw; right: -10vw; top: 50%; height: 1.05em; transform: translateY(-38%) translateX(-110%);
+    position: absolute; left: -10vw; right: -10vw; top: 50%; height: 1.45em; transform: translateY(-50%) translateX(-110%);
     background: var(--pink);
     clip-path: polygon(0 8%, 3% 0, 97% 6%, 100% 0, 99% 92%, 96% 100%, 2% 94%, 0 100%);
   }
   #hero.in #tape { animation: tape .28s cubic-bezier(.7, 0, .3, 1) forwards; }
-  @keyframes tape { to { transform: translateY(-38%) translateX(0); } }
+  @keyframes tape { to { transform: translateY(-50%) translateX(0); } }
   #ip {
     position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%) scale(2.4); opacity: 0;
     text-align: center; font-weight: 800; letter-spacing: -.04em; color: #0b0b0c; white-space: nowrap;
@@ -63,9 +63,9 @@
   .police {
     position: absolute; left: -30vw; width: 160vw; top: 17%; padding: .35em 0;
     transform: rotate(-14deg) translateX(-120%);
-    background: var(--yel); color: #000; font-weight: 900; font-size: clamp(22px, 7vw, 46px);
+    background: var(--red); color: #fff; font-weight: 900; font-size: clamp(22px, 7vw, 46px);
     white-space: nowrap; overflow: hidden;
-    border-block: 6px solid; border-image: repeating-linear-gradient(45deg, #000 0 14px, var(--yel) 14px 28px) 6;
+    border-block: 6px solid; border-image: repeating-linear-gradient(45deg, #000 0 14px, var(--red) 14px 28px) 6;
   }
   .police.p2 { top: 76%; transform: rotate(9deg) translateX(120%); font-size: clamp(14px, 4vw, 24px); }
   #final.in .police { animation: cross .4s cubic-bezier(.7, 0, .3, 1) forwards; }
@@ -80,12 +80,22 @@
   }
   #verdict small { display: block; font-size: 14px; font-weight: 400; color: var(--dim); margin-top: .8em; }
   #final.in #verdict { animation: fade .3s .75s forwards; }
+  #final.out { animation: undark .45s forwards; pointer-events: none; }
+  @keyframes undark { from { background: rgba(5, 5, 6, .93); } to { background: rgba(5, 5, 6, 0); } }
+  #final.out .police { animation: leave .4s cubic-bezier(.7, 0, .3, 1) forwards; }
+  #final.out .police.p2 { animation-name: leave2; }
+  @keyframes leave { from { transform: rotate(var(--a)) translateX(0); } to { transform: rotate(var(--a)) translateX(130%); } }
+  @keyframes leave2 { from { transform: rotate(var(--a)) translateX(0); } to { transform: rotate(var(--a)) translateX(-130%); } }
+  #final.out #verdict { opacity: 1; animation: unfade .25s forwards; }
+  @keyframes unfade { to { opacity: 0; } }
+  .st.verdict { border-left-color: var(--red); background: #24090e; }
+  .st.verdict .k { color: var(--red); }
   #ask {
-    position: relative; z-index: 2; margin-top: 2.4em; opacity: 0;
+    display: block; margin: 0 auto 14vh; opacity: 0;
     font: inherit; font-size: clamp(15px, 4vw, 20px); color: #000; background: var(--fg);
     border: 0; padding: .8em 1.2em; cursor: pointer; transform: rotate(-2deg); max-width: 86vw;
   }
-  #final.in #ask { animation: fade .3s 1.4s forwards; }
+  #ask.in { animation: fade .3s forwards; }
   #ask:hover, #ask:active { background: var(--pink); }
 
   /* ---------- тряска и вспышка ---------- */
@@ -100,7 +110,7 @@
   }
   #flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: #fff; mix-blend-mode: difference; z-index: 9; }
   #flash.go { animation: fl .16s ease-out; }
-  #flash.yel { background: var(--yel); mix-blend-mode: normal; }
+  #flash.red { background: var(--red); mix-blend-mode: normal; }
   @keyframes fl { 0% { opacity: .85; } 100% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .shake1, .shake2, .shake3, #flash.go, .police span { animation: none; } }
 </style>
@@ -110,12 +120,12 @@
 <div id="page">
 <header id="hero"><div id="tape"></div><div id="ip"></div><div id="where"></div></header>
 <main id="board"></main>
+<button id="ask">Хочешь узнать, как такое вообще возможно?</button>
 </div>
 <section id="final">
   <div class="police" style="--a:-14deg"><span></span></div>
   <div class="police p2" style="--a:9deg"><span></span></div>
   <div id="verdict"></div>
-  <button id="ask">Хочешь узнать, как такое вообще возможно?</button>
 </section>
 <script>
 // Ничего не отправляется и не сохраняется. Единственный внешний запрос: ipwho.is, чтобы узнать город по IP.
@@ -168,7 +178,8 @@ const ADRENO_CHIP = {
 };
 function chip() {
   const m = gpuName?.match(/Adreno\s*(\d+L?)/i);
-  if (m && ADRENO_CHIP[m[1]]) return ADRENO_CHIP[m[1]];
+  // Переносить можно только после «Snapdragon», остальное одним куском.
+  if (m && ADRENO_CHIP[m[1]]) return ADRENO_CHIP[m[1]].replace(/ /g, '\u00a0').replace('Snapdragon\u00a0', 'Snapdragon ');
   if (/Apple GPU/.test(gpuName || '') && /Mac/.test(ua)) return 'Apple Silicon (M-серия)';
   return null;
 }
@@ -263,7 +274,7 @@ const plan = [
   async () => { const d = await device(); return d && { k: 'устройство', v: d.v, s: d.s, size: 'big' }; },
   async () => { const b = await battery; return b && { k: 'заряд', v: Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : ''), size: 'big' }; },
   async () => { const c = chip(); const n = navigator.hardwareConcurrency;
-    return (c || n) && { k: 'процессор', v: c ? 'скорее всего ' + c : n + ' потоков', s: c && n ? n + ' потоков' : null, size: c ? 'big' : '' }; },
+    return (c || n) && { k: c ? 'процессор, скорее всего' : 'процессор', v: c || n + ' потоков', s: c && n ? n + ' потоков' : null, size: c ? 'big' : '' }; },
   async () => ({ k: 'время', v: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + (tzName ? ' по ' + tzName : '') }),
   async () => gpuName && { k: 'видеокарта', v: gpuName },
   async () => { const b = await browser(); return b && { k: 'браузер', v: b }; },
@@ -302,13 +313,13 @@ function scramble(el, text, ms) {
 }
 
 // Трясём не body: transform на body ломает position: fixed у финала.
-function hit(w, yel) {
+function hit(w, red) {
   const box = $('final').classList.contains('in') ? $('final') : $('page');
   box.classList.remove('shake1', 'shake2', 'shake3');
   void box.offsetWidth;
   box.classList.add('shake' + w);
   if (w >= 2) {
-    flash.classList.toggle('yel', !!yel);
+    flash.classList.toggle('red', !!red);
     flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
   }
 }
@@ -335,13 +346,14 @@ async function run() {
   await wait(900);
 
   const board = $('board');
+  let tilt = 2;
   for (const r of results) {
     const it = await r;
     if (!it || !it.v) continue;
     const t = performance.now();
     const el = document.createElement('div');
     el.className = 'st ' + (it.size || '');
-    el.style.setProperty('--r', ((Math.random() * 2 - 1) * (it.size === 'big' ? 2 : 4)).toFixed(1) + 'deg');
+    el.style.setProperty('--r', it.size === 'big' ? '0deg' : (tilt = -tilt) + 'deg');
     el.innerHTML = '<span class="k"></span><span class="v"></span><span class="s"></span>';
     el.querySelector('.k').textContent = it.k;
     if (it.s) el.querySelector('.s').textContent = it.s;
@@ -361,6 +373,26 @@ async function run() {
   $('final').classList.add('in');
   await wait(120); hit(3, true);
   await wait(500); hit(2);
+
+  // Через пару секунд ленты уезжают, вердикт ложится последней плашкой, данные снова видно.
+  await wait(2400);
+  $('final').classList.add('out');
+  await wait(450);
+  $('final').classList.remove('in');
+  $('final').style.display = 'none';
+  const el = document.createElement('div');
+  el.className = 'st big verdict';
+  el.style.setProperty('--r', '0deg');
+  el.innerHTML = '<span class="k"></span><span class="v"></span><span class="s"></span>';
+  el.querySelector('.k').textContent = f.tape;
+  el.querySelector('.v').textContent = f.text;
+  el.querySelector('.s').textContent = f.small;
+  $('board').appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+  hit(2);
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  await wait(500);
+  $('ask').classList.add('in');
 }
 run();
 </script>
