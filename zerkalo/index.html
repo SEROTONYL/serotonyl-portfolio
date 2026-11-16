@@ -63,7 +63,10 @@
   .stamp {
     position: absolute; right: .7em; top: .55em; padding: .05em .4em; border: 3px solid var(--red); color: var(--red);
     font-weight: 900; letter-spacing: .08em; font-size: clamp(16px, 4.6vw, 26px); opacity: 0; transform: rotate(-12deg) scale(2.6);
+    z-index: 5; background: var(--card); box-shadow: 0 4px 14px rgba(0, 0, 0, .7);
   }
+  /* Плашка со штампом поверх соседних, чтобы штамп ничем не перекрывался. */
+  .st:has(.stamp) { z-index: 4; }
   .stamp.in { animation: stampin .18s cubic-bezier(.3, 1.4, .5, 1) forwards; }
   @keyframes stampin { to { opacity: 1; transform: rotate(-12deg) scale(1); } }
   .st.ticker { flex-basis: 100%; padding: .55em 0; overflow: hidden; white-space: nowrap; border-left: 0; color: var(--dim); font-size: 14px; transform: scale(1); }
