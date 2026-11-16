@@ -172,6 +172,37 @@ function gpu() {
 const BRAVE = !!navigator.brave;
 const gpuName = BRAVE ? null : gpu();
 
+// Firefox с защитой и Tor ставят часовой пояс UTC, по нему VPN не ловим.
+const TZ_HIDDEN = !tz || /^(UTC|Etc\/)/.test(tz);
+
+// Шум в холсте: заливаем квадрат одним цветом и читаем обратно. Честный браузер вернёт ровно этот цвет.
+function canvasNoise() {
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = 32;
+    const x = c.getContext('2d'); x.fillStyle = 'rgb(12,200,34)'; x.fillRect(0, 0, 32, 32);
+    const d = x.getImageData(0, 0, 32, 32).data;
+    for (let i = 0; i < d.length; i += 4) if (d[i] !== 12 || d[i + 1] !== 200 || d[i + 2] !== 34) return true;
+    return false;
+  } catch { return null; }
+}
+const NOISE = canvasNoise();
+
+// Замер ядер: сколько счёта успевает один поток и сколько шестнадцать разом.
+// Малые ядра и гипертрединг занижают результат, поэтому пишем «не меньше».
+let openGate;
+const gate = new Promise(r => openGate = r);
+const SUSPECT = BRAVE || NOISE || (navigator.hardwareConcurrency || 0) <= 4;
+const measured = !SUSPECT ? Promise.resolve(null) : gate.then(() => timeout(new Promise(res => {
+  try {
+    const src = 'onmessage=e=>{const end=performance.now()+e.data;let n=0,x=0;while(performance.now()<end){for(let i=0;i<20000;i++)x+=Math.sqrt(i);n++}postMessage(n)}';
+    const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    const batch = k => Promise.all(Array.from({ length: k }, () => new Promise(r => {
+      const w = new Worker(url); w.onmessage = e => { r(e.data); w.terminate(); }; w.postMessage(250);
+    }))).then(a => a.reduce((s, v) => s + v, 0));
+    batch(1).then(one => batch(16).then(all => res(one ? Math.floor(all / one) : null)));
+  } catch { res(null); }
+}), 2500));
+
 // Процессор браузер не называет, но у телефонов его выдаёт видеоядро.
 const ADRENO_CHIP = {
   840: 'Snapdragon 8 Elite Gen 5', 830: 'Snapdragon 8 Elite', 750: 'Snapdragon 8 Gen 3', 740: 'Snapdragon 8 Gen 2',
@@ -280,9 +311,12 @@ const darkReader = () => wait(900).then(() =>
 // big: широкая плашка с розовой кромкой, small: мелочь
 const plan = [
   async () => { const d = await device(); return d && { k: 'устройство', v: d.v, s: d.s, size: 'big' }; },
-  async () => BRAVE && { k: 'защита', v: 'Brave подменил часть данных', s: 'Видеокарту, заряд и процессор он спрятал. IP, часы и экран нет', size: 'big' },
+  async () => BRAVE && { k: 'защита', v: 'Brave подменил часть данных', s: 'Видеокарту и заряд он спрятал. IP, часы и экран нет', size: 'big' },
+  async () => !BRAVE && NOISE && { k: 'защита', v: 'браузер подмешивает шум в картинки', s: 'Отпечаток по холсту сломан. IP и часы на месте', size: 'big' },
   async () => { const b = await battery; return b && { k: 'заряд', v: Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : ''), size: 'big' }; },
-  async () => { const c = chip(); const n = !BRAVE && navigator.hardwareConcurrency;
+  async () => { const c = chip(); const rep = navigator.hardwareConcurrency; const m = await measured;
+    if (m && rep && m > rep) return { k: 'процессор, замер', v: 'не меньше ' + m + ' ядер', s: 'браузер сказал ' + rep + ', замер показал больше', size: 'big' };
+    const n = !BRAVE && rep;
     return (c || n) && { k: c ? 'процессор, скорее всего' : 'процессор', v: c || n + ' потоков', s: c && n ? n + ' потоков' : null, size: c ? 'big' : '' }; },
   async () => ({ k: 'время', v: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + (tzName ? ' по ' + tzName : '') }),
   async () => gpuName && { k: 'видеокарта', v: gpuName },
@@ -299,10 +333,10 @@ const plan = [
 async function verdict() {
   const ip = await ipInfo, real = await rtcIP;
   if (ip && real && real !== ip.ip) return { tape: 'НАСТОЯЩИЙ IP', text: real, small: 'VPN показывает ' + ip.ip + ', но твой телефон сам назвал настоящий адрес' };
-  if (ip?.timezone?.id && tz && ip.timezone.id !== tz)
+  if (ip?.timezone?.id && !TZ_HIDDEN && ip.timezone.id !== tz)
     return { tape: 'ТЫ ЧЕРЕЗ VPN', text: `${ip.country} по IP, а часы у тебя по ${tzName}`, small: 'VPN меняет адрес, но не меняет твоё время' };
   if (/Telegram/i.test(ua) || window.TelegramWebviewProxy) return { tape: 'ИЗ ТЕЛЕГРАМА', text: 'Ты открыл это прямо из чата', small: 'Встроенный браузер Телеграма себя выдаёт' };
-  return { tape: 'Я ТЕБЯ ВИЖУ', text: ip?.city ? 'Ты сейчас в городе ' + ip.city : 'И это была одна секунда', small: 'Всё это без единого разрешения' };
+  return { tape: 'Я ТЕБЯ ВИЖУ', text: ip?.city ? 'Твой IP ведёт в город ' + ip.city : 'И это была одна секунда', small: 'Всё это без единого разрешения' };
 }
 
 // ---------- показ ----------
@@ -352,6 +386,7 @@ async function run() {
   $('where').textContent = ip ? [ip.city, ip.country, ip.connection?.isp].filter(Boolean).join(', ') : '';
   $('hero').classList.add('in');
   await wait(230); hit(3);
+  openGate();
   await wait(900);
 
   const board = $('board');
