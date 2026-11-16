@@ -614,7 +614,8 @@ function pose() {
   let src = rec.tilt.filter(t => n - t[0] < 4000);
   if (src.length < 3) src = rec.grav.filter(t => n - t[0] < 4000);
   if (src.length < 3) return null;
-  const beta = median(src.map(t => t[1])), gamma = median(src.map(t => t[2]));
+  // Над лицом экраном вниз beta переваливает за 180 и становится отрицательной: разворачиваем, чтобы медиана не ломалась.
+  const beta = median(src.map(t => (t[1] < -90 ? t[1] + 360 : t[1]))), gamma = median(src.map(t => t[2]));
   if (Math.abs(gamma) > 50) return 'Ты лежишь на боку.';
   if (beta > 78) return 'Ты лежишь на спине.';
   if (beta >= 38) return 'Телефон у тебя перед лицом.';
