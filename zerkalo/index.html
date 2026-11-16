@@ -52,6 +52,22 @@
   .st.big .v { font-size: clamp(22px, 6.4vw, 40px); font-weight: 700; letter-spacing: -.02em; }
   .st.big .s { display: block; font-size: 13px; color: var(--dim); margin-top: .3em; }
   .st.small .v { font-size: 14px; }
+  .st { position: relative; }
+  .st .v.struck {
+    display: inline; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    color: var(--dim); background: linear-gradient(var(--red), var(--red)) no-repeat 0 55% / 100% 4px;
+    animation: strike .25s ease-out;
+  }
+  @keyframes strike { from { background-size: 0 4px; } }
+  .st .t { display: block; font-size: clamp(20px, 5.6vw, 34px); font-weight: 700; margin-top: .2em; }
+  .stamp {
+    position: absolute; right: .7em; top: .55em; padding: .05em .4em; border: 3px solid var(--red); color: var(--red);
+    font-weight: 900; letter-spacing: .08em; font-size: clamp(16px, 4.6vw, 26px); opacity: 0; transform: rotate(-12deg) scale(2.6);
+  }
+  .stamp.in { animation: stampin .18s cubic-bezier(.3, 1.4, .5, 1) forwards; }
+  @keyframes stampin { to { opacity: 1; transform: rotate(-12deg) scale(1); } }
+  .st.ticker { flex-basis: 100%; padding: .55em 0; overflow: hidden; white-space: nowrap; border-left: 0; color: var(--dim); font-size: 14px; transform: scale(1); }
+  .st.ticker span { display: inline-block; animation: run 28s linear infinite; }
 
   /* ---------- финал: захват экрана ---------- */
   #final {
@@ -153,7 +169,7 @@ const hints = navigator.userAgentData?.getHighEntropyValues
   ? timeout(navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'fullVersionList']).catch(() => null), 1500)
   : Promise.resolve(null);
 
-const battery = navigator.getBattery && !navigator.brave ? timeout(navigator.getBattery().catch(() => null), 1500) : Promise.resolve(null);
+const rawBattery = navigator.getBattery ? timeout(navigator.getBattery().catch(() => null), 1500) : Promise.resolve(null);
 
 function gpu() {
   try {
@@ -170,7 +186,8 @@ function gpu() {
 }
 // Brave подменяет видеокарту, батарею, потоки и память, этим значениям не верим.
 const BRAVE = !!navigator.brave;
-const gpuName = BRAVE ? null : gpu();
+const rawGpu = gpu();
+const gpuName = BRAVE ? null : rawGpu;
 
 // Firefox с защитой и Tor ставят часовой пояс UTC, по нему VPN не ловим.
 const TZ_HIDDEN = !tz || /^(UTC|Etc\/)/.test(tz);
@@ -253,7 +270,7 @@ async function device() {
     const real = model && model !== 'K';
     const brand = real && brandOf(model);
     const os = 'Android ' + (ver || '').replace(/\.0(\.0)?$/, '');
-    if (!real) return { v: os, s: 'модель браузер не отдал' };
+    if (!real) return { v: os, s: 'модель браузер скрыл' };
     return { v: brand || model, s: [brand && model, os].filter(Boolean).join(', ') };
   }
   if (/Windows/.test(ua)) return { v: 'Windows ' + (h?.platformVersion && parseInt(h.platformVersion) >= 13 ? '11' : '10') };
@@ -270,9 +287,8 @@ async function browser() {
   const ya = pick('YaBrowser') || pick('Yandex') || /YaBrowser/.test(ua);
   // В WebView и Brave бренда «Chrome» нет, только «Chromium», поэтому версию движка берём из UA.
   const cv = ((pick('Google Chrome') || pick('Chromium') || {}).version || (ua.match(/Chrome\/(\d+)/) || [])[1] || '').split('.')[0];
-  const ios = /iPhone|iPad/.test(ua);
-  if (tg) return 'встроенный в Телеграм' + (cv && !ios ? ', движок Chrome ' + cv : ios ? ', движок Safari' : '');
-  if (/; wv\)/.test(ua) || pick('WebView')) return 'встроенный в приложение' + (cv ? ', движок Chrome ' + cv : '');
+  if (tg) return 'встроенный браузер Телеграма';
+  if (/; wv\)/.test(ua) || pick('WebView')) return 'встроенный браузер приложения';
   const base = BRAVE ? 'Brave' : ya ? 'Яндекс Браузер' : pick('Edge') ? 'Edge' : pick('Opera') || /OPR\//.test(ua) ? 'Opera'
     : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Firefox|FxiOS/.test(ua) ? 'Firefox'
     : /CriOS/.test(ua) || cv ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : null;
@@ -311,32 +327,46 @@ const darkReader = () => wait(900).then(() =>
 // big: широкая плашка с розовой кромкой, small: мелочь
 const plan = [
   async () => { const d = await device(); return d && { k: 'устройство', v: d.v, s: d.s, size: 'big' }; },
-  async () => BRAVE && { k: 'защита', v: 'Brave подменил часть данных', s: 'Видеокарту и заряд он спрятал. IP, часы и экран нет', size: 'big' },
-  async () => !BRAVE && NOISE && { k: 'защита', v: 'браузер подмешивает шум в картинки', s: 'Отпечаток по холсту сломан. IP и часы на месте', size: 'big' },
-  async () => { const b = await battery; return b && { k: 'заряд', v: Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : ''), size: 'big' }; },
+  // Подмены: сначала показываем, что сказал браузер, потом зачёркиваем.
+  async () => BRAVE && rawGpu && { k: 'видеокарта', v: rawGpu, lie: { stamp: 'ПОДДЕЛКА', truth: 'настоящую он спрятал' } },
+  async () => { const b = await rawBattery; if (!b) return null;
+    const v = Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : '');
+    return BRAVE ? { k: 'заряд', v, lie: { stamp: 'ПОДДЕЛКА', truth: 'настоящий он спрятал' } } : { k: 'заряд', v, size: 'big' }; },
   async () => { const c = chip(); const rep = navigator.hardwareConcurrency; const m = await measured;
-    if (m && rep && m > rep) return { k: 'процессор, замер', v: 'не меньше ' + m + ' ядер', s: 'браузер сказал ' + rep + ', замер показал больше', size: 'big' };
+    if (m && rep && m > rep) return { k: 'процессор', v: rep + ' ' + plural(rep, 'ядро', 'ядра', 'ядер'), lie: { stamp: 'ВРАНЬЁ', truth: 'на деле минимум ' + m } };
     const n = !BRAVE && rep;
-    return (c || n) && { k: c ? 'процессор, скорее всего' : 'процессор', v: c || n + ' потоков', s: c && n ? n + ' потоков' : null, size: c ? 'big' : '' }; },
+    return (c || n) && { k: c ? 'процессор, скорее всего' : 'процессор', v: c || n + ' ' + plural(n, 'поток', 'потока', 'потоков'),
+      s: c && n ? n + ' ' + plural(n, 'поток', 'потока', 'потоков') : null, size: c ? 'big' : '' }; },
+  async () => (BRAVE || NOISE) && { k: 'защита', v: 'Твой браузер пытался меня обмануть', s: 'Не вышло: IP, время и экран он не спрятал', size: 'big' },
   async () => ({ k: 'время', v: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + (tzName ? ' по ' + tzName : '') }),
   async () => gpuName && { k: 'видеокарта', v: gpuName },
   async () => { const b = await browser(); return b && { k: 'браузер', v: b }; },
-  async () => ({ k: 'языки', v: languages() }),
-  async () => !BRAVE && navigator.deviceMemory && { k: 'память', v: (navigator.deviceMemory >= 8 ? '8+' : navigator.deviceMemory) + ' ГБ', size: 'small' },
-  async () => { const d = window.devicePixelRatio || 1;
-    return { k: 'экран', v: `${Math.round(screen.width * d)}×${Math.round(screen.height * d)}` + (matchMedia('(prefers-color-scheme: dark)').matches ? ', тёмная тема' : ''), size: 'small' }; },
-  async () => { const n = netLine(); return n && { k: 'сеть', v: n, size: 'small' }; },
-  async () => { const d = await darkReader(); return d && { k: 'расширение', v: d, size: 'small' }; },
+  // Мелочь одной бегущей строкой.
+  async () => {
+    const d = window.devicePixelRatio || 1;
+    const parts = [`экран ${Math.round(screen.width * d)}×${Math.round(screen.height * d)}`];
+    if (matchMedia('(prefers-color-scheme: dark)').matches) parts.push('тёмная тема');
+    const n = netLine(); if (n) parts.push(n);
+    parts.push(languages());
+    if (!BRAVE && navigator.deviceMemory) parts.push('память ' + (navigator.deviceMemory >= 8 ? '8+' : navigator.deviceMemory) + ' ГБ');
+    if (await darkReader()) parts.push('включён Dark Reader');
+    return { ticker: parts.join('  ·  ') };
+  },
 ];
+
+function plural(n, one, few, many) {
+  const a = n % 10, b = n % 100;
+  return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many;
+}
 
 // Финал: самый сильный факт.
 async function verdict() {
   const ip = await ipInfo, real = await rtcIP;
-  if (ip && real && real !== ip.ip) return { tape: 'НАСТОЯЩИЙ IP', text: real, small: 'VPN показывает ' + ip.ip + ', но твой телефон сам назвал настоящий адрес' };
+  if (ip && real && real !== ip.ip) return { tape: 'ТВОЙ НАСТОЯЩИЙ IP', text: real, small: 'VPN показывает ' + ip.ip + ', а телефон сам сдал настоящий' };
   if (ip?.timezone?.id && !TZ_HIDDEN && ip.timezone.id !== tz)
-    return { tape: 'ТЫ ЧЕРЕЗ VPN', text: `${ip.country} по IP, а часы у тебя по ${tzName}`, small: 'VPN меняет адрес, но не меняет твоё время' };
+    return { tape: 'ТЫ ЧЕРЕЗ VPN', text: `По IP это ${ip.country}, а часы у тебя идут по ${tzName}`, small: 'VPN спрятал адрес, но не время' };
   if (/Telegram/i.test(ua) || window.TelegramWebviewProxy) return { tape: 'ИЗ ТЕЛЕГРАМА', text: 'Ты открыл это прямо из чата', small: 'Встроенный браузер Телеграма себя выдаёт' };
-  return { tape: 'Я ТЕБЯ ВИЖУ', text: ip?.city ? 'Твой IP ведёт в город ' + ip.city : 'И это была одна секунда', small: 'Всё это без единого разрешения' };
+  return { tape: 'Я ТЕБЯ ВИЖУ', text: ip?.city ? 'Твой IP ведёт в город ' + ip.city : 'И это была одна секунда', small: 'А ты ничего не разрешал' };
 }
 
 // ---------- показ ----------
@@ -393,8 +423,21 @@ async function run() {
   let tilt = 2;
   for (const r of results) {
     const it = await r;
+    if (it?.ticker) {
+      const el = document.createElement('div');
+      el.className = 'st ticker';
+      el.style.setProperty('--r', '0deg');
+      el.innerHTML = '<span></span>';
+      el.firstChild.textContent = (it.ticker + '  ·  ').repeat(4);
+      board.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('in'));
+      hit(1);
+      await wait(450);
+      continue;
+    }
     if (!it || !it.v) continue;
     const t = performance.now();
+    if (it.lie) it.size = 'big';
     const el = document.createElement('div');
     el.className = 'st ' + (it.size || '');
     el.style.setProperty('--r', it.size === 'big' ? '0deg' : (tilt = -tilt) + 'deg');
@@ -405,6 +448,21 @@ async function run() {
     requestAnimationFrame(() => el.classList.add('in'));
     hit(it.size === 'big' ? 2 : 1);
     await scramble(el.querySelector('.v'), String(it.v), it.size === 'big' ? 320 : 200);
+    if (it.lie) {
+      await wait(550);
+      el.querySelector('.v').classList.add('struck');
+      await wait(260);
+      const st = document.createElement('span');
+      st.className = 'stamp'; st.textContent = it.lie.stamp;
+      el.appendChild(st);
+      requestAnimationFrame(() => st.classList.add('in'));
+      hit(2, true);
+      await wait(200);
+      const tr = el.querySelector('.s');
+      tr.className = 't';
+      await scramble(tr, it.lie.truth, 300);
+      await wait(250);
+    }
     await wait(Math.max(0, (it.size === 'big' ? 500 : 300) - (performance.now() - t)));
   }
 
