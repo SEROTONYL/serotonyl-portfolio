@@ -117,6 +117,45 @@
   #ask.in { animation: fade .3s forwards; }
   #ask:hover, #ask:active { background: var(--pink); }
 
+  /* ---------- экран 2: повтор записи ---------- */
+  #page { position: relative; }
+  .rec #hero, .rec #board { filter: grayscale(1) brightness(.5); }
+  #trace { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+  .dot {
+    position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+    background: var(--red); box-shadow: 0 0 14px var(--red); animation: dotfade .9s forwards;
+  }
+  @keyframes dotfade { to { opacity: 0; transform: scale(.4); } }
+  .mark {
+    position: absolute; background: var(--red); color: #fff; font-weight: 800; font-size: 15px; padding: .1em .45em;
+    white-space: nowrap; opacity: 0; translate: -100% 0; transform: rotate(-6deg) scale(2.2); box-shadow: 0 4px 14px rgba(0, 0, 0, .7);
+  }
+  .mark.in { animation: markin .18s cubic-bezier(.3, 1.4, .5, 1) forwards; }
+  @keyframes markin { to { opacity: 1; transform: rotate(-6deg) scale(1); } }
+  #recov {
+    position: fixed; inset: 0; z-index: 8; display: none; touch-action: none; overflow: hidden;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 2px, transparent 2px 4px);
+  }
+  #recov.on { display: block; }
+  #recov.vhs::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 22vh;
+    background: linear-gradient(transparent, rgba(255, 255, 255, .13), transparent); animation: band .3s linear infinite;
+  }
+  @keyframes band { from { top: -25vh; } to { top: 100vh; } }
+  #recbadge {
+    position: absolute; left: 5vw; top: 4vh; border: 3px solid var(--red); color: var(--red); background: rgba(5, 5, 6, .85);
+    font-weight: 900; letter-spacing: .08em; font-size: clamp(16px, 4.6vw, 24px); padding: .1em .5em; transform: rotate(-4deg);
+  }
+  #recbadge .rdot { display: inline-block; width: .6em; height: .6em; border-radius: 50%; background: var(--red); margin-right: .4em; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  #recbadge .tc { color: var(--fg); font-weight: 400; margin-left: .7em; }
+  #ask.counting { background: var(--red); color: #fff; font-weight: 800; transform: rotate(-2deg) scale(1.15); }
+  #after { max-width: 760px; margin: -6vh auto 0; padding: 0 6vw 18vh; }
+  #after p { margin: 0 0 .9em; opacity: 0; transform: translateX(-10vw); font-size: clamp(18px, 5vw, 28px); font-weight: 700; line-height: 1.25; }
+  #after p.in { animation: slide .22s cubic-bezier(.3, 1.4, .5, 1) forwards; }
+  @keyframes slide { to { opacity: 1; transform: none; } }
+  #after p.small { font-size: 15px; font-weight: 400; color: var(--dim); }
+
   /* ---------- тряска и вспышка ---------- */
   .shake1 { animation: sh1 .18s linear; }
   .shake2 { animation: sh2 .3s linear; }
@@ -140,7 +179,10 @@
 <header id="hero"><div id="tape"></div><div id="ip"></div><div id="where"></div></header>
 <main id="board"></main>
 <button id="ask">Хочешь узнать, как такое вообще возможно?</button>
+<section id="after"></section>
+<div id="trace"></div>
 </div>
+<div id="recov"><div id="recbadge"><span class="rdot"></span>ЗАПИСЬ<span class="tc">00:00</span></div></div>
 <section id="final">
   <div class="police" style="--a:-14deg"><span></span></div>
   <div class="police p2" style="--a:9deg"><span></span></div>
@@ -152,6 +194,31 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const timeout = (p, ms) => Promise.race([p, wait(ms).then(() => null)]);
 const ua = navigator.userAgent;
 const $ = id => document.getElementById(id);
+
+// ---------- запись: как ты читаешь эту страницу (живёт только в памяти вкладки) ----------
+const rec = { t0: performance.now(), scroll: [[performance.now(), scrollY]], touch: [], tilt: [], grav: [], askIn: 0, askSeen: 0, almost: 0, leaves: 0, done: false };
+let lastScroll = 0, lastTouch = 0;
+addEventListener('scroll', () => {
+  const n = performance.now();
+  if (rec.done || n - lastScroll < 30) return;
+  lastScroll = n;
+  rec.scroll.push([n, scrollY]);
+}, { passive: true });
+function addTouch(x, y, force) {
+  const n = performance.now();
+  if (rec.done || (!force && n - lastTouch < 50)) return;
+  lastTouch = n;
+  rec.touch.push([n, x, y]);
+}
+addEventListener('touchstart', e => addTouch(e.touches[0].pageX, e.touches[0].pageY, true), { passive: true });
+addEventListener('touchmove', e => addTouch(e.touches[0].pageX, e.touches[0].pageY), { passive: true });
+addEventListener('mousemove', e => addTouch(e.pageX, e.pageY), { passive: true });
+// В Телеграме датчик оживает только после первого касания, в Brave молчит совсем.
+addEventListener('deviceorientation', e => { if (e.beta != null) rec.tilt.push([performance.now(), e.beta, e.gamma]); });
+addEventListener('devicemotion', e => {
+  const a = e.accelerationIncludingGravity;
+  if (a && a.x != null) rec.grav.push([performance.now(), Math.atan2(a.y, a.z) * 180 / Math.PI, Math.atan2(-a.x, Math.hypot(a.y, a.z)) * 180 / Math.PI]);
+});
 
 const TZ_CITY = {
   'Europe/Moscow': 'Москве', 'Europe/Kaliningrad': 'Калининграду', 'Europe/Samara': 'Самаре',
@@ -498,6 +565,212 @@ async function run() {
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   await wait(500);
   $('ask').classList.add('in');
+  rec.askIn = performance.now();
+  const r = $('ask').getBoundingClientRect();
+  if (r.top < innerHeight && r.bottom > 0) rec.askSeen = rec.askIn;
+}
+
+// ---------- экран 2: повтор ----------
+new IntersectionObserver(([e]) => {
+  if (!rec.askIn || rec.done) return;
+  if (e.isIntersecting) rec.askSeen ||= performance.now();
+  else if (rec.askSeen) rec.leaves++;
+}).observe($('ask'));
+
+let askTouched = false;
+$('ask').addEventListener('touchstart', () => { askTouched = true; }, { passive: true });
+for (const ev of ['touchend', 'touchcancel']) {
+  $('ask').addEventListener(ev, () => {
+    setTimeout(() => { if (askTouched && !rec.done && rec.askIn) rec.almost++; askTouched = false; }, 500);
+  }, { passive: true });
+}
+$('ask').addEventListener('click', () => {
+  askTouched = false;
+  if (rec.done || !rec.askIn) return;
+  replay();
+});
+
+let locked = false;
+addEventListener('wheel', e => { if (locked) e.preventDefault(); }, { passive: false });
+
+const sec = ms => (ms / 1000).toFixed(1).replace('.', ',') + ' с';
+
+// Что было в центре экрана при такой прокрутке.
+function spotAt(y, spots) {
+  const probe = y + innerHeight * 0.45;
+  let best = null, bd = Infinity;
+  for (const sp of spots) {
+    const d = probe < sp.top ? sp.top - probe : probe > sp.bottom ? probe - sp.bottom : 0;
+    if (d < bd) { bd = d; best = sp; }
+  }
+  return best;
+}
+
+function median(a) { const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; }
+
+// Поза по наклону. Пороги сняты на OnePlus 16.11.2026.
+function pose() {
+  const n = performance.now();
+  let src = rec.tilt.filter(t => n - t[0] < 4000);
+  if (src.length < 3) src = rec.grav.filter(t => n - t[0] < 4000);
+  if (src.length < 3) return null;
+  const beta = median(src.map(t => t[1])), gamma = median(src.map(t => t[2]));
+  if (Math.abs(gamma) > 50) return 'Ты лежишь на боку.';
+  if (beta > 78) return 'Ты лежишь на спине.';
+  if (beta >= 38) return 'Телефон у тебя перед лицом.';
+  if (beta >= -10) return 'Телефон у тебя на коленях или на столе.';
+  return null;
+}
+
+async function replay() {
+  rec.done = true;
+  const tEnd = performance.now(), yEnd = scrollY;
+  const S = [...rec.scroll, [tEnd, yEnd]];
+
+  // Остановки дольше 1,5 с, после того как страницу хоть раз двигали. Последняя (у кнопки) это колебание, её не считаем.
+  const spots = [];
+  const hr = $('hero').getBoundingClientRect();
+  spots.push({ el: $('hero'), name: 'свой IP', top: hr.top + scrollY, bottom: hr.bottom + scrollY, left: innerWidth - 18 });
+  for (const el of document.querySelectorAll('#board .st')) {
+    const r = el.getBoundingClientRect();
+    const kt = el.querySelector('.k')?.textContent;
+    const k = kt ? kt[0] + kt.slice(1).toLowerCase().replace(/vpn|ip/g, m => m.toUpperCase()) : 'бегущую строку';
+    spots.push({ el, name: k, top: r.top + scrollY, bottom: r.bottom + scrollY, left: r.right - 6 });
+  }
+  const stops = [];
+  let moved = false;
+  for (let i = 1; i < S.length - 1; i++) {
+    if (Math.abs(S[i - 1][1] - S[0][1]) > 40) moved = true;
+    const gap = S[i][0] - S[i - 1][0];
+    if (gap >= 1500 && moved) stops.push({ t: S[i - 1][0], dur: gap, spot: spotAt(S[i - 1][1], spots) });
+  }
+
+  // Часы повтора: движение в 4 раза быстрее, долгие паузы сжаты до 0,9 с, всё вместе не дольше 9 с.
+  const seg = [];
+  let R = 0;
+  for (let i = 1; i < S.length; i++) {
+    const real = S[i][0] - S[i - 1][0];
+    const len = Math.min(real / 4, 900);
+    seg.push({ a: S[i - 1][0], b: S[i][0], ya: S[i - 1][1], yb: S[i][1], r: R, len });
+    R += len;
+  }
+  const k = R > 9000 ? 9000 / R : 1;
+  for (const g of seg) { g.r *= k; g.len *= k; }
+  R *= k;
+
+  // Удар: вспышка, всё серое, штамп ЗАПИСЬ.
+  locked = true;
+  hit(3);
+  document.body.classList.add('rec');
+  $('recov').classList.add('on', 'vhs');
+  await wait(450);
+
+  // Перемотка рывками наверх.
+  const y0 = scrollY;
+  await new Promise(res => {
+    const st = performance.now();
+    (function tick(now) {
+      const p = Math.min(1, (now - st) / 700);
+      scrollTo(0, y0 * (1 - p * p));
+      $('page').style.transform = `translateX(${(Math.random() - .5) * 14}px)`;
+      $('recov').querySelector('.tc').textContent = '-' + Math.round((1 - p) * (tEnd - rec.t0) / 1000) + ' с';
+      p < 1 ? requestAnimationFrame(tick) : res();
+    })(st);
+  });
+  $('page').style.transform = '';
+  $('recov').classList.remove('vhs');
+  hit(2);
+  await wait(450);
+
+  // Повтор.
+  const trace = $('trace'), tc = $('recov').querySelector('.tc');
+  let ti = 0, si = 0, gi = 0, lastHit = 0;
+  const marks = new Map();
+  await new Promise(res => {
+    const st = performance.now();
+    (function tick(now) {
+      const r = Math.min(R, now - st);
+      while (gi < seg.length - 1 && seg[gi].r + seg[gi].len < r) gi++;
+      const g = seg[gi];
+      const p = g.len ? Math.min(1, (r - g.r) / g.len) : 1;
+      const real = g.a + (g.b - g.a) * p;
+      scrollTo(0, g.ya + (g.yb - g.ya) * p);
+      const s = Math.floor((real - rec.t0) / 1000);
+      tc.textContent = String(s / 60 | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      while (ti < rec.touch.length && rec.touch[ti][0] <= real) {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        d.style.left = rec.touch[ti][1] + 'px';
+        d.style.top = rec.touch[ti][2] + 'px';
+        trace.appendChild(d);
+        setTimeout(() => d.remove(), 950);
+        ti++;
+      }
+      while (si < stops.length && stops[si].t + stops[si].dur <= real) {
+        const sp = stops[si].spot;
+        let m = marks.get(sp);
+        if (!m) {
+          m = document.createElement('div');
+          m.className = 'mark';
+          m.style.left = sp.left + 'px';
+          m.style.top = (sp.top - 12) + 'px';
+          m.textContent = sec(stops[si].dur);
+          trace.appendChild(m);
+          marks.set(sp, m);
+        } else {
+          m.textContent += ', потом ' + sec(stops[si].dur);
+          m.classList.remove('in'); void m.offsetWidth;
+        }
+        m.classList.add('in');
+        if (now - lastHit > 450) { hit(1); lastHit = now; }
+        si++;
+      }
+      r < R ? requestAnimationFrame(tick) : res();
+    })(st);
+  });
+  scrollTo(0, yEnd);
+  await wait(450);
+
+  // Колебание на кнопке.
+  const ask = $('ask');
+  const h = Math.max(0, tEnd - (rec.askSeen || rec.askIn));
+  ask.classList.add('counting');
+  hit(3, true);
+  await new Promise(res => {
+    const st = performance.now();
+    (function tick(now) {
+      const p = Math.min(1, (now - st) / 800);
+      ask.textContent = 'Ты думал ' + sec(h * p);
+      p < 1 ? requestAnimationFrame(tick) : res();
+    })(st);
+  });
+  $('recov').classList.remove('on');
+  locked = false;
+  await wait(500);
+
+  const lines = [];
+  if (h < 1500) lines.push('Ты нажал почти сразу. Даже не раздумывал.');
+  else if (h < 8000) lines.push('Столько ты решал, нажимать или нет.');
+  else lines.push('Столько ты сомневался, прежде чем нажать.');
+  if (rec.almost) lines.push(rec.almost === 1 ? 'Один раз палец уже лежал на кнопке, и ты его убрал.' : `${rec.almost} ${plural(rec.almost, 'раз', 'раза', 'раз')} палец уже лежал на кнопке, и ты его убирал.`);
+  if (rec.leaves) lines.push(rec.leaves === 1 ? 'Ты уходил от кнопки и вернулся.' : `Ты уходил от кнопки ${rec.leaves} ${plural(rec.leaves, 'раз', 'раза', 'раз')} и всё равно вернулся.`);
+  const top = stops.reduce((a, b) => (b.dur > (a?.dur || 0) ? b : a), null);
+  if (top && top.dur >= 2000) lines.push(`Дольше всего ты смотрел на «${top.spot.name}»: ${sec(top.dur)}.`);
+  const ps = pose();
+  if (ps) lines.push('И ещё. ' + ps);
+  lines.push({ small: 'Любая страница видит, где ты остановился, куда ткнул' + (ps ? ', как держишь телефон' : '') + ' и сколько думал. Разрешения для этого не нужно.' });
+
+  const after = $('after');
+  for (const l of lines) {
+    const el = document.createElement('p');
+    if (typeof l === 'object') { el.className = 'small'; el.textContent = l.small; } else el.textContent = l;
+    after.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('in'));
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const sm = typeof l === 'object';
+    hit(sm ? 1 : 2);
+    await wait(sm ? 600 : 900);
+  }
 }
 run();
 </script>
