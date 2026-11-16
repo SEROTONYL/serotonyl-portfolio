@@ -41,7 +41,7 @@
   #board { display: flex; flex-wrap: wrap; gap: 14px 10px; padding: 4vh 5vw 6vh; max-width: 900px; margin: 0 auto; }
   .st {
     background: var(--card); padding: .55em .8em .6em; border-left: 3px solid var(--fg);
-    max-width: 100%; opacity: 0; transform: rotate(var(--r)) scale(1.7);
+    flex: 1 1 auto; max-width: 100%; opacity: 0; transform: rotate(var(--r)) scale(1.7);
     box-shadow: 0 6px 18px rgba(0, 0, 0, .6);
   }
   .st.in { animation: stamp .2s cubic-bezier(.3, 1.4, .5, 1) forwards; }
@@ -153,7 +153,7 @@ const hints = navigator.userAgentData?.getHighEntropyValues
   ? timeout(navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'fullVersionList']).catch(() => null), 1500)
   : Promise.resolve(null);
 
-const battery = navigator.getBattery ? timeout(navigator.getBattery().catch(() => null), 1500) : Promise.resolve(null);
+const battery = navigator.getBattery && !navigator.brave ? timeout(navigator.getBattery().catch(() => null), 1500) : Promise.resolve(null);
 
 function gpu() {
   try {
@@ -168,7 +168,9 @@ function gpu() {
     return r || null;
   } catch { return null; }
 }
-const gpuName = gpu();
+// Brave подменяет видеокарту, батарею, потоки и память, этим значениям не верим.
+const BRAVE = !!navigator.brave;
+const gpuName = BRAVE ? null : gpu();
 
 // Процессор браузер не называет, но у телефонов его выдаёт видеоядро.
 const ADRENO_CHIP = {
@@ -215,11 +217,13 @@ async function device() {
   if (/iPhone/.test(ua)) return { v: 'iPhone', s: 'iOS ' + ((ua.match(/OS (\d+[_\d]*)/) || [])[1] || '?').replace(/_/g, '.') };
   if (/iPad/.test(ua)) return { v: 'iPad' };
   if (/Android/.test(ua)) {
-    const model = h?.model || (ua.match(/Android [\d.]+; ([^;)]+)/) || [])[1];
+    const model = h?.model || ((ua.match(/Android [\d.]+; ([^;)]+)/) || [])[1] || '').replace(/\s*Build\/.*$/, '');
     const ver = h?.platformVersion || (ua.match(/Android ([\d.]+)/) || [])[1];
     const real = model && model !== 'K';
     const brand = real && brandOf(model);
-    return { v: brand || (real ? model : 'Android'), s: [brand && model, 'Android ' + (ver || '').replace(/\.0(\.0)?$/, '')].filter(Boolean).join(', ') };
+    const os = 'Android ' + (ver || '').replace(/\.0(\.0)?$/, '');
+    if (!real) return { v: os, s: 'модель браузер не отдал' };
+    return { v: brand || model, s: [brand && model, os].filter(Boolean).join(', ') };
   }
   if (/Windows/.test(ua)) return { v: 'Windows ' + (h?.platformVersion && parseInt(h.platformVersion) >= 13 ? '11' : '10') };
   if (/Mac OS X/.test(ua)) return { v: 'Mac' };
@@ -233,14 +237,18 @@ async function browser() {
   const pick = n => list.find(b => b.brand.includes(n));
   const tg = /Telegram/i.test(ua) || window.TelegramWebviewProxy || window.TelegramWebview;
   const ya = pick('YaBrowser') || pick('Yandex') || /YaBrowser/.test(ua);
-  const base = ya ? 'Яндекс Браузер' : pick('Edge') ? 'Edge' : pick('Opera') ? 'Opera' : pick('Chrome') ? 'Chrome'
-    : /Firefox/.test(ua) ? 'Firefox' : /Safari/.test(ua) ? 'Safari' : null;
-  if (tg) return 'Телеграм' + (base ? ' (' + base + ')' : '');
-  const v = (pick('Chrome') || {}).version;
-  return base ? base + (v && !ya ? ' ' + v.split('.')[0] : '') : null;
+  // В WebView и Brave бренда «Chrome» нет, только «Chromium», поэтому версию движка берём из UA.
+  const cv = ((pick('Google Chrome') || pick('Chromium') || {}).version || (ua.match(/Chrome\/(\d+)/) || [])[1] || '').split('.')[0];
+  const ios = /iPhone|iPad/.test(ua);
+  if (tg) return 'встроенный в Телеграм' + (cv && !ios ? ', движок Chrome ' + cv : ios ? ', движок Safari' : '');
+  if (/; wv\)/.test(ua) || pick('WebView')) return 'встроенный в приложение' + (cv ? ', движок Chrome ' + cv : '');
+  const base = BRAVE ? 'Brave' : ya ? 'Яндекс Браузер' : pick('Edge') ? 'Edge' : pick('Opera') || /OPR\//.test(ua) ? 'Opera'
+    : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Firefox|FxiOS/.test(ua) ? 'Firefox'
+    : /CriOS/.test(ua) || cv ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : null;
+  return base ? base + (base === 'Chrome' && cv ? ' ' + cv : '') : null;
 }
 
-// ru-RU, en-RU, ru превращаем в «русский, английский; регион Россия».
+// ru-RU, en-RU, ru превращаем в «русский, английский».
 function languages() {
   const tags = navigator.languages?.length ? navigator.languages : [navigator.language];
   let L, R;
@@ -251,7 +259,7 @@ function languages() {
     const ln = L.of(l); if (ln && !langs.includes(ln)) langs.push(ln);
     if (r) { const rn = R.of(r.toUpperCase()); if (rn && !regions.includes(rn)) regions.push(rn); }
   }
-  return langs.join(', ') + (regions.length ? '. Регион: ' + regions.join(', ') : '');
+  return langs.join(', ');
 }
 
 function netLine() {
@@ -272,14 +280,15 @@ const darkReader = () => wait(900).then(() =>
 // big: широкая плашка с розовой кромкой, small: мелочь
 const plan = [
   async () => { const d = await device(); return d && { k: 'устройство', v: d.v, s: d.s, size: 'big' }; },
+  async () => BRAVE && { k: 'защита', v: 'Brave подменил часть данных', s: 'Видеокарту, заряд и процессор он спрятал. IP, часы и экран нет', size: 'big' },
   async () => { const b = await battery; return b && { k: 'заряд', v: Math.round(b.level * 100) + '%' + (b.charging ? ', на зарядке' : ''), size: 'big' }; },
-  async () => { const c = chip(); const n = navigator.hardwareConcurrency;
+  async () => { const c = chip(); const n = !BRAVE && navigator.hardwareConcurrency;
     return (c || n) && { k: c ? 'процессор, скорее всего' : 'процессор', v: c || n + ' потоков', s: c && n ? n + ' потоков' : null, size: c ? 'big' : '' }; },
   async () => ({ k: 'время', v: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + (tzName ? ' по ' + tzName : '') }),
   async () => gpuName && { k: 'видеокарта', v: gpuName },
   async () => { const b = await browser(); return b && { k: 'браузер', v: b }; },
   async () => ({ k: 'языки', v: languages() }),
-  async () => navigator.deviceMemory && { k: 'память', v: (navigator.deviceMemory >= 8 ? '8+' : navigator.deviceMemory) + ' ГБ', size: 'small' },
+  async () => !BRAVE && navigator.deviceMemory && { k: 'память', v: (navigator.deviceMemory >= 8 ? '8+' : navigator.deviceMemory) + ' ГБ', size: 'small' },
   async () => { const d = window.devicePixelRatio || 1;
     return { k: 'экран', v: `${Math.round(screen.width * d)}×${Math.round(screen.height * d)}` + (matchMedia('(prefers-color-scheme: dark)').matches ? ', тёмная тема' : ''), size: 'small' }; },
   async () => { const n = netLine(); return n && { k: 'сеть', v: n, size: 'small' }; },
